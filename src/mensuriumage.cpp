@@ -515,12 +515,12 @@ mensuriumAGE::mensuriumAGE()
 //    fs.release();
 //    cv::FileStorage fs2("MatCam.xml", cv::FileStorage::READ);
 //    fs2["Distortions"]>>distCoeffs;
-    cv::FileStorage fsIntrinsics("config/Intrinsics.xml", cv::FileStorage::READ);
+    cv::FileStorage fsIntrinsics("config/Intrinsics2.xml", cv::FileStorage::READ);
     fsIntrinsics["Intrinsics"] >> cameraMatrix;    
     fsIntrinsics.release();
     std::cout << "Matriz Intrínsica: " << cameraMatrix << std::endl;
 
-    cv::FileStorage fsDistortion("config/Distortion.xml", cv::FileStorage::READ);
+    cv::FileStorage fsDistortion("config/Distortion2.xml", cv::FileStorage::READ);
     fsDistortion["Distortion"] >> distCoeffs;
     fsDistortion.release();
     std::cout << "Coeficientes de Distorção: " << distCoeffs << std::endl;
@@ -539,7 +539,7 @@ void mensuriumAGE::AcharCentro1Tab(cv::Mat img, unsigned int largura, unsigned i
     cv::Size tTab(largura, altura);
     cv::Mat cinza(img.rows,img.cols,CV_8UC1);
     Marcador marco;
-    marco.Inic(altura, largura, tamanho, tamanho);
+    marco.Inic(largura, altura, tamanho, tamanho);
 
     cv::cvtColor(img,cinza,CV_RGB2GRAY);
     cv::Mat imgThresh=cv::Mat(img.rows,img.cols,CV_8UC1);

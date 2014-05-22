@@ -53,7 +53,7 @@ int main(int argc, char** argv)
             a = 6u;   
             t = 25.4f;
         }            
-        else if ((l < 2u) || (a < 2u || a == l) || (t < 25.f)) 
+        else if ((l < 2u) || (a < 2u || a == l) || (t < 20.f)) 
         {
             uso();
             return 1;
