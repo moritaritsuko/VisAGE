@@ -1,6 +1,10 @@
 #include <VIAGE/mensuriumage.hpp>
+
 #include <opencv/cv.h>
 #include <opencv2/opencv.hpp>
+
+#include <string>
+#include <iostream>
 #include <cmath>
 
 
@@ -511,9 +515,19 @@ mensuriumAGE::mensuriumAGE()
 //    fs.release();
 //    cv::FileStorage fs2("MatCam.xml", cv::FileStorage::READ);
 //    fs2["Distortions"]>>distCoeffs;
-    cv::FileStorage fsyml("out_camera_data.yml", cv::FileStorage::READ);
+    cv::FileStorage fsIntrinsics("config/Intrinsics.xml", cv::FileStorage::READ);
+    fsIntrinsics["Intrinsics"] >> cameraMatrix;    
+    fsIntrinsics.release();
+    std::cout << "Matriz Intrínsica: " << cameraMatrix << std::endl;
+
+    cv::FileStorage fsDistortion("config/Distortion.xml", cv::FileStorage::READ);
+    fsDistortion["Distortion"] >> distCoeffs;
+    fsDistortion.release();
+    std::cout << "Coeficientes de Distorção: " << distCoeffs << std::endl;
+
+    /*cv::FileStorage fsyml("out_camera_data.yml", cv::FileStorage::READ);
     fsyml["camera_matrix"]>>cameraMatrix;
-    fsyml["distortion_coefficients"]>>distCoeffs;
+    fsyml["distortion_coefficients"]>>distCoeffs;*/
     std::cout<<"Mensurium inicializado com Sucesso!"<<std::endl;
 }
 
@@ -521,15 +535,16 @@ Placa mensuriumAGE::getPlaca(int i){
     return placa[i];
 }
 
-void mensuriumAGE::AcharCentro1Tab(cv::Mat img, cv::Size tTab){
-
+void mensuriumAGE::AcharCentro1Tab(cv::Mat img, unsigned int largura, unsigned int altura, float tamanho){
+    cv::Size tTab(largura, altura);
     cv::Mat cinza(img.rows,img.cols,CV_8UC1);
     Marcador marco;
-    marco.Inic(6,9,23.f,23.f);
+    marco.Inic(altura, largura, tamanho, tamanho);
 
     cv::cvtColor(img,cinza,CV_RGB2GRAY);
     cv::Mat imgThresh=cv::Mat(img.rows,img.cols,CV_8UC1);
-    cv::threshold(cinza,imgThresh,0,255,CV_THRESH_BINARY|CV_THRESH_OTSU);
+    cv::adaptiveThreshold(cinza,imgThresh,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,47,15);
+    //cv::threshold(cinza,imgThresh,0,255,CV_THRESH_BINARY|CV_THRESH_OTSU);
 //    cv::imshow("AcharTab",imgThresh);
 
     std::vector<cv::Point2f> corners;
@@ -555,9 +570,7 @@ void mensuriumAGE::AcharCentro1Tab(cv::Mat img, cv::Size tTab){
 
     }
 
-//    cv::imshow("AcharTab",img);
-
-
+    cv::imshow("AcharTab",img);
 }
 
 cv::Mat mensuriumAGE::Stereo(cv::Mat imgE, cv::Mat imgD){

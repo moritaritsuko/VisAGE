@@ -40,6 +40,7 @@ target_link_libraries(${EXECUTABLE_NAME} ${OpenCV_LIBS})
 
 # Install Target
 install(TARGETS ${EXECUTABLE_NAME} DESTINATION .)
+file(COPY config DESTINATION .)
 
 # CPack packaging
 include(InstallRequiredSystemLibraries)

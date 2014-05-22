@@ -15,7 +15,7 @@ void uso()
 }
 
 int main(int argc, char** argv)
-{
+{    
     int opcao;
     unsigned int l = 9, a = 6;
     float t = 25.4f;
@@ -68,7 +68,7 @@ int main(int argc, char** argv)
     catch (std::exception& e)
     {
         std::cout << "EXCEPTION: " << e.what() << std::endl;
-	return EXIT_FAILURE;
+	    return EXIT_FAILURE;
     }
 
     return EXIT_SUCCESS;
