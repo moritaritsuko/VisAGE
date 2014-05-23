@@ -1,5 +1,6 @@
 #include <VIAGE/conectrobo.hpp>
 #include <VIAGE/pugixml.hpp>
+#include <opencv2/core/core.hpp>
 #include <sys/time.h>
 #include <netinet/in.h>
 #include <sys/types.h>
@@ -80,46 +81,66 @@ void ConectRobo::InciarLeitura(){
 
 }
 
-void ConectRobo::TesteXML(){
-//    pugi::xml_document doc;
+void ConectRobo::RSI_XML(float x, float y, float z, float a, float b, float c)
+{
+  auto tempoInicial = cv::getTickCount();
+  pugi::xml_document doc;
 
-//    //[code_modify_add
-//    // add node with some name
-//    pugi::xml_node node = doc.append_child("Sen");
-//    node.set_value("Type=\"ImFree\"");
+  // <Sen Type="ImFree">
+  pugi::xml_node senNode = doc.append_child("Sen");
+  senNode.append_attribute("Type") = "ImFree";
+    // <EStr>ERX Message! Free config!</EStr>
+  pugi::xml_node estrNode = senNode.append_child("EStr");
+  estrNode.append_child(pugi::node_pcdata).set_value("ERX Message! Free config!");
+    // <RKorr X="0.0000" Y="0.0000" Z="0.0000" A="0.0000" B="0.0000" C="0.0000"/>
+  pugi::xml_node rkorrNode = senNode.insert_child_after("RKorr", estrNode);
+  rkorrNode.append_attribute("X") = std::to_string(x).substr(0, 6).c_str();
+  rkorrNode.append_attribute("Y") = std::to_string(y).substr(0, 6).c_str();;
+  rkorrNode.append_attribute("Z") = std::to_string(z).substr(0, 6).c_str();;
+  rkorrNode.append_attribute("A") = std::to_string(a).substr(0, 6).c_str();;
+  rkorrNode.append_attribute("B") = std::to_string(b).substr(0, 6).c_str();;
+  rkorrNode.append_attribute("C") = std::to_string(c).substr(0, 6).c_str();;
+    // <AKorr A1="0.0000" A2="0.0000" A3="0.0000" A4="0.0000" A5="0.0000" A6="0.0000" />
+  pugi::xml_node akorrNode = senNode.insert_child_after("AKorr", rkorrNode);
+  akorrNode.append_attribute("A1") = "0.0000";
+  akorrNode.append_attribute("A2") = "0.0000";
+  akorrNode.append_attribute("A3") = "0.0000";
+  akorrNode.append_attribute("A4") = "0.0000";
+  akorrNode.append_attribute("A5") = "0.0000";
+  akorrNode.append_attribute("A6") = "0.0000";
+    // <EKorr E1="0.0000" E2="0.0000" E3="0.0000" E4="0.0000" E5="0.0000" E6="0.0000" />
+  pugi::xml_node ekorrNode = senNode.insert_child_after("EKorr", akorrNode);
+  ekorrNode.append_attribute("E1") = "0.0000";
+  ekorrNode.append_attribute("E2") = "0.0000";
+  ekorrNode.append_attribute("E3") = "0.0000";
+  ekorrNode.append_attribute("E4") = "0.0000";
+  ekorrNode.append_attribute("E5") = "0.0000";
+  ekorrNode.append_attribute("E6") = "0.0000";
+    // <Tech T21="1.09" T22="2.08" T23="3.07" T24="4.06" T25="5.05" T26="6.04" T27="7.03" T28="8.02" T29="9.01" T210="10.00" />
+  pugi::xml_node techNode = senNode.insert_child_after("Tech", ekorrNode);
+  techNode.append_attribute("T21") = "1.09";
+  techNode.append_attribute("T22") = "2.08";
+  techNode.append_attribute("T23") = "3.07";
+  techNode.append_attribute("T24") = "4.06";
+  techNode.append_attribute("T25") = "5.05";
+  techNode.append_attribute("T26") = "6.04";
+  techNode.append_attribute("T27") = "7.03";
+  techNode.append_attribute("T28") = "8.02";
+  techNode.append_attribute("T29") = "9.01";
+  techNode.append_attribute("T210") = "10.00";
+    // <DiO>125</DiO>
+  pugi::xml_node dioNode = senNode.insert_child_after("DiO", techNode);
+  dioNode.append_child(pugi::node_pcdata).set_value("125");
+    // <IPOC></IPOC>
+  pugi::xml_node ipocNode = senNode.insert_child_after("IPOC", dioNode);
+  ipocNode.append_child(pugi::node_pcdata).set_value("");
+  // </Sen>
 
+  doc.print(std::cout);
+  
+  
+  std::cout << "XML RSI: " << doc.save_file("config/RSI.xml") << std::endl;
 
-//    // add description node with text child
-//    pugi::xml_node descr = node.append_child("EStr");
-//    descr.append_child(pugi::node_pcdata).set_value("ERX Message! Free config!");
-
-//    // add param node before the description
-//    pugi::xml_node param = node.insert_child_after("RKorr", descr);
-
-//    // add attributes to param node
-//    param.append_attribute("X") = "0.0000";
-//    param.append_attribute("Y") = "0.0000";
-//    param.append_attribute("Z") = "0.0000";
-//    param.append_attribute("A") = "0.0000";
-//    param.append_attribute("B") = "0.0000";
-//    param.append_attribute("C") = "0.0000";
-
-//    pugi::xml_node param2 = node.insert_child_after("AKorr", descr);
-
-//    // add attributes to param node
-//    param2.append_attribute("A1") = "0.0000";
-//    param2.append_attribute("A2") = "0.0000";
-//    param2.append_attribute("A3") = "0.0000";
-//    param2.append_attribute("A4") = "0.0000";
-//    param2.append_attribute("A5") = "0.0000";
-//    param2.append_attribute("A6") = "0.0000";
-
-//    //param.append_attribute("value") = 1.1;
-//    //param.insert_attribute_after("type", param.attribute("name")) = "float";
-//    //]
-
-//    doc.print(std::cout);
-//    std::cout << "Saving result: " << doc.save_file("save_file_output.xml") << std::endl;
+  auto tempoFinal = (cv::getTickCount() - tempoInicial) / cv::getTickFrequency();
+  std::cout << "RSI gerado em " << tempoFinal << " ms." << std::endl;
 }
-
-

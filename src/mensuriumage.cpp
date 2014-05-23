@@ -72,7 +72,7 @@ CvPoint* Marcador::CentroTab(std::vector<cv::Point2f> pontos){
       centro3 = cvPoint((int)pontos[cornerCount-1].x,(int)pontos[cornerCount-1].y);
      }else{
       centro  = cvPoint((int)pontos[0].x,(int)pontos[0].y);
-      centro1 = cvPoint((int)pontos[3].x,(int)pontos[5].y);
+      centro1 = cvPoint((int)pontos[5].x,(int)pontos[5].y);
       centro2 = cvPoint((int)pontos[cornerCount-6].x,(int)pontos[cornerCount-6].y);
       centro3 = cvPoint((int)pontos[cornerCount-1].x,(int)pontos[cornerCount-1].y);
      }
