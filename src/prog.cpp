@@ -16,7 +16,7 @@ Programa::Programa(unsigned int l, unsigned int a, float t)
     std::cout << "Largura: " << largura << std::endl;
     std::cout << "Altura: " << altura << std::endl;
     std::cout << "Tamanho (mm): " << tamanho << std::endl;
-    mConect.RSI_XML();
+    mConect.CriarConexao();
 }
 
 void Programa::executar()
@@ -34,7 +34,18 @@ void Programa::executar()
         if((tecla & 255) == 27)
             break;
 
+
         cap >> imagem;
-        mAGE.AcharCentro1Tab(imagem, largura, altura, tamanho);
+        Marcador marco;
+        mAGE.AcharCentro1Tab(imagem, marco, largura, altura, tamanho);
+
+        if (marco.isValido())
+        {
+            // TODO: gerar XML com dados do marco; estabelecer conexão com robô e responder mensagem;
+            auto posicao = marco.getPosicao();
+            auto orientacao = marco.getOrientacao();
+            mConect.RSI_XML(posicao.at<double>(0, 0), posicao.at<double>(0, 1), posicao.at<double>(0, 2), 
+                orientacao.at<double>(0, 0), orientacao.at<double>(0, 1), orientacao.at<double>(0, 2));
+        }
     }
 }

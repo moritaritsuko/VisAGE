@@ -22,7 +22,10 @@ void Marcador::Inic(int x, int y,float dx,float dy)
     cornerCount =  tamTab.width * tamTab.height;
 }
 
-Marcador::Marcador(){}
+Marcador::Marcador()
+{
+  valido = false;
+}
 
 cv::Mat Marcador::PontosTab3D(){
 //    CvMat* pontos = cvCreateMat(tamTab.height,tamTab.width, CV_32FC1);
@@ -213,12 +216,24 @@ CvPoint* Marcador::getCantosDigonal() {
             return cantosDigonal;
 }
 
-cv::Mat Marcador::getPosicao() {
+cv::Mat Marcador::getPosicao() 
+{
             return posicao;
 }
 
-void Marcador::setPosicao(cv::Mat pos) {
-            this->posicao = pos;
+void Marcador::setPosicao(cv::Mat pos) 
+{
+  posicao = pos;
+}
+
+cv::Mat Marcador::getOrientacao()
+{
+  return orientacao;
+}
+
+void Marcador::setOrientacao(cv::Mat orient)
+{
+  orientacao = orient;
 }
 
 bool Marcador::VerificaCor(cv::Mat& img, cv::Scalar cor, cv::Scalar deltaCor){
@@ -344,6 +359,15 @@ cv::Point Marcador::getCentroImg(){
     return cv::Point(centroImg.x,centroImg.y);
 }
 
+void Marcador::setValido()
+{
+  valido = true;
+}
+
+bool Marcador::isValido()
+{
+  return valido;
+}
 
 Placa::Placa(){
 //    marco = new Marcador[4];
@@ -510,24 +534,10 @@ mensuriumAGE::mensuriumAGE()
     placa = new Placa[2];
     placa[0].Inic(4);
     placa[1].Inic(4);
-//    cv::FileStorage fs("MatCam.xml", cv::FileStorage::READ);
-//    fs["MatCam"]>>cameraMatrix;
-//    fs.release();
-//    cv::FileStorage fs2("MatCam.xml", cv::FileStorage::READ);
-//    fs2["Distortions"]>>distCoeffs;
-    cv::FileStorage fsIntrinsics("config/Intrinsics2.xml", cv::FileStorage::READ);
-    fsIntrinsics["Intrinsics"] >> cameraMatrix;    
-    fsIntrinsics.release();
-    std::cout << "Matriz Intrínsica: " << cameraMatrix << std::endl;
+    cv::FileStorage fs("config/Calib.yml", cv::FileStorage::READ);
+    fs["camera_matrix"] >> cameraMatrix;
+    fs["distortion_coefficients"] >> distCoeffs;
 
-    cv::FileStorage fsDistortion("config/Distortion2.xml", cv::FileStorage::READ);
-    fsDistortion["Distortion"] >> distCoeffs;
-    fsDistortion.release();
-    std::cout << "Coeficientes de Distorção: " << distCoeffs << std::endl;
-
-    /*cv::FileStorage fsyml("out_camera_data.yml", cv::FileStorage::READ);
-    fsyml["camera_matrix"]>>cameraMatrix;
-    fsyml["distortion_coefficients"]>>distCoeffs;*/
     std::cout<<"Mensurium inicializado com Sucesso!"<<std::endl;
 }
 
@@ -535,42 +545,44 @@ Placa mensuriumAGE::getPlaca(int i){
     return placa[i];
 }
 
-void mensuriumAGE::AcharCentro1Tab(cv::Mat img, unsigned int largura, unsigned int altura, float tamanho){
+Marcador mensuriumAGE::AcharCentro1Tab(cv::Mat img, Marcador& marco, unsigned int largura, unsigned int altura, float tamanho)
+{
     cv::Size tTab(largura, altura);
     cv::Mat cinza(img.rows,img.cols,CV_8UC1);
-    Marcador marco;
     marco.Inic(largura, altura, tamanho, tamanho);
 
     cv::cvtColor(img,cinza,CV_RGB2GRAY);
     cv::Mat imgThresh=cv::Mat(img.rows,img.cols,CV_8UC1);
     cv::adaptiveThreshold(cinza,imgThresh,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,47,15);
     //cv::threshold(cinza,imgThresh,0,255,CV_THRESH_BINARY|CV_THRESH_OTSU);
-//    cv::imshow("AcharTab",imgThresh);
+    //cv::imshow("AcharTab",imgThresh);
 
     std::vector<cv::Point2f> corners;
     bool found = cv::findChessboardCorners( imgThresh, tTab, corners,CV_CALIB_CB_ADAPTIVE_THRESH  | CV_CALIB_CB_NORMALIZE_IMAGE);
 
-    if(found){
-        cv::drawChessboardCorners(img,tTab,corners,found);
-        cv::Mat R(3,1,cv::DataType<double>::type);
-        cv::Mat trans(3,1,cv::DataType<double>::type);
+    if(found)
+    {      
+      cv::drawChessboardCorners(img,tTab,corners,found);
+      cv::Mat R(3,1,cv::DataType<double>::type);
+      cv::Mat trans(3,1,cv::DataType<double>::type);
 
-        marco.calcCantosDigonal(corners);
+      marco.calcCantosDigonal(corners);
 
-        cv::solvePnP(marco.getMatP3D(),corners,cameraMatrix,distCoeffs,R,trans,false,0);
+      cv::solvePnP(marco.getMatP3D(),corners,cameraMatrix,distCoeffs,R,trans,false,0);
 
-        marco.setPosicao(trans);
+      marco.setPosicao(trans);
+      marco.setOrientacao(R);
 
-        double dist = sqrt(pow(trans.at<float>(0,0),2)+pow(trans.at<float>(1,0),2)+pow(trans.at<float>(2,0),2));
-        std::cout<<"Dist: "<<dist<<std::endl;
-        cv::Point temp = marco.getCentroImg();
-        cv::putText( img,cv::format("Dist: %f",dist), temp, 1, 1,cv::Scalar(255,0,255));
-        cv::circle(img,temp,5,cv::Scalar(255,0,255),3,2,0);
-
-
-    }
+      double dist = 1.11f * sqrt(pow(trans.at<float>(0,0),2)+pow(trans.at<float>(1,0),2)+pow(trans.at<float>(2,0),2));
+      std::cout<<"Dist: "<<dist<<std::endl;
+      cv::Point temp = marco.getCentroImg();
+      cv::putText( img,cv::format("Dist: %f",dist), temp, 1, 1,cv::Scalar(255,0,255));
+      cv::circle(img,temp,5,cv::Scalar(255,0,255),3,2,0);
+      marco.setValido();
+    }    
 
     cv::imshow("AcharTab",img);
+    return marco;
 }
 
 cv::Mat mensuriumAGE::Stereo(cv::Mat imgE, cv::Mat imgD){

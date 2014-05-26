@@ -25,67 +25,67 @@ ConectRobo::ConectRobo(int porta)
 {         
     if(porta<=MIN_PORT || porta>MAX_PORT)
     {
-        mPorta=S_PORT;
+      mPorta = S_PORT;
     }
     else
     {
-        mPorta = porta;
+      mPorta = porta;
     }
 }
 
-void ConectRobo::CriarConexao(){
+void ConectRobo::CriarConexao()
+{
 
-    memset((char *) &cliaddr, 0, sizeof(cliaddr));
+  memset((char *) &cliaddr, 0, sizeof(cliaddr));
 
-    sockfd=socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP);
+  sockfd=socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP);
 
-    bzero(&servaddr,sizeof(servaddr));
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr=htonl(INADDR_ANY);
-    servaddr.sin_port=htons(mPorta);
-    int k = bind(sockfd,(struct sockaddr *)&servaddr,sizeof(servaddr));
-        //printf("Servidor Iniciado! k= %i\n",k);
-        std::cout<<"Servidor Iniciado! k= "<<k<<std::endl;
+  bzero(&servaddr,sizeof(servaddr));
+  servaddr.sin_family = AF_INET;
+  servaddr.sin_addr.s_addr=htonl(INADDR_ANY);
+  servaddr.sin_port=htons(mPorta);
+  int k = bind(sockfd,(struct sockaddr *)&servaddr,sizeof(servaddr));
+  //printf("Servidor Iniciado! k= %i\n",k);
+  std::cout<<"Servidor Iniciado! k= "<<k<<std::endl;
+}
+
+void ConectRobo::EnivarMsg(char *msg)
+{
 
 
 }
 
-void ConectRobo::EnivarMsg(char *msg){
-
-
-}
-
-void *ConectRobo::LerMsg(void){
-    connect(sockfd,(struct sockaddr *)&cliaddr,sizeof cliaddr);
-    for (;;)
+void *ConectRobo::LerMsg(void)
+{
+  connect(sockfd,(struct sockaddr *)&cliaddr,sizeof cliaddr);
+  for (;;)
+  {
+    len = sizeof(cliaddr);
+    n = recvfrom(sockfd,mesg,512,0,(struct sockaddr *)&cliaddr,&len);
+    //printf("n = [%i]\n",n);
+    if(n>-1)
     {
-       len = sizeof(cliaddr);
-       n = recvfrom(sockfd,mesg,512,0,(struct sockaddr *)&cliaddr,&len);
-       //printf("n = [%i]\n",n);
-       if(n>-1){
-           //mesg[n] = 0;
-           printf("Recebido[%i]: %s",n,mesg);
-           std::cout<<"Recebido = "<<mesg<<std::endl;
-       }
-     }
+      //mesg[n] = 0;
+      printf("Recebido[%i]: %s",n,mesg);
+      std::cout<<"Recebido = "<<mesg<<std::endl;
+    }
+  }
 }
 
 
-void ConectRobo::InciarLeitura(){
-
-    pthread_t tid;
-     int       result;
-     result = pthread_create(&tid, 0, ConectRobo::chamarLerMsg, this);
-     if (result == 0)
-        pthread_detach(tid);
-
+void ConectRobo::InciarLeitura()
+{
+  pthread_t tid;
+  int result;
+  result = pthread_create(&tid, 0, ConectRobo::chamarLerMsg, this);
+  if (result == 0)
+    pthread_detach(tid);
 }
 
 void ConectRobo::RSI_XML(float x, float y, float z, float a, float b, float c)
 {
-  auto tempoInicial = cv::getTickCount();
   pugi::xml_document doc;
-
+  auto tempoInicial = cv::getTickCount();
   // <Sen Type="ImFree">
   pugi::xml_node senNode = doc.append_child("Sen");
   senNode.append_attribute("Type") = "ImFree";
@@ -95,11 +95,11 @@ void ConectRobo::RSI_XML(float x, float y, float z, float a, float b, float c)
     // <RKorr X="0.0000" Y="0.0000" Z="0.0000" A="0.0000" B="0.0000" C="0.0000"/>
   pugi::xml_node rkorrNode = senNode.insert_child_after("RKorr", estrNode);
   rkorrNode.append_attribute("X") = std::to_string(x).substr(0, 6).c_str();
-  rkorrNode.append_attribute("Y") = std::to_string(y).substr(0, 6).c_str();;
-  rkorrNode.append_attribute("Z") = std::to_string(z).substr(0, 6).c_str();;
-  rkorrNode.append_attribute("A") = std::to_string(a).substr(0, 6).c_str();;
-  rkorrNode.append_attribute("B") = std::to_string(b).substr(0, 6).c_str();;
-  rkorrNode.append_attribute("C") = std::to_string(c).substr(0, 6).c_str();;
+  rkorrNode.append_attribute("Y") = std::to_string(y).substr(0, 6).c_str();
+  rkorrNode.append_attribute("Z") = std::to_string(z).substr(0, 6).c_str();
+  rkorrNode.append_attribute("A") = std::to_string(a).substr(0, 6).c_str();
+  rkorrNode.append_attribute("B") = std::to_string(b).substr(0, 6).c_str();
+  rkorrNode.append_attribute("C") = std::to_string(c).substr(0, 6).c_str();
     // <AKorr A1="0.0000" A2="0.0000" A3="0.0000" A4="0.0000" A5="0.0000" A6="0.0000" />
   pugi::xml_node akorrNode = senNode.insert_child_after("AKorr", rkorrNode);
   akorrNode.append_attribute("A1") = "0.0000";

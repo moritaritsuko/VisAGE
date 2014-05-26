@@ -14,14 +14,20 @@ class Marcador{
     CvPoint* getCantosDigonal();
     cv::Mat getPosicao();
     void setPosicao(cv::Mat pos);
+    cv::Mat getOrientacao();
+    void setOrientacao(cv::Mat orient);
     cv::Mat getMatP3D();
     bool VerificaCor(cv::Mat& img, cv::Scalar cor,cv::Scalar deltaCor );
     void AcharCantoProx(cv::Mat src, int deltaVan, cv::Mat imgDes);
     cv::Point getCentroImg();
+
+    void setValido();
+    bool isValido();
+
  private:
     CvPoint centroImg;
     CvPoint cantosDigonal[4];
-    CvMat*   orientacao;
+    cv::Mat orientacao;
     cv::Mat posicao;
     CvPoint cantoProximo;
     CvMat*   posCantoProximo;
@@ -36,7 +42,7 @@ class Marcador{
     double Dist(CvPoint p1, CvPoint p2);
     cv::Point canto;
 
-
+    bool valido;
 };
 
 class Placa{
@@ -67,7 +73,7 @@ class mensuriumAGE
 public:
     mensuriumAGE();
     int AcharTabs(cv::Mat img, int n, CvMat** trans, int npl, cv::Mat imgDes = cv::Mat(0,0,CV_8UC1));
-    void AcharCentro1Tab(cv::Mat img, unsigned int largura, unsigned int altura, float tamanho);
+    Marcador AcharCentro1Tab(cv::Mat img, Marcador& marco, unsigned int largura, unsigned int altura, float tamanho);
     bool Rodar(char *nomeJan, cv::Mat img);
     cv::Mat Stereo(cv::Mat imgE,cv::Mat imgD);
     cv::Mat steroRegMarcos();
