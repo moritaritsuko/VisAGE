@@ -13,6 +13,7 @@
 #include <errno.h>
 #include <thread>
 #include <iostream>
+#include <cassert>
 
 #define S_PORT	    8001
 #define MIN_PORT    1024
@@ -45,8 +46,7 @@ void ConectRobo::CriarConexao()
   servaddr.sin_addr.s_addr=htonl(INADDR_ANY);
   servaddr.sin_port=htons(mPorta);
   int k = bind(sockfd,(struct sockaddr *)&servaddr,sizeof(servaddr));
-  //printf("Servidor Iniciado! k= %i\n",k);
-  std::cout<<"Servidor Iniciado! k= "<<k<<std::endl;
+  assert(k == 0);
 }
 
 void ConectRobo::EnivarMsg(char *msg)
@@ -73,7 +73,7 @@ void *ConectRobo::LerMsg(void)
 }
 
 
-void ConectRobo::InciarLeitura()
+void ConectRobo::IniciarLeitura()
 {
   pthread_t tid;
   int result;

@@ -3,6 +3,7 @@
 #include <opencv2/opencv.hpp>
 
 #include <cstdlib>
+#include <cassert>
 #include <iostream>
 
 
@@ -17,13 +18,13 @@ Programa::Programa(unsigned int l, unsigned int a, float t)
     std::cout << "Altura: " << altura << std::endl;
     std::cout << "Tamanho (mm): " << tamanho << std::endl;
     mConect.CriarConexao();
+    mConect.IniciarLeitura();
 }
 
 void Programa::executar()
 {
     cv::VideoCapture cap(0);
-    if(!cap.isOpened()) 
-        exit(EXIT_FAILURE); // TODO: disparar exceção
+    assert(cap.isOpened());
 
     cv::Mat imagem;
     int tecla;
