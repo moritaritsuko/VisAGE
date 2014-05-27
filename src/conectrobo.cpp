@@ -17,7 +17,7 @@
 #include <cassert>
 #include <mutex>
 
-#define S_PORT	    8001
+#define S_PORT	    6008
 #define MIN_PORT    1024
 #define MAX_PORT    32767
 #define TAM_MSG     1024

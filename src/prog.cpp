@@ -12,7 +12,7 @@ Programa::Programa(unsigned int l, unsigned int a, float t, unsigned int c)
 , altura(a)
 , tamanho(t)
 , camera(c)
-, mConect(8001)
+, mConect(6008)
 , mAGE()
 {    
     std::cout << "Largura: " << largura << std::endl;
