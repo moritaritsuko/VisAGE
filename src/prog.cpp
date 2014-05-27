@@ -18,8 +18,7 @@ Programa::Programa(unsigned int l, unsigned int a, float t, unsigned int c)
     std::cout << "Largura: " << largura << std::endl;
     std::cout << "Altura: " << altura << std::endl;
     std::cout << "Tamanho (mm): " << tamanho << std::endl;
-    mConect.CriarConexao();
-    mConect.IniciarLeitura();
+    std::cout << "Camera: " << camera << std::endl;
 }
 
 void Programa::executar()

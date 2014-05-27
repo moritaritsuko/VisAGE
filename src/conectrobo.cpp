@@ -12,6 +12,7 @@
 #include <string.h>
 #include <errno.h>
 #include <thread>
+#include <fstream>
 #include <iostream>
 #include <cassert>
 #include <mutex>
@@ -34,11 +35,12 @@ ConectRobo::ConectRobo(int porta)
     {
       mPorta = porta;
     }
+    CriarConexao();
+    IniciarLeitura();
 }
 
 void ConectRobo::CriarConexao()
 {
-
   memset((char *) &cliaddr, 0, sizeof(cliaddr));
 
   sockfd=socket(AF_INET,SOCK_DGRAM,IPPROTO_UDP);
@@ -58,7 +60,7 @@ void ConectRobo::EnivarMsg(char *msg)
 }
 
 void *ConectRobo::LerMsg(void)
-{
+{    
   connect(sockfd,(struct sockaddr *)&cliaddr,sizeof cliaddr);
   for (;;)
   {
@@ -150,12 +152,18 @@ void ConectRobo::RSI_XML(float x, float y, float z, float a, float b, float c)
       ipocNode.append_child(pugi::node_pcdata).set_value(mFilaIPOC.front().c_str());
       mFilaIPOC.pop();
     mutexIPOC.unlock();
-    // </Sen>
-    doc.print(std::cout);    
+    // </Sen>    
     
-    //std::cout << "XML RSI: " << doc.save_file("config/RSI.xml") << std::endl;
+    std::cout << "XML RSI salvo: " << doc.save_file("config/RSI.xml") << std::endl;
+
+    // Resposta ao cliente
+    doc.print(std::cout);  
+    std::string RSI(std::istreambuf_iterator<char>(std::ifstream("config/RSI.xml").rdbuf()), std::istreambuf_iterator<char>());  
+
+    if((n=sendto(sockfd, RSI.c_str(), strlen(RSI.c_str()), 0, (struct sockaddr *)&cliaddr,len)) < 0)
+      perror("servidor: erro enviando dados para cliente");
 
     auto tempoFinal = (cv::getTickCount() - tempoInicial) / cv::getTickFrequency();
-    //std::cout << "RSI gerado em " << tempoFinal << " ms." << std::endl;
+    std::cout << "RSI gerado e enviado em " << tempoFinal << " ms." << std::endl;
   }
 }
