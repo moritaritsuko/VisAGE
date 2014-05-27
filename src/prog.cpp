@@ -7,10 +7,11 @@
 #include <iostream>
 
 
-Programa::Programa(unsigned int l, unsigned int a, float t)
+Programa::Programa(unsigned int l, unsigned int a, float t, unsigned int c)
 : largura(l)
 , altura(a)
 , tamanho(t)
+, camera(c)
 , mConect(8001)
 , mAGE()
 {    
@@ -23,7 +24,7 @@ Programa::Programa(unsigned int l, unsigned int a, float t)
 
 void Programa::executar()
 {
-    cv::VideoCapture cap(0);
+    cv::VideoCapture cap(camera);
     assert(cap.isOpened());
 
     cv::Mat imagem;
@@ -48,5 +49,7 @@ void Programa::executar()
             mConect.RSI_XML(posicao.at<double>(0, 0), posicao.at<double>(0, 1), posicao.at<double>(0, 2), 
                 orientacao.at<double>(0, 0), orientacao.at<double>(0, 1), orientacao.at<double>(0, 2));
         }
+        else
+            mConect.RSI_XML();
     }
 }

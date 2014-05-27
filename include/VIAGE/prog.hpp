@@ -8,13 +8,14 @@
 class Programa
 {
     public:
-                        Programa(unsigned int largura, unsigned int altura, float tamanho);
+                        Programa(unsigned int largura, unsigned int altura, float tamanho, unsigned int camera);
         void            executar();
 
     private:
         unsigned int    largura;
         unsigned int    altura;
         float           tamanho;
+        unsigned int    camera;
         ConectRobo      mConect;
         mensuriumAGE    mAGE;
 
