@@ -2,6 +2,8 @@
 #define VIAGE_CONECTROBO_HPP
 
 #include <netinet/in.h>
+#include <queue>
+#include <string>
 
 
 class ConectRobo
@@ -18,12 +20,12 @@ private:
     int sockfd,n;
     struct sockaddr_in servaddr,cliaddr;
     socklen_t len;
-    char mesg[1024];
+    char msg[1024];
     int mPorta;
+    std::queue<std::string> mFilaIPOC;
+
     void* LerMsg(void);
     static void*  chamarLerMsg(void *arg){return ((ConectRobo*)arg)->LerMsg();}
-
-
 };
 
 #endif // VIAGE_CONECTROBO_HPP

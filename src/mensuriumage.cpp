@@ -573,8 +573,8 @@ Marcador mensuriumAGE::AcharCentro1Tab(cv::Mat img, Marcador& marco, unsigned in
       marco.setPosicao(trans);
       marco.setOrientacao(R);
 
-      double dist = 1.11f * sqrt(pow(trans.at<float>(0,0),2)+pow(trans.at<float>(1,0),2)+pow(trans.at<float>(2,0),2));
-      std::cout<<"Dist: "<<dist<<std::endl;
+      double dist = sqrt(pow(trans.at<double>(0,0),2)+pow(trans.at<double>(1,0),2)+pow(trans.at<double>(2,0),2));
+      //std::cout<<"Dist: "<<dist<<std::endl;
       cv::Point temp = marco.getCentroImg();
       cv::putText( img,cv::format("Dist: %f",dist), temp, 1, 1,cv::Scalar(255,0,255));
       cv::circle(img,temp,5,cv::Scalar(255,0,255),3,2,0);
