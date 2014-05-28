@@ -74,7 +74,7 @@ void *ConectRobo::LerMsg(void)
         auto ipoc = doc.child("Rob").child("IPOC").text().get();
         std::cout << "IPOC recebido: " << ipoc << std::endl;
         mutexIPOC.lock();
-          mFilaIPOC.push(ipoc);
+          mPilhaIPOC.push(ipoc);
         mutexIPOC.unlock();
       }
       else
@@ -85,7 +85,7 @@ void *ConectRobo::LerMsg(void)
             ipoc += RSI[i];
           std::cout << "IPOC recebido: " << ipoc << std::endl;
           mutexIPOC.lock();
-            mFilaIPOC.push(ipoc);
+            mPilhaIPOC.push(ipoc);
           mutexIPOC.unlock();
       }
     }
@@ -103,7 +103,7 @@ void ConectRobo::IniciarLeitura()
 
 void ConectRobo::RSI_XML(float x, float y, float z, float a, float b, float c)
 {
-  if (!mFilaIPOC.empty())
+  if (!mPilhaIPOC.empty())
   {
     auto tempoInicial = cv::getTickCount();    
     pugi::xml_document doc;
@@ -155,8 +155,9 @@ void ConectRobo::RSI_XML(float x, float y, float z, float a, float b, float c)
       // <IPOC>12471280947</IPOC>
     pugi::xml_node ipocNode = senNode.insert_child_after("IPOC", dioNode);
     mutexIPOC.lock();
-      ipocNode.append_child(pugi::node_pcdata).set_value(mFilaIPOC.front().c_str());
-      mFilaIPOC.pop();
+      ipocNode.append_child(pugi::node_pcdata).set_value(mPilhaIPOC.top().c_str());
+      while (!mPilhaIPOC.empty())
+        mPilhaIPOC.pop();
     mutexIPOC.unlock();
     // </Sen>    
     

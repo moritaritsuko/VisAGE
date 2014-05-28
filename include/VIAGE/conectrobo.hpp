@@ -2,7 +2,7 @@
 #define VIAGE_CONECTROBO_HPP
 
 #include <netinet/in.h>
-#include <queue>
+#include <stack>
 #include <string>
 
 
@@ -21,7 +21,7 @@ private:
     socklen_t len;
     char msg[2048];
     int mPorta;
-    std::queue<std::string> mFilaIPOC;
+    std::stack<std::string> mPilhaIPOC;
 
     void* LerMsg(void);
     static void*  chamarLerMsg(void *arg){return ((ConectRobo*)arg)->LerMsg();}

@@ -52,20 +52,20 @@ void Programa::executar()
             double deltaX = setPX - x;
             double deltaY = setPY - y;
             //std::cout << "X = " << x << " | Y = " << y << " | Z = " << z << " | A = " << a << " | B = " << b << " | C = " << c << std::endl;
-            std::cout << "Delta X = " << deltaX << " | Delta Y = " << deltaY << std::endl;
+            //std::cout << "Delta X = " << deltaX << " | Delta Y = " << deltaY << std::endl;
             if(deltaY < -1.f || deltaY > 1.f){
                 if(deltaX > 0.f){
-                    std::cout << "<" << std::endl;
-                    mConect.RSI_XML(-0.1f);
+                    //std::cout << "<" << std::endl;
+                    mConect.RSI_XML(0.1f);
                 }
                 else if(deltaX < 0.f){
-                    std::cout << ">" << std::endl;
-                    mConect.RSI_XML(0.1f);
+                    //std::cout << ">" << std::endl;
+                    mConect.RSI_XML(-0.1f);
                 }
             }
             else
             {
-                std::cout << "centro!" << std::endl;
+                //std::cout << "centro!" << std::endl;
                 while (!mAGE.filaMarcadores.empty())
                     mAGE.filaMarcadores.pop();
                 mConect.RSI_XML();
