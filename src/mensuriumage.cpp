@@ -529,7 +529,11 @@ int  mensuriumAGE::AcharTabs(cv::Mat img, int n, CvMat **trans, int npl,cv::Mat 
     return nAchado;
 }
 
-mensuriumAGE::mensuriumAGE()
+mensuriumAGE::mensuriumAGE(unsigned int l, unsigned int a, float t, unsigned int c)
+: largura(l)
+, altura(a)
+, tamanho(t)
+, camera(c)
 {
     placa = new Placa[2];
     placa[0].Inic(4);
@@ -537,8 +541,7 @@ mensuriumAGE::mensuriumAGE()
     cv::FileStorage fs("config/Calib.yml", cv::FileStorage::READ);
     fs["camera_matrix"] >> cameraMatrix;
     fs["distortion_coefficients"] >> distCoeffs;
-
-    std::cout<<"Mensurium inicializado com Sucesso!"<<std::endl;
+    IniciarCaptura();
 }
 
 Placa mensuriumAGE::getPlaca(int i){
@@ -665,3 +668,35 @@ bool mensuriumAGE::Rodar(char* nomeJan,cv::Mat img){
 
     return resp;
 }
+
+void mensuriumAGE::IniciarCaptura()
+{
+  pthread_t tid;
+  int result;
+  result = pthread_create(&tid, 0, mensuriumAGE::chamarCapturarImagem, this);
+  if (result == 0)
+    pthread_detach(tid);
+}
+
+void *mensuriumAGE::CapturarImagem(void)
+{
+  cv::VideoCapture cap(camera);
+  assert(cap.isOpened());
+
+  cv::Mat imagem;
+  
+  while (true)
+  {
+      cap >> imagem;
+      Marcador marco;
+      AcharCentro1Tab(imagem, marco, largura, altura, tamanho);
+
+      if (marco.isValido())
+      {
+        mutexMarcador.lock();
+          filaMarcadores.push(marco);
+        mutexMarcador.unlock();
+      }
+  }
+}
+

@@ -11,11 +11,7 @@ class Programa
                         Programa(unsigned int largura, unsigned int altura, float tamanho, unsigned int camera, unsigned int porta);
         void            executar();
 
-    private:
-        unsigned int    largura;
-        unsigned int    altura;
-        float           tamanho;
-        unsigned int    camera;
+    private:        
         ConectRobo      mConect;
         mensuriumAGE    mAGE;
 

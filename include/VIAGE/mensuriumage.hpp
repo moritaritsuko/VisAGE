@@ -4,6 +4,8 @@
 #include <opencv/cv.h>
 #include <opencv2/opencv.hpp>
 
+#include <queue>
+#include <mutex>
 
 class Marcador{
  public:
@@ -71,7 +73,7 @@ class Placa{
 class mensuriumAGE
 {
 public:
-    mensuriumAGE();
+    mensuriumAGE(unsigned int l, unsigned int a, float t, unsigned int c);
     int AcharTabs(cv::Mat img, int n, CvMat** trans, int npl, cv::Mat imgDes = cv::Mat(0,0,CV_8UC1));
     Marcador AcharCentro1Tab(cv::Mat img, Marcador& marco, unsigned int largura, unsigned int altura, float tamanho);
     bool Rodar(char *nomeJan, cv::Mat img);
@@ -79,10 +81,22 @@ public:
     cv::Mat steroRegMarcos();
     Placa getPlaca(int i);
     Placa* placa;
+    void IniciarCaptura();
+    std::queue<Marcador> filaMarcadores;
+    std::mutex mutexMarcador;
+
+
 private:
 
     cv::Mat distCoeffs;
     cv::Mat cameraMatrix;
+    unsigned int largura;
+    unsigned int altura;
+    float        tamanho;
+    unsigned int camera;
+
+    void* CapturarImagem(void);
+    static void*  chamarCapturarImagem(void *arg){return ((mensuriumAGE*)arg)->CapturarImagem();}
 
 };
 
