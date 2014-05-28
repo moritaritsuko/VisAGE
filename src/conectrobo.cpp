@@ -20,8 +20,7 @@
 #define S_PORT	    6008
 #define MIN_PORT    1024
 #define MAX_PORT    32767
-#define TAM_MSG     1024
-#define LEN         128
+#define TAM_MSG     2048
 
 std::mutex mutexIPOC;
 
@@ -53,19 +52,13 @@ void ConectRobo::CriarConexao()
   assert(k == 0);
 }
 
-void ConectRobo::EnivarMsg(char *msg)
-{
-
-
-}
-
 void *ConectRobo::LerMsg(void)
 {    
   connect(sockfd,(struct sockaddr *)&cliaddr,sizeof cliaddr);
   for (;;)
   {
     len = sizeof(cliaddr);
-    n = recvfrom(sockfd,msg,512,0,(struct sockaddr *)&cliaddr,&len);
+    n = recvfrom(sockfd,msg,TAM_MSG,0,(struct sockaddr *)&cliaddr,&len);
     if(n>-1)
     {
       pugi::xml_document doc;
@@ -73,7 +66,8 @@ void *ConectRobo::LerMsg(void)
 
       if (resultado)
       {
-        auto ipoc = doc.child("IPOC").text().get();
+        std::cout << "RSI recebido:" << std::endl << msg << std::endl;
+        auto ipoc = doc.child("Rob").child("IPOC").text().get();
         std::cout << "IPOC recebido: " << ipoc << std::endl;
         mutexIPOC.lock();
           mFilaIPOC.push(ipoc);
@@ -84,7 +78,6 @@ void *ConectRobo::LerMsg(void)
     }
   }
 }
-
 
 void ConectRobo::IniciarLeitura()
 {
@@ -99,8 +92,8 @@ void ConectRobo::RSI_XML(float x, float y, float z, float a, float b, float c)
 {
   if (!mFilaIPOC.empty())
   {
+    auto tempoInicial = cv::getTickCount();    
     pugi::xml_document doc;
-    auto tempoInicial = cv::getTickCount();
     // <Sen Type="ImFree">
     pugi::xml_node senNode = doc.append_child("Sen");
     senNode.append_attribute("Type") = "ImFree";
@@ -154,14 +147,11 @@ void ConectRobo::RSI_XML(float x, float y, float z, float a, float b, float c)
     mutexIPOC.unlock();
     // </Sen>    
     
-    std::cout << "XML RSI salvo: " << doc.save_file("config/RSI.xml") << std::endl;
-
     // Resposta ao cliente
+    doc.save_file("config/RSI.xml");
     doc.print(std::cout);  
     std::string RSI(std::istreambuf_iterator<char>(std::ifstream("config/RSI.xml").rdbuf()), std::istreambuf_iterator<char>());  
-
-    if((n=sendto(sockfd, RSI.c_str(), strlen(RSI.c_str()), 0, (struct sockaddr *)&cliaddr,len)) < 0)
-      perror("servidor: erro enviando dados para cliente");
+    sendto(sockfd, RSI.c_str(), strlen(RSI.c_str()), 0, (struct sockaddr *)&cliaddr,len);
 
     auto tempoFinal = (cv::getTickCount() - tempoInicial) / cv::getTickFrequency();
     std::cout << "RSI gerado e enviado em " << tempoFinal << " ms." << std::endl;

@@ -11,7 +11,6 @@ class ConectRobo
 public:
     ConectRobo(int porta);
     void CriarConexao();
-    void EnivarMsg(char* msg);
     void IniciarLeitura();
     void RSI_XML(float x = 0.f, float y = 0.f, float z = 0.f, float a = 0.f, float b = 0.f, float c = 0.f);
 

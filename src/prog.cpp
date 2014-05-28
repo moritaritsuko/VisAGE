@@ -7,18 +7,19 @@
 #include <iostream>
 
 
-Programa::Programa(unsigned int l, unsigned int a, float t, unsigned int c)
+Programa::Programa(unsigned int l, unsigned int a, float t, unsigned int c, unsigned int p)
 : largura(l)
 , altura(a)
 , tamanho(t)
 , camera(c)
-, mConect(6008)
+, mConect(p)
 , mAGE()
 {    
     std::cout << "Largura: " << largura << std::endl;
     std::cout << "Altura: " << altura << std::endl;
     std::cout << "Tamanho (mm): " << tamanho << std::endl;
     std::cout << "Camera: " << camera << std::endl;
+    std::cout << "Porta RSI: " << camera << std::endl;
 }
 
 void Programa::executar()
