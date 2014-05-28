@@ -46,8 +46,8 @@ void Programa::executar()
             // TODO: gerar XML com dados do marco; estabelecer conexão com robô e responder mensagem;
             auto posicao = marco.getPosicao();
             auto orientacao = marco.getOrientacao();
-            mConect.RSI_XML(posicao.at<double>(0, 0), posicao.at<double>(0, 1), posicao.at<double>(0, 2), 
-                orientacao.at<double>(0, 0), orientacao.at<double>(0, 1), orientacao.at<double>(0, 2));
+            mConect.RSI_XML(posicao.at<double>(0, 0), posicao.at<double>(1, 0), posicao.at<double>(2, 0), 
+                orientacao.at<double>(0, 0), orientacao.at<double>(1, 0), orientacao.at<double>(2, 0));
         }
         else
             mConect.RSI_XML();
