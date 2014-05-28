@@ -57,16 +57,20 @@ void *ConectRobo::LerMsg(void)
   connect(sockfd,(struct sockaddr *)&cliaddr,sizeof cliaddr);
   for (;;)
   {
+    char req[TAM_MSG];
     len = sizeof(cliaddr);
-    n = recvfrom(sockfd,msg,TAM_MSG,0,(struct sockaddr *)&cliaddr,&len);
+    n = recvfrom(sockfd,req,TAM_MSG,0,(struct sockaddr *)&cliaddr,&len);
     if(n>-1)
     {
+      auto fimMsg = strlen(req);
+      char RSI[fimMsg];
+      strncpy(RSI, req, fimMsg);
       pugi::xml_document doc;
-      pugi::xml_parse_result resultado = doc.load(msg);
+      pugi::xml_parse_result resultado = doc.load(RSI);
 
       if (resultado)
       {
-        std::cout << "RSI recebido:" << std::endl << msg << std::endl;
+        std::cout << "RSI recebido:" << std::endl << RSI << std::endl;
         auto ipoc = doc.child("Rob").child("IPOC").text().get();
         std::cout << "IPOC recebido: " << ipoc << std::endl;
         mutexIPOC.lock();
@@ -74,7 +78,16 @@ void *ConectRobo::LerMsg(void)
         mutexIPOC.unlock();
       }
       else
-          std::cout << "RSI [" << msg << "] com erro: " << resultado.description() << std::endl;
+      {
+          std::cout << "RSI [" << RSI << "] com erro: " << resultado.description() << std::endl;
+          std::string ipoc;
+          for (int i = 24; i < 34; ++i)
+            ipoc += RSI[i];
+          std::cout << "IPOC recebido: " << ipoc << std::endl;
+          mutexIPOC.lock();
+            mFilaIPOC.push(ipoc);
+          mutexIPOC.unlock();
+      }
     }
   }
 }

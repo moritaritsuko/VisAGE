@@ -19,7 +19,7 @@ private:
     int sockfd,n;
     struct sockaddr_in servaddr,cliaddr;
     socklen_t len;
-    char msg[1024];
+    char msg[2048];
     int mPorta;
     std::queue<std::string> mFilaIPOC;
 

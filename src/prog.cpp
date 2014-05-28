@@ -39,8 +39,40 @@ void Programa::executar()
             mAGE.mutexMarcador.unlock();
             auto posicao = marco.getPosicao();
             auto orientacao = marco.getOrientacao();
-            mConect.RSI_XML(posicao.at<double>(0, 0), posicao.at<double>(1, 0), posicao.at<double>(2, 0), 
-                orientacao.at<double>(0, 0), orientacao.at<double>(1, 0), orientacao.at<double>(2, 0));
+
+            double setPX = 37.5;
+            double setPY = -160.5;
+
+            auto x = posicao.at<double>(0, 0);
+            auto y = posicao.at<double>(1, 0);
+            auto z = posicao.at<double>(2, 0);
+            auto a = orientacao.at<double>(0, 0);
+            auto b = orientacao.at<double>(1, 0);
+            auto c = orientacao.at<double>(2, 0);
+            double deltaX = setPX - x;
+            double deltaY = setPY - y;
+            //std::cout << "X = " << x << " | Y = " << y << " | Z = " << z << " | A = " << a << " | B = " << b << " | C = " << c << std::endl;
+            std::cout << "Delta X = " << deltaX << " | Delta Y = " << deltaY << std::endl;
+            if(deltaY < -1.f || deltaY > 1.f){
+                if(deltaX > 0.f){
+                    std::cout << "<" << std::endl;
+                    mConect.RSI_XML(-0.1f);
+                }
+                else if(deltaX < 0.f){
+                    std::cout << ">" << std::endl;
+                    mConect.RSI_XML(0.1f);
+                }
+            }
+            else
+            {
+                std::cout << "centro!" << std::endl;
+                while (!mAGE.filaMarcadores.empty())
+                    mAGE.filaMarcadores.pop();
+                mConect.RSI_XML();
+            }
+
+            /*mConect.RSI_XML(posicao.at<double>(0, 0), posicao.at<double>(1, 0), posicao.at<double>(2, 0), 
+                orientacao.at<double>(0, 0), orientacao.at<double>(1, 0), orientacao.at<double>(2, 0));*/
         }
     }
 }
