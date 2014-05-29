@@ -15,14 +15,12 @@
 #include <fstream>
 #include <iostream>
 #include <cassert>
-#include <mutex>
 
 #define S_PORT	    6008
 #define MIN_PORT    1024
 #define MAX_PORT    32767
 #define TAM_MSG     2048
 
-std::mutex mutexIPOC;
 
 ConectRobo::ConectRobo(int porta)
 {         
@@ -76,6 +74,15 @@ void *ConectRobo::LerMsg(void)
         mutexIPOC.lock();
           mPilhaIPOC.push(ipoc);
         mutexIPOC.unlock();
+        double x = doc.child("Rob").child("RSol").attribute("X").as_double();
+        double y = doc.child("Rob").child("RSol").attribute("Y").as_double();
+        double z = doc.child("Rob").child("RSol").attribute("Z").as_double();
+        double a = doc.child("Rob").child("RSol").attribute("A").as_double();
+        double b = doc.child("Rob").child("RSol").attribute("B").as_double();
+        double c = doc.child("Rob").child("RSol").attribute("C").as_double();
+        mutexInfoRobo.lock();
+          pilhaInfoRobo.push(InfoRobo(x, y, z, a, b, c));
+        mutexInfoRobo.unlock();
       }
       else
       {

@@ -3,6 +3,7 @@
 
 #include <netinet/in.h>
 #include <stack>
+#include <mutex>
 #include <string>
 
 
@@ -14,6 +15,21 @@ public:
     void IniciarLeitura();
     void RSI_XML(float x = 0.f, float y = 0.f, float z = 0.f, float a = 0.f, float b = 0.f, float c = 0.f);
 
+    struct InfoRobo
+    {
+        InfoRobo(){}
+        InfoRobo(double X, double Y, double Z, double A, double B, double C)
+        : x(X)
+        , y(Y)
+        , z(Z)
+        , a(A)
+        , b(B)
+        , c(C)
+        {}
+        double x, y, z, a, b, c;
+    };
+    std::stack<InfoRobo> pilhaInfoRobo;
+    std::mutex mutexInfoRobo;
 
 private:
     int sockfd,n;
@@ -22,6 +38,7 @@ private:
     char msg[2048];
     int mPorta;
     std::stack<std::string> mPilhaIPOC;
+    std::mutex mutexIPOC;
 
     void* LerMsg(void);
     static void*  chamarLerMsg(void *arg){return ((ConectRobo*)arg)->LerMsg();}

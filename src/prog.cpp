@@ -21,7 +21,7 @@ Programa::Programa(unsigned int l, unsigned int a, float t, unsigned int c, unsi
 void Programa::executar()
 {
     const double setPX = -20.f;//-79.f;
-    const double setPY = 185.f;//56.f;
+    const double setPY = 200.f;//56.f;
     const double setPZ = 1100.f;
 
     
@@ -38,6 +38,18 @@ void Programa::executar()
                 img = mAGE.filaImagens.front();
                 mAGE.filaImagens.pop();
             mAGE.mutexImagem.unlock();
+        }
+
+        ConectRobo::InfoRobo infoRobo;
+        if (!mConect.pilhaInfoRobo.empty())
+        {
+            infoRobo = mConect.pilhaInfoRobo.top();
+            while (!mConect.pilhaInfoRobo.empty())
+                mConect.pilhaInfoRobo.pop();
+            cv::putText(img, cv::format("RSolXYZ(%f,%f,%f)", infoRobo.x,infoRobo.y,infoRobo.z), 
+                cv::Point(10, 425), 1, 1, cv::Scalar(255,0,255));
+            cv::putText(img, cv::format("RSolABC(%f,%f,%f)", infoRobo.a,infoRobo.b,infoRobo.c), 
+                cv::Point(10, 440), 1, 1, cv::Scalar(255,0,255));
         }
 
         if (mAGE.filaMarcadores.empty())
