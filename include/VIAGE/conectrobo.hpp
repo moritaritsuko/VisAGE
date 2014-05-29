@@ -17,7 +17,7 @@ public:
 
     struct InfoRobo
     {
-        InfoRobo(){}
+        InfoRobo(){ valido = false; }
         InfoRobo(double X, double Y, double Z, double A, double B, double C)
         : x(X)
         , y(Y)
@@ -25,8 +25,9 @@ public:
         , a(A)
         , b(B)
         , c(C)
-        {}
+        { valido = true; }
         double x, y, z, a, b, c;
+        bool valido;
     };
     std::stack<InfoRobo> pilhaInfoRobo;
     std::mutex mutexInfoRobo;

@@ -68,7 +68,7 @@ void *ConectRobo::LerMsg(void)
 
       if (resultado)
       {
-        std::cout << "RSI recebido:" << std::endl << RSI << std::endl;
+        //std::cout << "RSI recebido:" << std::endl << RSI << std::endl;
         auto ipoc = doc.child("Rob").child("IPOC").text().get();
         std::cout << "IPOC recebido: " << ipoc << std::endl;
         mutexIPOC.lock();
@@ -86,7 +86,7 @@ void *ConectRobo::LerMsg(void)
       }
       else
       {
-          std::cout << "RSI [" << RSI << "] com erro: " << resultado.description() << std::endl;
+          //std::cout << "RSI [" << RSI << "] com erro: " << resultado.description() << std::endl;
           std::string ipoc;
           for (int i = 24; i < 34; ++i)
             ipoc += RSI[i];
@@ -112,7 +112,6 @@ void ConectRobo::RSI_XML(float x, float y, float z, float a, float b, float c)
 {
   if (!mPilhaIPOC.empty())
   {
-    auto tempoInicial = cv::getTickCount();    
     pugi::xml_document doc;
     // <Sen Type="ImFree">
     pugi::xml_node senNode = doc.append_child("Sen");
@@ -170,11 +169,8 @@ void ConectRobo::RSI_XML(float x, float y, float z, float a, float b, float c)
     
     // Resposta ao cliente
     doc.save_file("config/RSI.xml");
-    doc.print(std::cout);  
+    //doc.print(std::cout);  
     std::string RSI(std::istreambuf_iterator<char>(std::ifstream("config/RSI.xml").rdbuf()), std::istreambuf_iterator<char>());  
     sendto(sockfd, RSI.c_str(), strlen(RSI.c_str()), 0, (struct sockaddr *)&cliaddr,len);
-
-    auto tempoFinal = (cv::getTickCount() - tempoInicial) / cv::getTickFrequency();
-    std::cout << "RSI gerado e enviado em " << tempoFinal << " ms." << std::endl;
   }
 }
