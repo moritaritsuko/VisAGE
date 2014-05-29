@@ -586,8 +586,9 @@ Marcador mensuriumAGE::AcharCentro1Tab(cv::Mat img, Marcador& marco, unsigned in
       cv::putText(img,cv::format("Rot: %f,%f,%f",R.at<double>(0,0)*180.f/CV_PI,R.at<double>(1,0)*180.f/CV_PI,R.at<double>(2,0)*180.f/CV_PI), marco.getCentroImg()+cv::Point(-100,-150), 1, 1,cv::Scalar(255,0,255));
       marco.setValido();
     }    
-
-    cv::imshow("AcharTab",img);
+    mutexImagem.lock();
+      filaImagens.push(img);
+    mutexImagem.unlock();
     return marco;
 }
 
@@ -685,20 +686,19 @@ void *mensuriumAGE::CapturarImagem(void)
   cv::VideoCapture cap(camera);
   assert(cap.isOpened());
 
-  cv::Mat imagem;
-  
   while (true)
   {
-      cap >> imagem;
-      Marcador marco;
-      AcharCentro1Tab(imagem, marco, largura, altura, tamanho);
+    cv::Mat imagem;  
+    cap >> imagem;
+    Marcador marco;
+    AcharCentro1Tab(imagem, marco, largura, altura, tamanho);
 
-      if (marco.isValido())
-      {
-        mutexMarcador.lock();
-          filaMarcadores.push(marco);
-        mutexMarcador.unlock();
-      }
+    if (marco.isValido())
+    {
+      mutexMarcador.lock();
+        filaMarcadores.push(marco);
+      mutexMarcador.unlock();
+    }
   }
 }
 

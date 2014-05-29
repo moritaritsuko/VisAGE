@@ -84,6 +84,8 @@ public:
     void IniciarCaptura();
     std::queue<Marcador> filaMarcadores;
     std::mutex mutexMarcador;
+    std::queue<cv::Mat> filaImagens;
+    std::mutex mutexImagem;
 
 
 private:

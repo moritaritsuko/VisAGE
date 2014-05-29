@@ -65,14 +65,19 @@ void Programa::executar()
             }
             else
             {
-                //std::cout << "centro!" << std::endl;
-                while (!mAGE.filaMarcadores.empty())
-                    mAGE.filaMarcadores.pop();
+                //std::cout << "centro!" << std::endl;                
                 mConect.RSI_XML();
-            }
+            }            
+        }
+        if (!mAGE.filaImagens.empty())
+        {
+            cv::Mat img;        
+            mAGE.mutexImagem.lock();
+                img = mAGE.filaImagens.front();
+                mAGE.filaImagens.pop();
 
-            /*mConect.RSI_XML(posicao.at<double>(0, 0), posicao.at<double>(1, 0), posicao.at<double>(2, 0), 
-                orientacao.at<double>(0, 0), orientacao.at<double>(1, 0), orientacao.at<double>(2, 0));*/
+            mAGE.mutexImagem.unlock();
+            cv::imshow("AcharTab",img);
         }
     }
 }
