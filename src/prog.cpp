@@ -20,8 +20,8 @@ Programa::Programa(unsigned int l, unsigned int a, float t, unsigned int c, unsi
 
 void Programa::executar()
 {
-    const double setPX = 37.5;
-    const double setPY = -160.5;
+    const double setPX = -79.f;
+    const double setPY = 56.f;
     
     while (true)
     {
@@ -58,25 +58,50 @@ void Programa::executar()
             auto c = orientacao.at<double>(2, 0);
             double deltaX = setPX - x;
             double deltaY = setPY - y;
+            double xRSI, yRSI;
+
+            cv::putText(img, cv::format("Pos(%f,%f,%f)",x,y,z), cv::Point(10, 75), 1, 1, cv::Scalar(255,0,255));
+            cv::putText(img, cv::format("Ori(%f,%f,%f)",a,b,c), cv::Point(10, 90), 1, 1, cv::Scalar(255,0,255));
 
             if(deltaY < -1.f || deltaY > 1.f)
             {
-                if(deltaX > 0.f)
+                if(deltaY > 0.f)
                 {
-                    cv::putText(img, cv::format("Dir: <"), cv::Point(10, 45), 1, 1, cv::Scalar(255,0,255));
-                    mConect.RSI_XML(0.1f);
+                    cv::putText(img, cv::format("DirY: <"), cv::Point(10, 45), 1, 1, cv::Scalar(255,0,255));
+                    xRSI = -0.1f;
                 }
-                else if(deltaX < 0.f)
+                else if(deltaY < 0.f)
                 {
-                    cv::putText(img, cv::format("Dir: >"), cv::Point(10, 45), 1, 1, cv::Scalar(255,0,255));
-                    mConect.RSI_XML(-0.1f);
+                    cv::putText(img, cv::format("DirY: >"), cv::Point(10, 45), 1, 1, cv::Scalar(255,0,255));
+                    xRSI = 0.1f;
                 }
             }
             else
             {
-                cv::putText(img, cv::format("Dir: CENTRO"), cv::Point(10, 45), 1, 1, cv::Scalar(255,0,255));
-                mConect.RSI_XML();
-            }            
+                cv::putText(img, cv::format("DirY: CENTROY"), cv::Point(10, 45), 1, 1, cv::Scalar(255,0,255));
+                xRSI = 0.f;
+            }  
+
+            if(deltaX < -1.f || deltaX > 1.f)
+            {
+                if(deltaX > 0.f)
+                {
+                    cv::putText(img, cv::format("DirX: <"), cv::Point(10, 60), 1, 1, cv::Scalar(255,0,255));
+                    yRSI = 0.1f;
+                }
+                else if(deltaX < 0.f)
+                {
+                    cv::putText(img, cv::format("DirX: >"), cv::Point(10, 60), 1, 1, cv::Scalar(255,0,255));
+                    yRSI = -0.1f;
+                }
+            }
+            else
+            {
+                cv::putText(img, cv::format("DirX: CENTROX"), cv::Point(10, 60), 1, 1, cv::Scalar(255,0,255));
+                yRSI = 0.f;
+            }          
+            mConect.RSI_XML(xRSI, yRSI);
+
             cv::putText(img, cv::format("Delta X: %f", deltaX), cv::Point(10, 15), 1, 1, cv::Scalar(255,0,255));
             cv::putText(img, cv::format("Delta Y: %f", deltaY), cv::Point(10, 30), 1, 1, cv::Scalar(255,0,255));
         }

@@ -583,7 +583,6 @@ Marcador mensuriumAGE::AcharCentro1Tab(cv::Mat img, Marcador& marco, unsigned in
       cv::circle(img,temp,5,cv::Scalar(255,0,255),3,2,0);
       cv::circle(img,cvPoint(img.cols/2,img.rows/2),5,cv::Scalar(0,0,255),3,2,0);
       cv::line(img,temp,cvPoint(img.cols/2,img.rows/2),cv::Scalar(0,0,0),3,2,0);
-      cv::putText(img,cv::format("Rot: %f,%f,%f",R.at<double>(0,0)*180.f/CV_PI,R.at<double>(1,0)*180.f/CV_PI,R.at<double>(2,0)*180.f/CV_PI), marco.getCentroImg()+cv::Point(-100,-150), 1, 1,cv::Scalar(255,0,255));
       marco.setValido();
     }    
     mutexImagem.lock();
