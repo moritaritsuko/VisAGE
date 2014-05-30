@@ -586,6 +586,9 @@ Marcador mensuriumAGE::AcharCentro1Tab(cv::Mat img, Marcador& marco, unsigned in
       marco.setValido();
     }    
     mutexImagem.lock();
+      if (filaImagens.size() > 10)
+          while (!filaImagens.empty())
+            filaImagens.pop();
       filaImagens.push(img);
     mutexImagem.unlock();
     return marco;
@@ -687,6 +690,7 @@ void *mensuriumAGE::CapturarImagem(void)
 
   while (true)
   {
+
     cv::Mat imagem;  
     cap >> imagem;
     Marcador marco;
@@ -695,6 +699,9 @@ void *mensuriumAGE::CapturarImagem(void)
     if (marco.isValido())
     {
       mutexMarcador.lock();
+        if (filaMarcadores.size() > 10)
+          while (!filaMarcadores.empty())
+            filaMarcadores.pop();
         filaMarcadores.push(marco);
       mutexMarcador.unlock();
     }

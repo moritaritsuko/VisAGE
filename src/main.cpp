@@ -3,8 +3,12 @@
 #include <stdexcept>
 #include <cstdlib>
 #include <iostream>
+#include <sched.h>
 #include <unistd.h>
-
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/resource.h>
+#include <fcntl.h>
 
 void uso()
 {
@@ -17,7 +21,36 @@ void uso()
 }
 
 int main(int argc, char** argv)
-{    
+{  
+    struct sched_param sched;
+
+    if(sched_getparam(0,&sched)==-1)
+                perror("Falha em sched_getparam");    
+
+    sched.sched_priority=1;
+
+    // int sched_setscheduler(pid_t pid, int policy, const struct  sched_param *p);
+    if(sched_setscheduler(0,SCHED_FIFO,&sched)==-1) {
+            perror("Falha em sched_setscheduler");
+            exit(0);
+    }
+
+    if(sched_getparam(0,&sched)==-1)
+            perror("Falha em sched_getparam");
+
+    switch (sched_getscheduler(0)) 
+    {
+        case SCHED_FIFO:
+                printf("\nScheduler: SCHED_FIFO. Priority: %d\n",sched.sched_priority);
+                break;
+        case SCHED_RR:
+                printf("\nScheduler: SCHED_RR. Priority: %d\n",sched.sched_priority);
+                break;
+        case SCHED_OTHER:
+                printf("\nScheduler: SCHED_OTHER. Priority: %d\n",sched.sched_priority);
+                break;
+    }
+
     int opcao;
     unsigned int l = 9, a = 6, c = 0, p = 6008;
     float t = 25.4f;

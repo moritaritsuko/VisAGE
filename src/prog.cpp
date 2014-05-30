@@ -5,7 +5,9 @@
 #include <cstdlib>
 #include <cassert>
 #include <iostream>
+#include <mutex>
 
+std::mutex sessaoCritica;
 
 Programa::Programa(unsigned int l, unsigned int a, float t, unsigned int c, unsigned int p)
 : mConect(p)
@@ -20,13 +22,15 @@ Programa::Programa(unsigned int l, unsigned int a, float t, unsigned int c, unsi
 
 void Programa::executar()
 {
-    const double setPX = -80.f;//-79.f;
-    const double setPY = 235.f;//56.f;
+    const double setPX = 48.5f;//-80.f;//-79.f;
+    const double setPY = -21.5f;//235.f;//56.f;
     const double setPZ = 1100.f;
     int tecla;
     
     while (true)
     {
+        sessaoCritica.lock();        
+        mConect.LerMsg();
         auto tempo = (double) cv::getTickCount();
         tecla = cv::waitKey(3);
         if((tecla & 255) == 27)
@@ -78,34 +82,34 @@ void Programa::executar()
             cv::putText(img, cv::format("Pos(%f, %f, %f)",x,y,z), cv::Point(10, 105), 1, 1, cv::Scalar(255,0,255));
             cv::putText(img, cv::format("Ori(%f, %f, %f)",a,b,c), cv::Point(10, 120), 1, 1, cv::Scalar(255,0,255));
 
-            if(deltaZ < -2.5f || deltaZ > 2.5f)
+            if(deltaZ < -10.f || deltaZ > 10.f)
             {
                 if(deltaZ > 0.f)
                 {
                     cv::putText(img, cv::format("DirZ: <"), cv::Point(10, 90), 1, 1, cv::Scalar(255,0,255));
-                    zRSI = -0.1f;
+                    zRSI = -0.5f;
                 }
                 else if(deltaZ < 0.f)
                 {
                     cv::putText(img, cv::format("DirZ: >"), cv::Point(10, 90), 1, 1, cv::Scalar(255,0,255));
-                    zRSI = 0.1f;
+                    zRSI = 0.5f;
                 }
             }
             else
             {    
                 cv::putText(img, cv::format("DirZ: CENTRO"), cv::Point(10, 90), 1, 1, cv::Scalar(255,0,255));
 
-                if(deltaY < -1.f || deltaY > 1.f)
+                if(deltaY < -2.5f || deltaY > 2.5f)
                 {
                     if(deltaY > 0.f)
                     {
                         cv::putText(img, cv::format("DirY: <"), cv::Point(10, 75), 1, 1, cv::Scalar(255,0,255));
-                        xRSI = -0.1f;
+                        xRSI = -0.5f;
                     }
                     else if(deltaY < 0.f)
                     {
                         cv::putText(img, cv::format("DirY: >"), cv::Point(10, 75), 1, 1, cv::Scalar(255,0,255));
-                        xRSI = 0.1f;
+                        xRSI = 0.5f;
                     }
                 }
                 else
@@ -114,17 +118,17 @@ void Programa::executar()
                     xRSI = 0.f;
                 }  
 
-                if(deltaX < -1.f || deltaX > 1.f)
+                if(deltaX < -2.5f || deltaX > 2.5f)
                 {
                     if(deltaX > 0.f)
                     {
                         cv::putText(img, cv::format("DirX: <"), cv::Point(10, 60), 1, 1, cv::Scalar(255,0,255));
-                        yRSI = 0.1f;
+                        yRSI = 0.5f;
                     }
                     else if(deltaX < 0.f)
                     {
                         cv::putText(img, cv::format("DirX: >"), cv::Point(10, 60), 1, 1, cv::Scalar(255,0,255));
-                        yRSI = -0.1f;
+                        yRSI = -0.5f;
                     }
                 }
                 else
@@ -145,12 +149,13 @@ void Programa::executar()
 
             mConect.RSI_XML(xRSI, yRSI, zRSI);
             tempo = (double) cv::getTickCount() - tempo;
-            std::cout << "              Resposta RSI em " << tempo * 1000.f / cv::getTickFrequency() << " ms." << std::endl;
+            //std::cout << "              Resposta RSI em " << tempo * 1000.f / cv::getTickFrequency() << " ms." << std::endl;
             cv::putText(img, cv::format("Delta X: %f", deltaX), cv::Point(10, 15), 1, 1, cv::Scalar(255,0,255));
             cv::putText(img, cv::format("Delta Y: %f", deltaY), cv::Point(10, 30), 1, 1, cv::Scalar(255,0,255));
             cv::putText(img, cv::format("Delta Z: %f", deltaZ), cv::Point(10, 45), 1, 1, cv::Scalar(255,0,255));
         }
         if (!img.empty())
             cv::imshow("AcharTab", img);        
+        sessaoCritica.unlock();
     }
 }

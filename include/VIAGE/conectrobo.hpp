@@ -12,7 +12,7 @@ class ConectRobo
 public:
     ConectRobo(int porta);
     void CriarConexao();
-    void IniciarLeitura();
+    //void IniciarLeitura();
     void RSI_XML(float x = 0.f, float y = 0.f, float z = 0.f, float a = 0.f, float b = 0.f, float c = 0.f);
 
     struct InfoRobo
@@ -31,6 +31,7 @@ public:
     };
     std::stack<InfoRobo> pilhaInfoRobo;
     std::mutex mutexInfoRobo;
+    void LerMsg();
 
 private:
     int sockfd,n;
@@ -41,8 +42,7 @@ private:
     std::stack<std::string> mPilhaIPOC;
     std::mutex mutexIPOC;
 
-    void* LerMsg(void);
-    static void*  chamarLerMsg(void *arg){return ((ConectRobo*)arg)->LerMsg();}
+    //static void*  chamarLerMsg(void *arg){return ((ConectRobo*)arg)->LerMsg();}
 };
 
 #endif // VIAGE_CONECTROBO_HPP

@@ -33,7 +33,7 @@ ConectRobo::ConectRobo(int porta)
       mPorta = porta;
     }
     CriarConexao();
-    IniciarLeitura();
+    //IniciarLeitura();
 }
 
 void ConectRobo::CriarConexao()
@@ -48,13 +48,11 @@ void ConectRobo::CriarConexao()
   servaddr.sin_port=htons(mPorta);
   int k = bind(sockfd,(struct sockaddr *)&servaddr,sizeof(servaddr));
   assert(k == 0);
+  connect(sockfd,(struct sockaddr *)&cliaddr,sizeof cliaddr);  
 }
 
-void *ConectRobo::LerMsg(void)
+void ConectRobo::LerMsg()
 {    
-  connect(sockfd,(struct sockaddr *)&cliaddr,sizeof cliaddr);
-  for (;;)
-  {
     char req[TAM_MSG];
     len = sizeof(cliaddr);
     n = recvfrom(sockfd,req,TAM_MSG,0,(struct sockaddr *)&cliaddr,&len);
@@ -70,7 +68,7 @@ void *ConectRobo::LerMsg(void)
       {
         //std::cout << "RSI recebido:" << std::endl << RSI << std::endl;
         auto ipoc = doc.child("Rob").child("IPOC").text().get();
-        std::cout << "IPOC recebido: " << ipoc << std::endl;
+        //std::cout << "IPOC recebido: " << ipoc << std::endl;
         mutexIPOC.lock();
           mPilhaIPOC.push(ipoc);
         mutexIPOC.unlock();
@@ -90,23 +88,22 @@ void *ConectRobo::LerMsg(void)
           std::string ipoc;
           for (int i = 24; i < 34; ++i)
             ipoc += RSI[i];
-          std::cout << "IPOC recebido: " << ipoc << std::endl;
+          //std::cout << "IPOC recebido: " << ipoc << std::endl;
           mutexIPOC.lock();
             mPilhaIPOC.push(ipoc);
           mutexIPOC.unlock();
       }
     }
-  }
 }
 
-void ConectRobo::IniciarLeitura()
+/*void ConectRobo::IniciarLeitura()
 {
   pthread_t tid;
   int result;
   result = pthread_create(&tid, 0, ConectRobo::chamarLerMsg, this);
   if (result == 0)
     pthread_detach(tid);
-}
+}*/
 
 void ConectRobo::RSI_XML(float x, float y, float z, float a, float b, float c)
 {
@@ -160,8 +157,10 @@ void ConectRobo::RSI_XML(float x, float y, float z, float a, float b, float c)
     dioNode.append_child(pugi::node_pcdata).set_value("125");
       // <IPOC>12471280947</IPOC>
     pugi::xml_node ipocNode = senNode.insert_child_after("IPOC", dioNode);
+    std::string ipoc;
     mutexIPOC.lock();
-      ipocNode.append_child(pugi::node_pcdata).set_value(mPilhaIPOC.top().c_str());
+      ipoc = mPilhaIPOC.top();
+      ipocNode.append_child(pugi::node_pcdata).set_value(ipoc.c_str());
       while (!mPilhaIPOC.empty())
         mPilhaIPOC.pop();
     mutexIPOC.unlock();
@@ -172,5 +171,6 @@ void ConectRobo::RSI_XML(float x, float y, float z, float a, float b, float c)
     //doc.print(std::cout);  
     std::string RSI(std::istreambuf_iterator<char>(std::ifstream("config/RSI.xml").rdbuf()), std::istreambuf_iterator<char>());  
     sendto(sockfd, RSI.c_str(), strlen(RSI.c_str()), 0, (struct sockaddr *)&cliaddr,len);
+    //std::cout << "    IPOC respondido: " << ipoc << std::endl;
   }
 }
