@@ -1,4 +1,4 @@
-#include <VIAGE/mensuriumage.hpp>
+#include <VIAGE/mensurium.hpp>
 
 #include <opencv/cv.h>
 #include <opencv2/opencv.hpp>
@@ -462,7 +462,7 @@ int Placa::getnMarcoAch(){
     return nMarcoAch;
 }
 
-int  mensuriumAGE::AcharTabs(cv::Mat img, int n, CvMat **trans, int npl,cv::Mat imgDes){
+int  Mensurium::AcharTabs(cv::Mat img, int n, CvMat **trans, int npl,cv::Mat imgDes){
 
 
     CvPoint p[n][3];
@@ -529,7 +529,7 @@ int  mensuriumAGE::AcharTabs(cv::Mat img, int n, CvMat **trans, int npl,cv::Mat 
     return nAchado;
 }
 
-mensuriumAGE::mensuriumAGE(unsigned int l, unsigned int a, float t, unsigned int c)
+Mensurium::Mensurium(unsigned int l, unsigned int a, float t, unsigned int c)
 : largura(l)
 , altura(a)
 , tamanho(t)
@@ -544,11 +544,11 @@ mensuriumAGE::mensuriumAGE(unsigned int l, unsigned int a, float t, unsigned int
     IniciarCaptura();
 }
 
-Placa mensuriumAGE::getPlaca(int i){
+Placa Mensurium::getPlaca(int i){
     return placa[i];
 }
 
-Marcador mensuriumAGE::AcharCentro1Tab(cv::Mat img, Marcador& marco, unsigned int largura, unsigned int altura, float tamanho)
+Marcador Mensurium::AcharCentro1Tab(cv::Mat img, Marcador& marco, unsigned int largura, unsigned int altura, float tamanho)
 {
     cv::Size tTab(largura, altura);
     cv::Mat cinza(img.rows,img.cols,CV_8UC1);
@@ -594,7 +594,7 @@ Marcador mensuriumAGE::AcharCentro1Tab(cv::Mat img, Marcador& marco, unsigned in
     return marco;
 }
 
-cv::Mat mensuriumAGE::Stereo(cv::Mat imgE, cv::Mat imgD){
+cv::Mat Mensurium::Stereo(cv::Mat imgE, cv::Mat imgD){
 
     cv::cvtColor(imgE,imgE,CV_RGB2GRAY);
     cv::cvtColor(imgD,imgD,CV_RGB2GRAY);
@@ -621,7 +621,7 @@ cv::Mat mensuriumAGE::Stereo(cv::Mat imgE, cv::Mat imgD){
     return disp8U;
 }
 
-bool mensuriumAGE::Rodar(char* nomeJan,cv::Mat img){
+bool Mensurium::Rodar(char* nomeJan,cv::Mat img){
 
     bool resp = false;
 
@@ -674,16 +674,16 @@ bool mensuriumAGE::Rodar(char* nomeJan,cv::Mat img){
     return resp;
 }
 
-void mensuriumAGE::IniciarCaptura()
+void Mensurium::IniciarCaptura()
 {
   pthread_t tid;
   int result;
-  result = pthread_create(&tid, 0, mensuriumAGE::chamarCapturarImagem, this);
+  result = pthread_create(&tid, 0, Mensurium::chamarCapturarImagem, this);
   if (result == 0)
     pthread_detach(tid);
 }
 
-void *mensuriumAGE::CapturarImagem(void)
+void *Mensurium::CapturarImagem(void)
 {
   cv::VideoCapture cap(camera);
   assert(cap.isOpened());

@@ -70,10 +70,10 @@ class Placa{
     int nMarcoAch;
 };
 
-class mensuriumAGE
+class Mensurium
 {
 public:
-    mensuriumAGE(unsigned int l, unsigned int a, float t, unsigned int c);
+    Mensurium(unsigned int l, unsigned int a, float t, unsigned int c);
     int AcharTabs(cv::Mat img, int n, CvMat** trans, int npl, cv::Mat imgDes = cv::Mat(0,0,CV_8UC1));
     Marcador AcharCentro1Tab(cv::Mat img, Marcador& marco, unsigned int largura, unsigned int altura, float tamanho);
     bool Rodar(char *nomeJan, cv::Mat img);
@@ -98,7 +98,7 @@ private:
     unsigned int camera;
 
     void* CapturarImagem(void);
-    static void*  chamarCapturarImagem(void *arg){return ((mensuriumAGE*)arg)->CapturarImagem();}
+    static void*  chamarCapturarImagem(void *arg){return ((Mensurium*)arg)->CapturarImagem();}
 
 };
 

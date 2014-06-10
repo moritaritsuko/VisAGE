@@ -2,7 +2,7 @@
 #define VIAGE_PROG_HPP
 
 #include <VIAGE/conectrobo.hpp>
-#include <VIAGE/mensuriumage.hpp>
+#include <VIAGE/mensurium.hpp>
 
 
 class Programa
@@ -13,7 +13,7 @@ class Programa
 
     private:        
         ConectRobo      mConect;
-        mensuriumAGE    mAGE;
+        Mensurium    	mMensurium;
 
 };
 

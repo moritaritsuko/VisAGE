@@ -11,7 +11,7 @@ std::mutex sessaoCritica;
 
 Programa::Programa(unsigned int l, unsigned int a, float t, unsigned int c, unsigned int p)
 : mConect(p)
-, mAGE(l, a, t, c)
+, mMensurium(l, a, t, c)
 {    
     std::cout << "Largura: " << l << std::endl;
     std::cout << "Altura: " << a << std::endl;
@@ -22,27 +22,27 @@ Programa::Programa(unsigned int l, unsigned int a, float t, unsigned int c, unsi
 
 void Programa::executar()
 {
-    const double setPX = 48.5f;//-80.f;//-79.f;
-    const double setPY = -21.5f;//235.f;//56.f;
-    const double setPZ = 1100.f;
+    const double setPX = 21.f;//-80.f;//-79.f;
+    const double setPY = -5.f;//235.f;//56.f;
+    const double setPZ = 1092.f;
     int tecla;
-    
+
     while (true)
     {
-        sessaoCritica.lock();        
         mConect.LerMsg();
+        sessaoCritica.lock();                
         auto tempo = (double) cv::getTickCount();
         tecla = cv::waitKey(3);
         if((tecla & 255) == 27)
             break;
 
         cv::Mat img;      
-        if (!mAGE.filaImagens.empty())
+        if (!mMensurium.filaImagens.empty())
         {          
-            mAGE.mutexImagem.lock();
-                img = mAGE.filaImagens.front();
-                mAGE.filaImagens.pop();
-            mAGE.mutexImagem.unlock();
+            mMensurium.mutexImagem.lock();
+                img = mMensurium.filaImagens.front();
+                mMensurium.filaImagens.pop();
+            mMensurium.mutexImagem.unlock();
         }        
 
         ConectRobo::InfoRobo infoRobo;
@@ -55,15 +55,15 @@ void Programa::executar()
             cv::putText(img, cv::format("RSolABC(%f, %f, %f)", infoRobo.a,infoRobo.b,infoRobo.c), cv::Point(10, 465), 1, 1, cv::Scalar(255,0,255));
         }
 
-        if (mAGE.filaMarcadores.empty())
+        if (mMensurium.filaMarcadores.empty())
             mConect.RSI_XML();
         else
         {
             Marcador marco;
-            mAGE.mutexMarcador.lock();
-                marco = mAGE.filaMarcadores.front();
-                mAGE.filaMarcadores.pop();
-            mAGE.mutexMarcador.unlock();
+            mMensurium.mutexMarcador.lock();
+                marco = mMensurium.filaMarcadores.front();
+                mMensurium.filaMarcadores.pop();
+            mMensurium.mutexMarcador.unlock();
             auto posicao = marco.getPosicao();
             auto orientacao = marco.getOrientacao();
 
@@ -148,12 +148,13 @@ void Programa::executar()
             }
 
             mConect.RSI_XML(xRSI, yRSI, zRSI);
-            tempo = (double) cv::getTickCount() - tempo;
-            //std::cout << "              Resposta RSI em " << tempo * 1000.f / cv::getTickFrequency() << " ms." << std::endl;
             cv::putText(img, cv::format("Delta X: %f", deltaX), cv::Point(10, 15), 1, 1, cv::Scalar(255,0,255));
             cv::putText(img, cv::format("Delta Y: %f", deltaY), cv::Point(10, 30), 1, 1, cv::Scalar(255,0,255));
             cv::putText(img, cv::format("Delta Z: %f", deltaZ), cv::Point(10, 45), 1, 1, cv::Scalar(255,0,255));
         }
+        tempo = (double) cv::getTickCount() - tempo;
+        std::cout << "              Resposta RSI em " << tempo * 1000.f / cv::getTickFrequency() << " ms." << std::endl;
+
         if (!img.empty())
             cv::imshow("AcharTab", img);        
         sessaoCritica.unlock();

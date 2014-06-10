@@ -68,7 +68,7 @@ void ConectRobo::LerMsg()
       {
         //std::cout << "RSI recebido:" << std::endl << RSI << std::endl;
         auto ipoc = doc.child("Rob").child("IPOC").text().get();
-        //std::cout << "IPOC recebido: " << ipoc << std::endl;
+        std::cout << "IPOC recebido: " << ipoc << std::endl;
         mutexIPOC.lock();
           mPilhaIPOC.push(ipoc);
         mutexIPOC.unlock();
@@ -84,11 +84,11 @@ void ConectRobo::LerMsg()
       }
       else
       {
-          //std::cout << "RSI [" << RSI << "] com erro: " << resultado.description() << std::endl;
+          std::cout << "RSI [" << RSI << "] com erro: " << resultado.description() << std::endl;
           std::string ipoc;
           for (int i = 24; i < 34; ++i)
             ipoc += RSI[i];
-          //std::cout << "IPOC recebido: " << ipoc << std::endl;
+          std::cout << "IPOC recebido: " << ipoc << std::endl;
           mutexIPOC.lock();
             mPilhaIPOC.push(ipoc);
           mutexIPOC.unlock();
@@ -107,70 +107,41 @@ void ConectRobo::LerMsg()
 
 void ConectRobo::RSI_XML(float x, float y, float z, float a, float b, float c)
 {
+  std::string IPOC;
   if (!mPilhaIPOC.empty())
-  {
-    pugi::xml_document doc;
-    // <Sen Type="ImFree">
-    pugi::xml_node senNode = doc.append_child("Sen");
-    senNode.append_attribute("Type") = "ImFree";
-      // <EStr>ERX Message! Free config!</EStr>
-    pugi::xml_node estrNode = senNode.append_child("EStr");
-    estrNode.append_child(pugi::node_pcdata).set_value("ERX Message! Free config!");
-      // <RKorr X="0.0000" Y="0.0000" Z="0.0000" A="0.0000" B="0.0000" C="0.0000"/>
-    pugi::xml_node rkorrNode = senNode.insert_child_after("RKorr", estrNode);
-    rkorrNode.append_attribute("X") = std::to_string(x).substr(0, 6).c_str();
-    rkorrNode.append_attribute("Y") = std::to_string(y).substr(0, 6).c_str();
-    rkorrNode.append_attribute("Z") = std::to_string(z).substr(0, 6).c_str();
-    rkorrNode.append_attribute("A") = std::to_string(a).substr(0, 6).c_str();
-    rkorrNode.append_attribute("B") = std::to_string(b).substr(0, 6).c_str();
-    rkorrNode.append_attribute("C") = std::to_string(c).substr(0, 6).c_str();
-      // <AKorr A1="0.0000" A2="0.0000" A3="0.0000" A4="0.0000" A5="0.0000" A6="0.0000" />
-    pugi::xml_node akorrNode = senNode.insert_child_after("AKorr", rkorrNode);
-    akorrNode.append_attribute("A1") = "0.0000";
-    akorrNode.append_attribute("A2") = "0.0000";
-    akorrNode.append_attribute("A3") = "0.0000";
-    akorrNode.append_attribute("A4") = "0.0000";
-    akorrNode.append_attribute("A5") = "0.0000";
-    akorrNode.append_attribute("A6") = "0.0000";
-      // <EKorr E1="0.0000" E2="0.0000" E3="0.0000" E4="0.0000" E5="0.0000" E6="0.0000" />
-    pugi::xml_node ekorrNode = senNode.insert_child_after("EKorr", akorrNode);
-    ekorrNode.append_attribute("E1") = "0.0000";
-    ekorrNode.append_attribute("E2") = "0.0000";
-    ekorrNode.append_attribute("E3") = "0.0000";
-    ekorrNode.append_attribute("E4") = "0.0000";
-    ekorrNode.append_attribute("E5") = "0.0000";
-    ekorrNode.append_attribute("E6") = "0.0000";
-      // <Tech T21="1.09" T22="2.08" T23="3.07" T24="4.06" T25="5.05" T26="6.04" T27="7.03" T28="8.02" T29="9.01" T210="10.00" />
-    pugi::xml_node techNode = senNode.insert_child_after("Tech", ekorrNode);
-    techNode.append_attribute("T21") = "1.09";
-    techNode.append_attribute("T22") = "2.08";
-    techNode.append_attribute("T23") = "3.07";
-    techNode.append_attribute("T24") = "4.06";
-    techNode.append_attribute("T25") = "5.05";
-    techNode.append_attribute("T26") = "6.04";
-    techNode.append_attribute("T27") = "7.03";
-    techNode.append_attribute("T28") = "8.02";
-    techNode.append_attribute("T29") = "9.01";
-    techNode.append_attribute("T210") = "10.00";
-      // <DiO>125</DiO>
-    pugi::xml_node dioNode = senNode.insert_child_after("DiO", techNode);
-    dioNode.append_child(pugi::node_pcdata).set_value("125");
-      // <IPOC>12471280947</IPOC>
-    pugi::xml_node ipocNode = senNode.insert_child_after("IPOC", dioNode);
-    std::string ipoc;
-    mutexIPOC.lock();
-      ipoc = mPilhaIPOC.top();
-      ipocNode.append_child(pugi::node_pcdata).set_value(ipoc.c_str());
+  {    
+    std::string RSI("<Sen Type=\"ImFree\"><EStr>ERX Message! Free config!</EStr>");
+    RSI += "<RKorr X=\"";
+    RSI += std::to_string(x).substr(0, 6);
+    RSI += "\" Y=\"";
+    RSI += std::to_string(y).substr(0, 6);
+    RSI += "\" Z=\"";
+    RSI += std::to_string(z).substr(0, 6);
+    RSI += "\" A=\"";
+    RSI += std::to_string(a).substr(0, 6);
+    RSI += "\" B=\"";
+    RSI += std::to_string(b).substr(0, 6);
+    RSI += "\" C=\"";
+    RSI += std::to_string(c).substr(0, 6);    
+    RSI += "\"/><AKorr A1=\"0.0000\" A2=\"0.0000\" A3=\"0.0000\" A4=\"0.0000\" A5=\"0.0000\" A6=\"0.0000\"/>";
+    RSI += "<EKorr E1=\"0.0000\" E2=\"0.0000\" E3=\"0.0000\" E4=\"0.0000\" E5=\"0.0000\" E6=\"0.0000\"/>";
+    RSI += "<Tech T21=\"1.09\" T22=\"2.08\" T23=\"3.07\" T24=\"4.06\" T25=\"5.05\" T26=\"6.04\" T27=\"7.03\" T28=\"8.02\" T29=\"9.01\" T210=\"10.00\"/>";
+    RSI += "<DiO>0</DiO><IPOC>";
+    mutexIPOC.lock();   
+      IPOC = mPilhaIPOC.top(); 
+      RSI += IPOC;
       while (!mPilhaIPOC.empty())
         mPilhaIPOC.pop();
     mutexIPOC.unlock();
-    // </Sen>    
-    
-    // Resposta ao cliente
-    doc.save_file("config/RSI.xml");
-    //doc.print(std::cout);  
-    std::string RSI(std::istreambuf_iterator<char>(std::ifstream("config/RSI.xml").rdbuf()), std::istreambuf_iterator<char>());  
-    sendto(sockfd, RSI.c_str(), strlen(RSI.c_str()), 0, (struct sockaddr *)&cliaddr,len);
-    //std::cout << "    IPOC respondido: " << ipoc << std::endl;
+    RSI += "</IPOC></Sen>";
+    pugi::xml_document doc;
+    pugi::xml_parse_result resultado = doc.load(RSI.c_str());
+    if (resultado)
+    {
+      sendto(sockfd, RSI.c_str(), strlen(RSI.c_str()), 0, (struct sockaddr *)&cliaddr, len);
+      std::cout << "  IPOC enviado: " << IPOC << std::endl;
+    }
+    else
+      std::cout << "  Resposta RSI [" << std::endl << RSI << std::endl << "] com erro: " << resultado.description() << std::endl;
   }
 }
