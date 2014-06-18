@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <VIAGE/prog.hpp>
+#include <VISAGE/prog.hpp>
+#include <VISAGE/conectrobo.hpp>
 
 #include <stdexcept>
 #include <cstdlib>
@@ -16,6 +17,7 @@
 
 unsigned int l = 9, a = 6, c = 0, p = 6008, r = 99;
 float t = 25.4f;
+
 Programa prog(l, a, t, c, p);
 
 void uso()

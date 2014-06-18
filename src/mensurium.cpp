@@ -1,4 +1,4 @@
-#include <VIAGE/mensurium.hpp>
+#include <VISAGE/mensurium.hpp>
 
 #include <opencv/cv.h>
 #include <opencv2/opencv.hpp>

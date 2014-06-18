@@ -13,18 +13,23 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp \
-    ../../ViAge/src/conectrobo.cpp \
-    ../../ViAge/src/mensurium.cpp \
-    ../../ViAge/src/pugixml.cpp \
-    ../../ViAge/src/prog.cpp
+        mainwindow.cpp \   
+    ../src/conectrobo.cpp \
+    ../src/mensurium.cpp \
+    ../src/prog.cpp \
+    ../src/pugixml.cpp
 
-HEADERS  += mainwindow.h \
-    ../../ViAge/include/VIAGE/conectrobo.hpp \
-    ../../ViAge/include/VIAGE/mensurium.hpp \
-    ../../ViAge/include/VIAGE/prog.hpp \
-    ../../ViAge/include/VIAGE/pugiconfig.hpp \
-    ../../ViAge/include/VIAGE/pugixml.hpp
+HEADERS  += mainwindow.h \    
+    ../include/VISAGE/conectrobo.hpp \
+    ../include/VISAGE/mensurium.hpp \
+    ../include/VISAGE/prog.hpp \
+    ../include/VISAGE/pugiconfig.hpp \
+    ../include/VISAGE/pugixml.hpp \
+    ../include/VISAGE/conectrobo.hpp \
+    ../include/VISAGE/mensurium.hpp \
+    ../include/VISAGE/prog.hpp \
+    ../include/VISAGE/pugiconfig.hpp \
+    ../include/VISAGE/pugixml.hpp
 
 FORMS    += mainwindow.ui
 
@@ -146,7 +151,8 @@ DEPENDPATH += $$PWD/../../../../../opt/AMDAPP/include
 INCLUDEPATH += $$PWD/../../../../../../usr/lib/x86_64-linux-gnu
 DEPENDPATH += $$PWD/../../../../../../usr/lib/x86_64-linux-gnu
 
-unix:!macx: LIBS += -L$$PWD/../../../../../../usr/lib/x86_64-linux-gnu/ -lGL
+#unix:!macx: LIBS += -L$$PWD/../../../../../../usr/lib/x86_64-linux-gnu -lGL
+unix:!macx: LIBS += -L$$PWD/../../../../../../usr/lib/ -lGL
 
 INCLUDEPATH += $$PWD/../../../../../../usr/include
 DEPENDPATH += $$PWD/../../../../../../usr/include
@@ -161,4 +167,5 @@ unix:!macx: LIBS += -L$$PWD/../../../../../../opt/AMDAPP/lib/x86_64/ -lGLEW
 INCLUDEPATH += $$PWD/../../../../../../opt/AMDAPP/include
 DEPENDPATH += $$PWD/../../../../../../opt/AMDAPP/include
 
-INCLUDEPATH += /home/leandro/Projetos/AGE/ViAge/include
+#INCLUDEPATH += /home/leandro/Projetos/AGE/ViAge/include
+INCLUDEPATH += /home/gabriel/Templates/AGE/VisAGE/include

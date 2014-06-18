@@ -213,3 +213,9 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+
+###############
+## QtCreator
+###############
+
+build-VisAGE-Desktop_Qt_5_3_0_GCC_64bit-Debug/
