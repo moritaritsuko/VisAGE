@@ -53,22 +53,25 @@ void ConectRobo::CriarConexao()
 
 void ConectRobo::LerMsg()
 {    
+//    std::cout << "RSI: Aguardando MSG!" << std::endl;
     char req[TAM_MSG];
     len = sizeof(cliaddr);
     n = recvfrom(sockfd,req,TAM_MSG,0,(struct sockaddr *)&cliaddr,&len);
     if(n>-1)
     {
       auto fimMsg = strlen(req);
+
       char RSI[fimMsg];
       strncpy(RSI, req, fimMsg);
+//      std::cout << "RSI: " <<RSI<<std::endl;
       pugi::xml_document doc;
       pugi::xml_parse_result resultado = doc.load(RSI);
 
       if (resultado)
       {
-        //std::cout << "RSI recebido:" << std::endl << RSI << std::endl;
+//        std::cout << "RSI recebido:" << std::endl << RSI << std::endl;
         auto ipoc = doc.child("Rob").child("IPOC").text().get();
-        std::cout << "IPOC recebido: " << ipoc << std::endl;
+//        std::cout << "IPOC recebido: " << ipoc << std::endl;
         mutexIPOC.lock();
           mPilhaIPOC.push(ipoc);
         mutexIPOC.unlock();
@@ -84,11 +87,11 @@ void ConectRobo::LerMsg()
       }
       else
       {
-          std::cout << "RSI [" << RSI << "] com erro: " << resultado.description() << std::endl;
+//          std::cout << "RSI [" << RSI << "] com erro: " << resultado.description() << std::endl;
           std::string ipoc;
           for (int i = 24; i < 34; ++i)
             ipoc += RSI[i];
-          std::cout << "IPOC recebido: " << ipoc << std::endl;
+//          std::cout << "IPOC recebido: " << ipoc << std::endl;
           mutexIPOC.lock();
             mPilhaIPOC.push(ipoc);
           mutexIPOC.unlock();
@@ -139,7 +142,8 @@ void ConectRobo::RSI_XML(float x, float y, float z, float a, float b, float c)
     if (resultado)
     {
       sendto(sockfd, RSI.c_str(), strlen(RSI.c_str()), 0, (struct sockaddr *)&cliaddr, len);
-      std::cout << "  IPOC enviado: " << IPOC << std::endl;
+//      std::cout << "  IPOC enviado: " << IPOC << std::endl;
+      std::cout << "  Resposta RSI: " << std::endl << RSI << std::endl;
     }
     else
       std::cout << "  Resposta RSI [" << std::endl << RSI << std::endl << "] com erro: " << resultado.description() << std::endl;

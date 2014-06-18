@@ -9,6 +9,7 @@
 
 std::mutex sessaoCritica;
 
+
 Programa::Programa(unsigned int l, unsigned int a, float t, unsigned int c, unsigned int p)
 : mConect(p)
 , mMensurium(l, a, t, c)
@@ -20,21 +21,27 @@ Programa::Programa(unsigned int l, unsigned int a, float t, unsigned int c, unsi
     std::cout << "Porta RSI: " << p << std::endl;
 }
 
-void Programa::executar()
-{
-    const double setPX = 21.f;//-80.f;//-79.f;
-    const double setPY = -5.f;//235.f;//56.f;
-    const double setPZ = 1092.f;
-    int tecla;
 
-    while (true)
-    {
+
+const double setPX = 21.f;//-80.f;//-79.f;
+const double setPY = -5.f;//235.f;//56.f;
+const double setPZ = 1092.f;
+double setPZapx = setPZ;
+bool aproxZ = false;
+//int tecla;
+
+void Programa::executar(cv::Mat &imgR)
+{
+
+
+//    while (true)
+//    {
         mConect.LerMsg();
         sessaoCritica.lock();                
         auto tempo = (double) cv::getTickCount();
-        tecla = cv::waitKey(3);
-        if((tecla & 255) == 27)
-            break;
+//        tecla = cv::waitKey(3);
+//        if((tecla & 255) == 27)
+//            break;
 
         cv::Mat img;      
         if (!mMensurium.filaImagens.empty())
@@ -141,9 +148,9 @@ void Programa::executar()
             if (xRSI == 0.f && yRSI == 0.f && zRSI == 0.f && infoRobo.valido)
             {
                 char tecla = cv::waitKey(3);
-                if (tecla == 'p' || tecla == 'P')
+                if (tecla == 'p' || tecla == 'P' || !aproxZ)
                 {
-                    // TODO: aproximar robo da chapa
+                    MoverPara(0.f,0.f,z);
                 }
             }
 
@@ -155,8 +162,229 @@ void Programa::executar()
         tempo = (double) cv::getTickCount() - tempo;
         std::cout << "              Resposta RSI em " << tempo * 1000.f / cv::getTickFrequency() << " ms." << std::endl;
 
-        if (!img.empty())
-            cv::imshow("AcharTab", img);        
+        if (!img.empty()){
+            img.copyTo(imgR);
+//            cv::imshow("AcharTab", imgR);
+        }else{
+            imgR = cv::Mat();
+        }
         sessaoCritica.unlock();
-    }
+//    }
 }
+
+void Programa::Manipular(){
+
+    double xRSI, yRSI, zRSI;
+    double aRSI, bRSI, cRSI;
+    xRSI = yRSI = zRSI = 0.f;
+    aRSI = bRSI = cRSI = 0.f;
+
+    mConect.LerMsg();
+    sessaoCritica.lock();
+
+    cv::Mat img;
+    if (!mMensurium.filaImagens.empty())
+    {
+        mMensurium.mutexImagem.lock();
+            img = mMensurium.filaImagens.front();
+            mMensurium.filaImagens.pop();
+        mMensurium.mutexImagem.unlock();
+    }
+
+    char tecla = cv::waitKey(3);
+//    std::cout<<"Tecla: "<<(int)tecla<<std::endl;
+    switch (tecla){
+     case 'w':
+        xRSI = 1.f;
+     break;
+
+    case 's':
+       xRSI = -1.f;
+    break;
+
+    case 'a':
+       yRSI = 1.f;
+    break;
+
+    case 'd':
+       yRSI = -1.f;
+    break;
+
+    case 'r':
+       aRSI = 0.999999f;
+    break;
+
+    case 'f':
+       aRSI = -0.999999f;
+    break;
+
+    case 't':
+       bRSI = 0.5f;
+    break;
+
+    case 'g':
+       bRSI = -0.5f;
+    break;
+
+    case 'y':
+       cRSI = 0.5f;
+    break;
+
+    case 'h':
+       cRSI = -0.5f;
+    break;
+    }
+
+    mConect.RSI_XML(xRSI, yRSI, zRSI,aRSI,bRSI,cRSI);
+
+    sessaoCritica.unlock();
+if (!img.empty())
+    cv::imshow("img",img);
+
+
+}
+
+void Programa::MoverPara(double deltax, double deltay, double deltaz){
+
+    double xRSI, yRSI, zRSI;
+    xRSI = yRSI = zRSI = 0.f;
+    ConectRobo::InfoRobo infoRobo;
+
+ for(int i = 0;i<5;i++){
+    mConect.LerMsg();
+    if (!mConect.pilhaInfoRobo.empty())
+    {
+        infoRobo = mConect.pilhaInfoRobo.top();
+        while (!mConect.pilhaInfoRobo.empty())
+            mConect.pilhaInfoRobo.pop();
+    }
+    mConect.RSI_XML();
+ }
+   double pontoFinalX = infoRobo.x+deltax;
+   double pontoFinalY = infoRobo.y+deltay;
+   double pontoFinalZ = infoRobo.z+deltaz;
+
+
+            while(abs(pontoFinalX-infoRobo.x)> 0.1f){
+                mConect.LerMsg();
+                if (!mConect.pilhaInfoRobo.empty())
+                {
+                    infoRobo = mConect.pilhaInfoRobo.top();
+                    while (!mConect.pilhaInfoRobo.empty())
+                        mConect.pilhaInfoRobo.pop();
+                }
+                std::cout << "detalX= " <<abs(pontoFinalX-infoRobo.x)<<std::endl;
+                std::cout << "X= " <<infoRobo.x<<std::endl;
+                xRSI = 1.0f;
+                if (deltax > 0)xRSI = -1.0f;
+                mConect.RSI_XML(xRSI, yRSI, zRSI);
+            }
+          xRSI = 0.0f;
+
+
+             while(abs(pontoFinalY-infoRobo.y)> 0.1f){
+                 mConect.LerMsg();
+                 if (!mConect.pilhaInfoRobo.empty())
+                 {
+                     infoRobo = mConect.pilhaInfoRobo.top();
+                     while (!mConect.pilhaInfoRobo.empty())
+                         mConect.pilhaInfoRobo.pop();
+                 }
+                 std::cout << "detalY= " <<abs(pontoFinalY-infoRobo.y)<<std::endl;
+                 std::cout << "Y= " <<infoRobo.y<<std::endl;
+                 yRSI = -1.0f;
+                 if (deltax > 0)yRSI = 1.0f;
+                 mConect.RSI_XML(xRSI, yRSI, zRSI);
+             }
+             yRSI = 0.0f;
+
+             while(abs(pontoFinalZ-infoRobo.z)> 0.1f){
+                 mConect.LerMsg();
+                 if (!mConect.pilhaInfoRobo.empty())
+                 {
+                     infoRobo = mConect.pilhaInfoRobo.top();
+                     while (!mConect.pilhaInfoRobo.empty())
+                         mConect.pilhaInfoRobo.pop();
+                 }
+                 std::cout << "detalZ= " <<abs(pontoFinalZ-infoRobo.z)<<std::endl;
+                 std::cout << "Z= " <<infoRobo.z<<std::endl;
+                 zRSI = 1.0f;
+                 if (deltax > 0)zRSI = -1.0f;
+                 mConect.RSI_XML(xRSI, yRSI, zRSI);
+             }
+             zRSI = 0.0f;
+
+}
+
+void Programa::Rotacionar(double deltaA, double deltaB, double deltaC){
+
+    double aRSI, bRSI, cRSI;
+    aRSI = bRSI = bRSI = 0.f;
+    ConectRobo::InfoRobo infoRobo;
+
+ for(int i = 0;i<5;i++){
+    mConect.LerMsg();
+    if (!mConect.pilhaInfoRobo.empty())
+    {
+        infoRobo = mConect.pilhaInfoRobo.top();
+        while (!mConect.pilhaInfoRobo.empty())
+            mConect.pilhaInfoRobo.pop();
+    }
+    mConect.RSI_XML();
+ }
+   double pontoFinalA = infoRobo.a+deltaA;
+   double pontoFinalB = infoRobo.b+deltaB;
+   double pontoFinalC = infoRobo.c+deltaC;
+
+
+            while(abs(pontoFinalA-infoRobo.a)> 0.1f){
+                mConect.LerMsg();
+                if (!mConect.pilhaInfoRobo.empty())
+                {
+                    infoRobo = mConect.pilhaInfoRobo.top();
+                    while (!mConect.pilhaInfoRobo.empty())
+                        mConect.pilhaInfoRobo.pop();
+                }
+                std::cout << "detalX= " <<abs(pontoFinalA-infoRobo.a)<<std::endl;
+                std::cout << "X= " <<infoRobo.a<<std::endl;
+                aRSI = 1.0f;
+                if (deltaA > 0)aRSI = -1.0f;
+                mConect.RSI_XML(0.f,0.f,0.f,aRSI, bRSI, cRSI);
+            }
+         aRSI = 0.0f;
+
+
+             while(abs(pontoFinalB-infoRobo.b)> 0.1f){
+                 mConect.LerMsg();
+                 if (!mConect.pilhaInfoRobo.empty())
+                 {
+                     infoRobo = mConect.pilhaInfoRobo.top();
+                     while (!mConect.pilhaInfoRobo.empty())
+                         mConect.pilhaInfoRobo.pop();
+                 }
+                 std::cout << "detalY= " <<abs(pontoFinalB-infoRobo.b)<<std::endl;
+                 std::cout << "Y= " <<infoRobo.b<<std::endl;
+                 bRSI = -1.0f;
+                 if (deltaB > 0)bRSI = 1.0f;
+                 mConect.RSI_XML(0.f,0.f,0.f,aRSI, bRSI, cRSI);
+             }
+             bRSI = 0.0f;
+
+             while(abs(pontoFinalC-infoRobo.c)> 0.1f){
+                 mConect.LerMsg();
+                 if (!mConect.pilhaInfoRobo.empty())
+                 {
+                     infoRobo = mConect.pilhaInfoRobo.top();
+                     while (!mConect.pilhaInfoRobo.empty())
+                         mConect.pilhaInfoRobo.pop();
+                 }
+                 std::cout << "detalZ= " <<abs(pontoFinalC-infoRobo.c)<<std::endl;
+                 std::cout << "Z= " <<infoRobo.c<<std::endl;
+                 cRSI = 1.0f;
+                 if (deltaC > 0)cRSI = -1.0f;
+                 mConect.RSI_XML(0.f,0.f,0.f,aRSI, bRSI, cRSI);
+             }
+             cRSI = 0.0f;
+
+}
+

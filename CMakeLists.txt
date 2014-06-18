@@ -36,11 +36,7 @@ add_executable(${EXECUTABLE_NAME} ${SOURCE} ${HEADERS})
 
 # Find OpenCV libraries
 find_package(OpenCV REQUIRED)
-target_link_libraries(${EXECUTABLE_NAME} ${OpenCV_LIBS} -L/usr/local/cuda-6.0/lib64 -lcudart -lnppc -lnppi -lnpps -lcufft)
-
-# Find Cuda libs
-find_package(CUDA REQUIRED)
-target_link_libraries(${EXECUTABLE_NAME} ${CUDA_LIBRARIES})
+target_link_libraries(${EXECUTABLE_NAME} ${OpenCV_LIBS}  -L/opt/AMDAPP/lib/x86_64/ -lamdocl64 -lOpenCL -lpthread)
 
 # Install Target
 install(TARGETS ${EXECUTABLE_NAME} DESTINATION .)
