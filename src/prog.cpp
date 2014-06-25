@@ -278,7 +278,7 @@ void Programa::MoverPara(double deltax, double deltay, double deltaz){
 void Programa::Rotacionar(double deltaA, double deltaB, double deltaC){
 
     double aRSI, bRSI, cRSI;
-    aRSI = bRSI = bRSI = 0.f;
+    aRSI = bRSI = cRSI = 0.f;
     ConectRobo::InfoRobo infoRobo;
 
     if (conectRobo.infoRoboRecebe.valido)

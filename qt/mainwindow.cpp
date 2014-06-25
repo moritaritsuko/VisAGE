@@ -48,7 +48,7 @@ MainWindow::MainWindow(QWidget *parent) :
             p = 6008u;
             r = 99u;
         }
-        else if ((l < 2u) || (a < 2u || a == l) || (t < 20.f) || c < 0u || (p < 1024u || p > 32767u) || (r < 1u || r > 99u))
+        else if ((l < 2u) || (a < 2u || a == l) || (t < 20.f) || (c < 0u) || (p < 1024u || p > 32767u) || (r < 1u || r > 99u))
         {
             uso();
         }
