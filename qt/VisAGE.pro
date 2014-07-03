@@ -17,7 +17,8 @@ SOURCES += main.cpp\
     ../src/conectrobo.cpp \
     ../src/mensurium.cpp \
     ../src/prog.cpp \
-    ../src/pugixml.cpp
+    ../src/pugixml.cpp \
+    ../src/stereocams.cpp
 
 HEADERS  += mainwindow.h \    
     ../include/VISAGE/conectrobo.hpp \
@@ -29,7 +30,8 @@ HEADERS  += mainwindow.h \
     ../include/VISAGE/mensurium.hpp \
     ../include/VISAGE/prog.hpp \
     ../include/VISAGE/pugiconfig.hpp \
-    ../include/VISAGE/pugixml.hpp
+    ../include/VISAGE/pugixml.hpp \
+    ../include/VISAGE/stereocams.hpp
 
 FORMS    += mainwindow.ui
 

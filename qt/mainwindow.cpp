@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <VISAGE/prog.hpp>
+#include <VISAGE/stereocams.hpp>
 #include <VISAGE/conectrobo.hpp>
 
 #include <stdexcept>
@@ -19,6 +20,7 @@ unsigned int l = 9, a = 6, c = 0, p = 6008, r = 99;
 float t = 25.4f;
 
 Programa prog(l, a, t, c, p);
+StereoCameras stereoCameras;
 
 void uso()
 {
@@ -161,4 +163,38 @@ void MainWindow::keyPressEvent(QKeyEvent *event){
         ui->labelDir->setText("S");
     }
 
+}
+
+void MainWindow::on_btnStereo_clicked()
+{
+    stereoCameras.exec();
+
+    while (true)
+    {
+        stereoCameras.capture();
+        auto photoPair = stereoCameras.getStereoPhotoPair();
+        auto photo1 = photoPair->matPair.first;
+        auto photo2 = photoPair->matPair.second;
+
+        if (!photo1.empty()){
+            cv::waitKey(3);
+            cv::cvtColor(photo1,photo1,cv::COLOR_BGR2RGB);
+            cv::resize(photo1, photo1, cv::Size(photo1.cols / 3, photo1.rows / 3));
+            QImage image = QImage((uint8_t*) photo1.data,photo1.cols,photo1.rows,photo1.step,QImage::Format_RGB888);
+            QPixmap pixma = QPixmap::fromImage(image);
+            ui->lblStereoEsq->setPixmap(pixma);
+            ui->lblStereoEsq->setFixedSize(pixma.size());
+        }
+
+        if (!photo2.empty()){
+            cv::waitKey(3);
+            cv::cvtColor(photo2,photo2,cv::COLOR_BGR2RGB);
+            cv::resize(photo2, photo2, cv::Size(photo2.cols / 3, photo2.rows / 3));
+            QImage image = QImage((uint8_t*) photo2.data,photo2.cols,photo2.rows,photo2.step,QImage::Format_RGB888);
+            QPixmap pixma = QPixmap::fromImage(image);
+            ui->lblStereoDir->setPixmap(pixma);
+            ui->lblStereoDir->setFixedSize(pixma.size());
+        }
+
+    }
 }

@@ -22,6 +22,8 @@ private slots:
 
     void on_btnMover_clicked();
 
+    void on_btnStereo_clicked();
+
 private:
     Ui::MainWindow *ui;
     void keyPressEvent(QKeyEvent *event);
