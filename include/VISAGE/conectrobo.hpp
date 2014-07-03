@@ -32,7 +32,7 @@ public:
 
     InfoRobo infoRoboRecebe;
     std::mutex mutexInfoRoboRecebe;
-    std::queue<InfoRobo> filaInfoRoboEnvia;
+    InfoRobo infoRoboEnvia;
     std::mutex mutexInfoRoboEnvia;
 
 private:

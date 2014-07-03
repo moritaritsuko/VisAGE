@@ -39,19 +39,19 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     bool valoresPadrao = true;
 
-        if (valoresPadrao)
-        {
-            l = 9u;
-            a = 6u;
-            t = 25.4f;
-            c = 0u;
-            p = 6008u;
-            r = 99u;
-        }
-        else if ((l < 2u) || (a < 2u || a == l) || (t < 20.f) || (c < 0u) || (p < 1024u || p > 32767u) || (r < 1u || r > 99u))
-        {
-            uso();
-        }
+    if (valoresPadrao)
+    {
+        l = 9u;
+        a = 6u;
+        t = 25.4f;
+        c = 0u;
+        p = 6008u;
+        r = 99u;
+    }
+    else if ((l < 2u) || (a < 2u || a == l) || (t < 20.f) || (c < 0u) || (p < 1024u || p > 32767u) || (r < 1u || r > 99u))
+    {
+        uso();
+    }
 }
 
 MainWindow::~MainWindow()
@@ -101,22 +101,23 @@ void MainWindow::on_btnRodar_clicked()
 
         cv::Mat imgMat;
         while(true){
-                prog.executar(imgMat);
+            prog.executar(imgMat);
+            //cv::imshow("img",imgMat);
+            cv::waitKey(3);
+            if (!imgMat.empty()){
+                cv::cvtColor(imgMat,imgMat,cv::COLOR_BGR2RGB);
 
-        if (!imgMat.empty()){
-        cv::cvtColor(imgMat,imgMat,cv::COLOR_BGR2RGB);
+                //cv::resize(imgMat,imgMat,cv::Size(imgMat.cols/3,imgMat.rows/3),0,0,cv::INTER_LINEAR);
 
-        cv::resize(imgMat,imgMat,cv::Size(imgMat.cols/3,imgMat.rows/3),0,0,cv::INTER_LINEAR);
+                QImage image = QImage((uint8_t*) imgMat.data,imgMat.cols,imgMat.rows,imgMat.step,QImage::Format_RGB888);
 
-            QImage image = QImage((uint8_t*) imgMat.data,imgMat.cols,imgMat.rows,imgMat.step,QImage::Format_RGB888);
+                QPixmap pixma = QPixmap::fromImage(image);
 
-            QPixmap pixma = QPixmap::fromImage(image);
+                ui->lblExibirIMG->setPixmap(pixma);
 
-            ui->lblExibirIMG->setPixmap(pixma);
-
-            ui->lblExibirIMG->setFixedSize(pixma.size());
+                ui->lblExibirIMG->setFixedSize(pixma.size());
+            }
         }
-      }
     }
     catch (std::exception& e)
     {
@@ -127,19 +128,19 @@ void MainWindow::on_btnRodar_clicked()
 
 void MainWindow::on_btnManual_clicked()
 {
- for(;;){
-     prog.Manipular();
-             if((cv::waitKey(3) & 255) == 27)
-                 break;
- }
+    for(;;){
+        prog.Manipular();
+        if((cv::waitKey(3) & 255) == 27)
+            break;
+    }
 }
 
 void MainWindow::on_btnMover_clicked()
 {
-   double dx = ui->editDeltaX->text().toFloat();
-   double dy = ui->editDeltaY->text().toFloat();
-   double dz = ui->editDeltaZ->text().toFloat();
-   prog.MoverPara(dx,dy,dz);
+    double dx = ui->editDeltaX->text().toFloat();
+    double dy = ui->editDeltaY->text().toFloat();
+    double dz = ui->editDeltaZ->text().toFloat();
+    prog.MoverPara(dx,dy,dz);
 }
 
 void MainWindow::keyPressEvent(QKeyEvent *event){

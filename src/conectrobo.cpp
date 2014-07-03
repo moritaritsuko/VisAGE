@@ -71,13 +71,13 @@ void* ConectRobo::LerMsg(void)
 
             char RSI[fimMsg];
             strncpy(RSI, req, fimMsg);
-            //      std::cout << "RSI: " <<RSI<<std::endl;
+
             pugi::xml_document doc;
             pugi::xml_parse_result resultado = doc.load(RSI);
 
             if (resultado)
             {
-                //        std::cout << "RSI recebido:" << std::endl << RSI << std::endl;
+                //std::cout << "RSI recebido:" << std::endl << RSI << std::endl;
                 auto ipoc = doc.child("Rob").child("IPOC").text().get();
                 //        std::cout << "IPOC recebido: " << ipoc << std::endl;
                 mutexIPOC.lock();
@@ -92,6 +92,7 @@ void* ConectRobo::LerMsg(void)
                 mutexInfoRoboRecebe.lock();
                     infoRoboRecebe = InfoRobo(x, y, z, a, b, c);
                 mutexInfoRoboRecebe.unlock();
+                //std::cout << "RSOL: " << infoRoboRecebe.x << " " << infoRoboRecebe.y << " " << infoRoboRecebe.z << std::endl;
             }
             else
             {
@@ -105,17 +106,15 @@ void* ConectRobo::LerMsg(void)
                 mutexIPOC.unlock();
             }
 
-            if (filaInfoRoboEnvia.empty())
+            if (!infoRoboEnvia.valido)
                 RSI_XML();
             else
             {
-                mutexInfoRoboEnvia.lock();
-                    auto infoRobo = filaInfoRoboEnvia.front();
-                    filaInfoRoboEnvia.pop();
-                mutexInfoRoboEnvia.unlock();
+                auto infoRobo = infoRoboEnvia;
                 RSI_XML(infoRobo.x, infoRobo.y, infoRobo.z, infoRobo.a, infoRobo.b, infoRobo.c);
             }
         }
+        pthread_yield();
     }
 }
 
@@ -162,10 +161,10 @@ void ConectRobo::RSI_XML(float x, float y, float z, float a, float b, float c)
         {
             sendto(sockfd, RSI.c_str(), strlen(RSI.c_str()), 0, (struct sockaddr *)&cliaddr, len);
             //      std::cout << "  IPOC enviado: " << IPOC << std::endl;
-            std::cout << "  Resposta RSI: " << std::endl << RSI << std::endl;
+            //std::cout << "  Resposta RSI: " << std::endl << RSI << std::endl;
         }
-        else
-            std::cout << "  Resposta RSI [" << std::endl << RSI << std::endl << "] com erro: " << resultado.description() << std::endl;
+        //else
+            //std::cout << "  Resposta RSI [" << std::endl << RSI << std::endl << "] com erro: " << resultado.description() << std::endl;
     }
 }
 
