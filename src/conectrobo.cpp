@@ -110,8 +110,10 @@ void* ConectRobo::LerMsg(void)
                 RSI_XML();
             else
             {
-                auto infoRobo = infoRoboEnvia;
-                RSI_XML(infoRobo.x, infoRobo.y, infoRobo.z, infoRobo.a, infoRobo.b, infoRobo.c);
+                RSI_XML(infoRoboEnvia.x, infoRoboEnvia.y, infoRoboEnvia.z, infoRoboEnvia.a, infoRoboEnvia.b, infoRoboEnvia.c);
+                mutexInfoRoboEnvia.lock();
+                infoRoboEnvia.valido = false;
+                mutexInfoRoboEnvia.unlock();
             }
         }
         pthread_yield();

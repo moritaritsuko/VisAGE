@@ -192,11 +192,11 @@ void Programa::Manipular(){
         break;
 
     case 'r':
-        aRSI = 0.999999f;
+        aRSI = 1.f;
         break;
 
     case 'f':
-        aRSI = -0.999999f;
+        aRSI = -1.f;
         break;
 
     case 't':
@@ -219,14 +219,14 @@ void Programa::Manipular(){
     conectRobo.mutexInfoRoboEnvia.lock();
     conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(xRSI, yRSI, zRSI,aRSI,bRSI,cRSI);
     conectRobo.mutexInfoRoboEnvia.unlock();
+    //conectRobo.RSI_XML(xRSI, yRSI, zRSI,aRSI,bRSI,cRSI);
 
     if (!img.empty())
         cv::imshow("img",img);
-
-
+    pthread_yield();
 }
 
-void Programa::MoverPara(double deltax, double deltay, double deltaz){
+void Programa::MoverPara(double deltax, double deltay, double deltaz, double vel){
 
     double xRSI, yRSI, zRSI;
     xRSI = yRSI = zRSI = 0.f;
@@ -245,8 +245,8 @@ void Programa::MoverPara(double deltax, double deltay, double deltaz){
             infoRobo = conectRobo.infoRoboRecebe;
             std::cout << "detalX= " <<abs(pontoFinalX-infoRobo.x)<<std::endl;
             std::cout << "X= " <<infoRobo.x<<std::endl;
-            xRSI = 1.0f;
-            if (deltax > 0)xRSI = -1.0f;
+            xRSI = vel;
+            if (deltax > 0)xRSI = -vel;
             conectRobo.mutexInfoRoboEnvia.lock();
             conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(xRSI, yRSI, zRSI, 0.f, 0.f, 0.f);
             conectRobo.mutexInfoRoboEnvia.unlock();
@@ -258,8 +258,8 @@ void Programa::MoverPara(double deltax, double deltay, double deltaz){
             infoRobo = conectRobo.infoRoboRecebe;
             std::cout << "detalY= " <<abs(pontoFinalY-infoRobo.y)<<std::endl;
             std::cout << "Y= " <<infoRobo.y<<std::endl;
-            yRSI = -1.0f;
-            if (deltay > 0)yRSI = 1.0f;
+            yRSI = -vel;
+            if (deltay > 0)yRSI = vel;
             conectRobo.mutexInfoRoboEnvia.lock();
             conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(xRSI, yRSI, zRSI, 0.f, 0.f, 0.f);
             conectRobo.mutexInfoRoboEnvia.unlock();
@@ -271,18 +271,15 @@ void Programa::MoverPara(double deltax, double deltay, double deltaz){
             infoRobo = conectRobo.infoRoboRecebe;
             std::cout << "detalZ= " <<abs(pontoFinalZ-infoRobo.z)<<std::endl;
             std::cout << "Z= " <<infoRobo.z<<std::endl;
-            zRSI = 1.0f;
-            if (deltaz > 0)zRSI = -1.0f;
+            zRSI = vel;
+            if (deltaz > 0)zRSI = -vel;
             conectRobo.mutexInfoRoboEnvia.lock();
             conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(xRSI, yRSI, zRSI, 0.f, 0.f, 0.f);
             conectRobo.mutexInfoRoboEnvia.unlock();
             pthread_yield();
         }
         zRSI = 0.0f;
-    }
-    conectRobo.mutexInfoRoboEnvia.lock();
-    conectRobo.infoRoboEnvia.valido = false;
-    conectRobo.mutexInfoRoboEnvia.unlock();
+    }    
 }
 
 void Programa::Rotacionar(double deltaA, double deltaB, double deltaC){
