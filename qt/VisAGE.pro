@@ -168,4 +168,4 @@ INCLUDEPATH += $$PWD/../../../../../../opt/AMDAPP/include
 DEPENDPATH += $$PWD/../../../../../../opt/AMDAPP/include
 
 #INCLUDEPATH += /home/leandro/Projetos/AGE/ViAge/include
-INCLUDEPATH += /home/gabriel/Templates/AGE/VisAGE/include
+INCLUDEPATH += /home/gabriel/projects/AGE/VisAGE/include
