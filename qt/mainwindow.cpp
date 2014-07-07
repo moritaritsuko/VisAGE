@@ -102,6 +102,7 @@ void MainWindow::on_btnRodar_clicked()
     {
 
         cv::Mat imgMat;
+        prog.mAproximando = false;
         while(true){
             prog.executar(imgMat);
             //cv::imshow("img",imgMat);

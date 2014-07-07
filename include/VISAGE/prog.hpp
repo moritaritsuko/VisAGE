@@ -17,6 +17,9 @@ class Programa
     private:        
         Mensurium    	mMensurium;
 
+    public:
+        bool            mAproximando;
+
 };
 
 #endif // VISAGE_PROG_HPP

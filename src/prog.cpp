@@ -10,6 +10,7 @@
 
 Programa::Programa(unsigned int l, unsigned int a, float t, unsigned int c, unsigned int p)
     : mMensurium(l, a, t, c)
+    , mAproximando(false)
 {    
     std::cout << "Largura: " << l << std::endl;
     std::cout << "Altura: " << a << std::endl;
@@ -28,9 +29,7 @@ bool aproxZ = false;
 //int tecla;
 
 void Programa::executar(cv::Mat &imgR)
-{
-    auto tempo = (double) cv::getTickCount();
-
+{    
     cv::Mat img;
     if (!mMensurium.filaImagens.empty())
     {
@@ -129,23 +128,25 @@ void Programa::executar(cv::Mat &imgR)
             }
         }
 
-        if (xRSI == 0.f && yRSI == 0.f && zRSI == 0.f && infoRobo.valido)
+        if (xRSI == 0.f && yRSI == 0.f && zRSI == 0.f)
         {
-            char tecla = cv::waitKey(3);
-            if (tecla == 'p' || tecla == 'P' || !aproxZ)
-            {
-                MoverPara(0.f,0.f,z);
-            }
+            mAproximando = true;
+            char tecla = cv::waitKey(5000);
+            //if (tecla == 'p' || tecla == 'P')
+            //{
+            MoverPara(0.f,0.f,-z+260);
+            //}
         }
-        conectRobo.mutexInfoRoboEnvia.lock();
-        conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(xRSI, yRSI, zRSI, 0.f, 0.f, 0.f);
-        conectRobo.mutexInfoRoboEnvia.unlock();
+        if (!mAproximando)
+        {
+            conectRobo.mutexInfoRoboEnvia.lock();
+            conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(xRSI, yRSI, zRSI, 0.f, 0.f, 0.f);
+            conectRobo.mutexInfoRoboEnvia.unlock();
+        }
         cv::putText(img, cv::format("Delta X: %f", deltaX), cv::Point(10, 15), 1, 1, cv::Scalar(255,0,255));
         cv::putText(img, cv::format("Delta Y: %f", deltaY), cv::Point(10, 30), 1, 1, cv::Scalar(255,0,255));
         cv::putText(img, cv::format("Delta Z: %f", deltaZ), cv::Point(10, 45), 1, 1, cv::Scalar(255,0,255));
     }
-    tempo = (double) cv::getTickCount() - tempo;
-    std::cout << "              Resposta RSI em " << tempo * 1000.f / cv::getTickFrequency() << " ms." << std::endl;
 
     if (!img.empty()){
         img.copyTo(imgR);
@@ -279,7 +280,7 @@ void Programa::MoverPara(double deltax, double deltay, double deltaz, double vel
             pthread_yield();
         }
         zRSI = 0.0f;
-    }    
+    }
 }
 
 void Programa::Rotacionar(double deltaA, double deltaB, double deltaC){
