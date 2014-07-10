@@ -318,7 +318,7 @@ void Marcador::AcharCantoProx(cv::Mat src, int deltaVan,cv::Mat imgDes){
 
 
 
-       cv::Mat  votosCantos = cv::Mat::zeros(xf-xi,yf-yi,CV_64FC1);
+    cv::Mat  votosCantos = cv::Mat::zeros(xf-xi,yf-yi,CV_64FC1);
 
 
 
@@ -407,8 +407,8 @@ void Marcador::AcharCantoProx(cv::Mat src, int deltaVan,cv::Mat imgDes){
             float y = (c3-c4)/dem;
 
             if(x>20 && x < votosCantos.cols-20 && y > 20 && y <votosCantos.rows-20){
-                               cv::Point ip(x,y);
-                                cv::circle(roiDes,ip,1,cv::Scalar(255,255,0),2);
+                cv::Point ip(x,y);
+                cv::circle(roiDes,ip,1,cv::Scalar(255,255,0),2);
                 votosCantos.at<double>(y,  x  ) += 2.f;
                 votosCantos.at<double>(y+1,x+1) += 1.f;
                 votosCantos.at<double>(y+1,x-1) += 1.f;
@@ -434,11 +434,11 @@ void Marcador::AcharCantoProx(cv::Mat src, int deltaVan,cv::Mat imgDes){
     cantoProximo = cv::Point(maxLoc.x+centroImg.x-deltaVan,maxLoc.y+centroImg.y-deltaVan);
 
 
-//        cv::imshow("cpyVotos",cpyVotos);
-//        cv::imshow("votosCantos",votosCantos);
+    //        cv::imshow("cpyVotos",cpyVotos);
+    //        cv::imshow("votosCantos",votosCantos);
 
-//        cv::imshow("roiDes",roiDes);
-//        cv::waitKey();
+    //        cv::imshow("roiDes",roiDes);
+    //        cv::waitKey();
 
 
 }
@@ -689,40 +689,34 @@ void mensuriumAGE::AcharCentro1Tab(cv::Mat img, Marcador& marco, unsigned int la
     cv::cvtColor(img,cinza,CV_RGB2GRAY);
     cv::Mat imgThresh=cv::Mat(img.rows,img.cols,CV_8UC1);
     cv::adaptiveThreshold(cinza,imgThresh,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,47,15);
-    //    cv::imshow("AcharTab",imgThresh);
+    //cv::threshold(cinza,imgThresh,0,255,CV_THRESH_BINARY|CV_THRESH_OTSU);
+    //cv::imshow("AcharTab",imgThresh);
 
     std::vector<cv::Point2f> corners;
     bool found = cv::findChessboardCorners( imgThresh, tTab, corners,CV_CALIB_CB_ADAPTIVE_THRESH  | CV_CALIB_CB_NORMALIZE_IMAGE);
 
-    if(found){
-        //cv::drawChessboardCorners(img,tTab,corners,found);
+    if(found)
+    {
+        cv::drawChessboardCorners(img,tTab,corners,found);
         cv::Mat R(3,1,cv::DataType<double>::type);
         cv::Mat trans(3,1,cv::DataType<double>::type);
 
-        cv::Point* pc = marco.calcCantosDigonal(corners);
-
-        cv::circle(img,pc[0],5,cv::Scalar(0,0,255),3,2,0);
-        cv::circle(img,pc[1],5,cv::Scalar(255,0,0),3,2,0);
-        cv::circle(img,pc[2],5,cv::Scalar(0,255,0),3,2,0);
-        cv::circle(img,pc[3],5,cv::Scalar(0,255,255),3,2,0);
+        marco.calcCantosDigonal(corners);
 
         cv::solvePnP(marco.getMatP3D(),corners,cameraMatrix,distCoeffs,R,trans,false,0);
 
         marco.setPosicao(trans);
+        marco.setOrientacao(R);
 
-        double dist = 1.11*sqrt(pow(trans.at<double>(0,0),2)+pow(trans.at<double>(1,0),2)+pow(trans.at<double>(2,0),2));
-        std::cout<<"Dist: "<<dist<<std::endl;
-        std::cout<<"Trans: "<<trans<<std::endl;
+        double dist = sqrt(pow(trans.at<double>(0,0),2)+pow(trans.at<double>(1,0),2)+pow(trans.at<double>(2,0),2));
+        //std::cout<<"Dist: "<<dist<<std::endl;
         cv::Point temp = marco.getCentroImg();
         cv::putText( img,cv::format("Dist: %f",dist), temp, 1, 1,cv::Scalar(255,0,255));
         cv::circle(img,temp,5,cv::Scalar(255,0,255),3,2,0);
-
-
+        cv::circle(img,cvPoint(img.cols/2,img.rows/2),5,cv::Scalar(0,0,255),3,2,0);
+        cv::line(img,temp,cvPoint(img.cols/2,img.rows/2),cv::Scalar(0,0,0),3,2,0);
+        marco.setValido();
     }
-
-    //cv::imshow("AcharTab",img);
-
-
 }
 
 

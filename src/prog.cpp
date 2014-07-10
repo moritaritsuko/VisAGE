@@ -345,34 +345,37 @@ void Programa::Rotacionar(double deltaA, double deltaB, double deltaC){
 
 void Programa::IniciarCaptura()
 {
-  pthread_t tid;
-  int result;
-  result = pthread_create(&tid, 0, Programa::chamarCapturarImagem, this);
-  if (result == 0)
-    pthread_detach(tid);
+    pthread_t tid;
+    int result;
+    result = pthread_create(&tid, 0, Programa::chamarCapturarImagem, this);
+    if (result == 0)
+        pthread_detach(tid);
 }
 
 void *Programa::CapturarImagem(void)
 {
-  cv::VideoCapture cap(camera);
-  assert(cap.isOpened());
+    cv::VideoCapture cap(camera);
+    assert(cap.isOpened());
 
-  while (true)
-  {
-
-    cv::Mat imagem;
-    cap >> imagem;
-    Marcador marco;
-    mMensurium.AcharCentro1Tab(imagem, marco, largura, altura, tamanho);
-
-    if (marco.isValido())
+    while (true)
     {
-      mutexMarcador.lock();
-        if (filaMarcadores.size() > 10)
-          while (!filaMarcadores.empty())
-            filaMarcadores.pop();
-        filaMarcadores.push(marco);
-      mutexMarcador.unlock();
+
+        cv::Mat imagem;
+        cap >> imagem;
+        Marcador marco;
+        mMensurium.AcharCentro1Tab(imagem, marco, largura, altura, tamanho);
+        mutexImagem.lock();
+        filaImagens.push(imagem);
+        mutexImagem.unlock();
+
+        if (marco.isValido())
+        {
+            mutexMarcador.lock();
+            if (filaMarcadores.size() > 10)
+                while (!filaMarcadores.empty())
+                    filaMarcadores.pop();
+            filaMarcadores.push(marco);
+            mutexMarcador.unlock();
+        }
     }
-  }
 }
