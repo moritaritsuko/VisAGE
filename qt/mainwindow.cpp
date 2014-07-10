@@ -180,6 +180,7 @@ void MainWindow::on_btnStereo_clicked()
         if (!photo1.empty()){
             cv::waitKey(3);
             cv::cvtColor(photo1,photo1,CV_BGR2RGB);
+            prog.mMensurium.Rodar("Câmera 1", photo1);
             cv::resize(photo1, photo1, cv::Size(photo1.cols / 3, photo1.rows / 3));
             QImage image = QImage((uint8_t*) photo1.data,photo1.cols,photo1.rows,photo1.step,QImage::Format_RGB888);
             QPixmap pixma = QPixmap::fromImage(image);
@@ -190,6 +191,7 @@ void MainWindow::on_btnStereo_clicked()
         if (!photo2.empty()){
             cv::waitKey(3);
             cv::cvtColor(photo2,photo2,cv::COLOR_BGR2RGB);
+//            prog.mMensurium.Rodar("Câmera 2", photo2);
             cv::resize(photo2, photo2, cv::Size(photo2.cols / 3, photo2.rows / 3));
             QImage image = QImage((uint8_t*) photo2.data,photo2.cols,photo2.rows,photo2.step,QImage::Format_RGB888);
             QPixmap pixma = QPixmap::fromImage(image);

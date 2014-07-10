@@ -9,7 +9,11 @@
 
 
 Programa::Programa(unsigned int l, unsigned int a, float t, unsigned int c, unsigned int p)
-    : mMensurium(l, a, t, c)
+    : mMensurium()
+    , largura(l)
+    , altura(a)
+    , tamanho(t)
+    , camera(c)
     , mAproximando(false)
 {    
     std::cout << "Largura: " << l << std::endl;
@@ -17,6 +21,8 @@ Programa::Programa(unsigned int l, unsigned int a, float t, unsigned int c, unsi
     std::cout << "Tamanho (mm): " << t << std::endl;
     std::cout << "Camera: " << c << std::endl;
     std::cout << "Porta RSI: " << p << std::endl;
+
+    IniciarCaptura();
 }
 
 
@@ -31,12 +37,12 @@ bool aproxZ = false;
 void Programa::executar(cv::Mat &imgR)
 {    
     cv::Mat img;
-    if (!mMensurium.filaImagens.empty())
+    if (!filaImagens.empty())
     {
-        mMensurium.mutexImagem.lock();
-        img = mMensurium.filaImagens.front();
-        mMensurium.filaImagens.pop();
-        mMensurium.mutexImagem.unlock();
+        mutexImagem.lock();
+        img = filaImagens.front();
+        filaImagens.pop();
+        mutexImagem.unlock();
     }
 
     ConectRobo::InfoRobo infoRobo;
@@ -47,13 +53,13 @@ void Programa::executar(cv::Mat &imgR)
         cv::putText(img, cv::format("RSolABC(%f, %f, %f)", infoRobo.a,infoRobo.b,infoRobo.c), cv::Point(10, 465), 1, 1, cv::Scalar(255,0,255));
     }
 
-    if (!mMensurium.filaMarcadores.empty())
+    if (!filaMarcadores.empty())
     {
         Marcador marco;
-        mMensurium.mutexMarcador.lock();
-        marco = mMensurium.filaMarcadores.front();
-        mMensurium.filaMarcadores.pop();
-        mMensurium.mutexMarcador.unlock();
+        mutexMarcador.lock();
+        marco = filaMarcadores.front();
+        filaMarcadores.pop();
+        mutexMarcador.unlock();
         auto posicao = marco.getPosicao();
         auto orientacao = marco.getOrientacao();
 
@@ -165,12 +171,12 @@ void Programa::Manipular(){
     aRSI = bRSI = cRSI = 0.f;
 
     cv::Mat img;
-    if (!mMensurium.filaImagens.empty())
+    if (!filaImagens.empty())
     {
-        mMensurium.mutexImagem.lock();
-        img = mMensurium.filaImagens.front();
-        mMensurium.filaImagens.pop();
-        mMensurium.mutexImagem.unlock();
+        mutexImagem.lock();
+        img = filaImagens.front();
+        filaImagens.pop();
+        mutexImagem.unlock();
     }
 
     char tecla = cv::waitKey(3);
@@ -337,3 +343,36 @@ void Programa::Rotacionar(double deltaA, double deltaB, double deltaC){
     }
 }
 
+void Programa::IniciarCaptura()
+{
+  pthread_t tid;
+  int result;
+  result = pthread_create(&tid, 0, Programa::chamarCapturarImagem, this);
+  if (result == 0)
+    pthread_detach(tid);
+}
+
+void *Programa::CapturarImagem(void)
+{
+  cv::VideoCapture cap(camera);
+  assert(cap.isOpened());
+
+  while (true)
+  {
+
+    cv::Mat imagem;
+    cap >> imagem;
+    Marcador marco;
+    mMensurium.AcharCentro1Tab(imagem, marco, largura, altura, tamanho);
+
+    if (marco.isValido())
+    {
+      mutexMarcador.lock();
+        if (filaMarcadores.size() > 10)
+          while (!filaMarcadores.empty())
+            filaMarcadores.pop();
+        filaMarcadores.push(marco);
+      mutexMarcador.unlock();
+    }
+  }
+}

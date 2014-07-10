@@ -3,6 +3,9 @@
 
 #include <VISAGE/mensurium.hpp>
 
+#include <mutex>
+#include <queue>
+
 
 class Programa
 {
@@ -13,13 +16,28 @@ class Programa
         void MoverPara(double deltax, double deltay, double deltaz, double vel = 1.f);
         void Rotacionar(double deltaA,double deltaB,double deltaC);
         void inic(unsigned int largura, unsigned int altura, float tamanho, unsigned int camera, unsigned int porta);
+        void IniciarCaptura();
+
 
     private:        
-        Mensurium    	mMensurium;
+        void*                   CapturarImagem(void);
+        static void*            chamarCapturarImagem(void *arg){return ((Programa*)arg)->CapturarImagem();}
+
+
+    private:
+        std::queue<Marcador>    filaMarcadores;
+        std::mutex              mutexMarcador;
+        std::queue<cv::Mat>     filaImagens;
+        std::mutex              mutexImagem;
+        unsigned int            largura;
+        unsigned int            altura;
+        float                   tamanho;
+        unsigned int            camera;
+
 
     public:
-        bool            mAproximando;
-
+        mensuriumAGE            mMensurium;
+        bool                    mAproximando;
 };
 
 #endif // VISAGE_PROG_HPP
