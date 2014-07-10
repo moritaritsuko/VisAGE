@@ -191,8 +191,6 @@ void CameraCapture::OnImageGrabbed(Pylon::CInstantCamera& camera, const Pylon::C
             auto rightImage = mStereoPhotoPtr->matPair.second;
             auto leftCamera = mStereoPhotoPtr->cameras[0];
             auto rightCamera = mStereoPhotoPtr->cameras[1];
-//            cv::imshow(leftCamera, leftImage);
-//            cv::imshow(rightCamera, rightImage);
         }
     }
     else
