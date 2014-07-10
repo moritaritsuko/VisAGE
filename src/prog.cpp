@@ -137,11 +137,8 @@ void Programa::executar(cv::Mat &imgR)
         if (xRSI == 0.f && yRSI == 0.f && zRSI == 0.f)
         {
             mAproximando = true;
-            char tecla = cv::waitKey(5000);
-            //if (tecla == 'p' || tecla == 'P')
-            //{
+            char tecla = cv::waitKey(1000);
             MoverPara(0.f,0.f,-z+260);
-            //}
         }
         if (!mAproximando)
         {
@@ -289,7 +286,7 @@ void Programa::MoverPara(double deltax, double deltay, double deltaz, double vel
     }
 }
 
-void Programa::Rotacionar(double deltaA, double deltaB, double deltaC){
+void Programa::Rotacionar(double deltaA, double deltaB, double deltaC, double vel){
 
     double aRSI, bRSI, cRSI;
     aRSI = bRSI = cRSI = 0.f;
@@ -303,40 +300,48 @@ void Programa::Rotacionar(double deltaA, double deltaB, double deltaC){
         double pontoFinalB = infoRobo.b+deltaB;
         double pontoFinalC = infoRobo.c+deltaC;
 
-        while(abs(pontoFinalA-infoRobo.a)> 0.1f){
-            infoRobo = conectRobo.infoRoboRecebe;
-            std::cout << "detalX= " <<abs(pontoFinalA-infoRobo.a)<<std::endl;
-            std::cout << "X= " <<infoRobo.a<<std::endl;
-            aRSI = 1.0f;
-            if (deltaA > 0)aRSI = -1.0f;
-            conectRobo.mutexInfoRoboEnvia.lock();
-            conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(0.f,0.f,0.f,aRSI, bRSI, cRSI);
-            conectRobo.mutexInfoRoboEnvia.unlock();
+        if (deltaA != 0)
+        {
+            while(abs(pontoFinalA-infoRobo.a)> 0.1f){
+                infoRobo = conectRobo.infoRoboRecebe;
+                std::cout << "detalA= " <<abs(pontoFinalA-infoRobo.a)<<std::endl;
+                std::cout << "A= " <<infoRobo.a<<std::endl;
+                aRSI = vel;
+                if (deltaA > 0)aRSI = -vel;
+                conectRobo.mutexInfoRoboEnvia.lock();
+                conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(0.f,0.f,0.f,aRSI, bRSI, cRSI);
+                conectRobo.mutexInfoRoboEnvia.unlock();
+            }
         }
         aRSI = 0.0f;
 
-
-        while(abs(pontoFinalB-infoRobo.b)> 0.1f){
-            infoRobo = conectRobo.infoRoboRecebe;
-            std::cout << "detalY= " <<abs(pontoFinalB-infoRobo.b)<<std::endl;
-            std::cout << "Y= " <<infoRobo.b<<std::endl;
-            bRSI = -1.0f;
-            if (deltaB > 0)bRSI = 1.0f;
-            conectRobo.mutexInfoRoboEnvia.lock();
-            conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(0.f,0.f,0.f,aRSI, bRSI, cRSI);
-            conectRobo.mutexInfoRoboEnvia.unlock();
+        if (deltaB != 0)
+        {
+            while(abs(pontoFinalB-infoRobo.b)> 0.1f){
+                infoRobo = conectRobo.infoRoboRecebe;
+                std::cout << "detalB= " <<abs(pontoFinalB-infoRobo.b)<<std::endl;
+                std::cout << "B= " <<infoRobo.b<<std::endl;
+                bRSI = vel;
+                if (deltaB > 0)bRSI = -vel;
+                conectRobo.mutexInfoRoboEnvia.lock();
+                conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(0.f,0.f,0.f,aRSI, bRSI, cRSI);
+                conectRobo.mutexInfoRoboEnvia.unlock();
+            }
         }
         bRSI = 0.0f;
 
-        while(abs(pontoFinalC-infoRobo.c)> 0.1f){
-            infoRobo = conectRobo.infoRoboRecebe;
-            std::cout << "detalZ= " <<abs(pontoFinalC-infoRobo.c)<<std::endl;
-            std::cout << "Z= " <<infoRobo.c<<std::endl;
-            cRSI = 1.0f;
-            if (deltaC > 0)cRSI = -1.0f;
-            conectRobo.mutexInfoRoboEnvia.lock();
-            conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(0.f,0.f,0.f,aRSI, bRSI, cRSI);
-            conectRobo.mutexInfoRoboEnvia.unlock();
+        if (deltaC != 0)
+        {
+            while(abs(pontoFinalC-infoRobo.c)> 0.1f){
+                infoRobo = conectRobo.infoRoboRecebe;
+                std::cout << "detalC= " <<abs(pontoFinalC-infoRobo.c)<<std::endl;
+                std::cout << "C= " <<infoRobo.c<<std::endl;
+                cRSI = -vel;
+                if (deltaC > 0)cRSI = vel;
+                conectRobo.mutexInfoRoboEnvia.lock();
+                conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(0.f,0.f,0.f,aRSI, bRSI, cRSI);
+                conectRobo.mutexInfoRoboEnvia.unlock();
+            }
         }
         cRSI = 0.0f;
 

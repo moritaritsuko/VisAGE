@@ -17,10 +17,10 @@
    <widget class="QPushButton" name="btnRodar">
     <property name="geometry">
      <rect>
-      <x>110</x>
-      <y>490</y>
+      <x>100</x>
+      <y>80</y>
       <width>80</width>
-      <height>23</height>
+      <height>25</height>
      </rect>
     </property>
     <property name="text">
@@ -30,49 +30,36 @@
    <widget class="QLabel" name="lblExibirIMG">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>570</y>
+      <x>10</x>
+      <y>120</y>
       <width>271</width>
       <height>16</height>
      </rect>
     </property>
     <property name="text">
-     <string>Aguardandio Imagem para Exibição...</string>
+     <string>Aguardando Imagem para Exibição...</string>
     </property>
    </widget>
    <widget class="QPushButton" name="btnManual">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>490</y>
+      <y>80</y>
       <width>80</width>
-      <height>23</height>
+      <height>25</height>
      </rect>
     </property>
     <property name="text">
      <string>Manual</string>
     </property>
    </widget>
-   <widget class="QLabel" name="labelDir">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>520</y>
-      <width>57</width>
-      <height>15</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>TextLabel</string>
-    </property>
-   </widget>
    <widget class="QSplitter" name="splitter_6">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>460</y>
+      <y>10</y>
       <width>590</width>
-      <height>23</height>
+      <height>25</height>
      </rect>
     </property>
     <property name="orientation">
@@ -130,41 +117,76 @@
    <widget class="QPushButton" name="btnStereo">
     <property name="geometry">
      <rect>
-      <x>220</x>
-      <y>490</y>
-      <width>87</width>
-      <height>27</height>
+      <x>190</x>
+      <y>80</y>
+      <width>80</width>
+      <height>25</height>
      </rect>
     </property>
     <property name="text">
      <string>Stereo</string>
     </property>
    </widget>
-   <widget class="QLabel" name="lblStereoEsq">
+   <widget class="QSplitter" name="splitter_7">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>10</y>
-      <width>57</width>
-      <height>14</height>
+      <x>10</x>
+      <y>40</y>
+      <width>590</width>
+      <height>25</height>
      </rect>
     </property>
-    <property name="text">
-     <string>TextLabel</string>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
     </property>
-   </widget>
-   <widget class="QLabel" name="lblStereoDir">
-    <property name="geometry">
-     <rect>
-      <x>900</x>
-      <y>10</y>
-      <width>57</width>
-      <height>14</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>TextLabel</string>
-    </property>
+    <widget class="QSplitter" name="splitter_8">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <widget class="QSplitter" name="splitter_9">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <widget class="QLabel" name="labelDA">
+       <property name="text">
+        <string>Delta A</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="editDeltaA"/>
+     </widget>
+     <widget class="QSplitter" name="splitter_10">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <widget class="QLabel" name="labelDB">
+       <property name="text">
+        <string>Delta B</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="editDeltaB"/>
+     </widget>
+    </widget>
+    <widget class="QSplitter" name="splitter_11">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <widget class="QSplitter" name="splitter_12">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <widget class="QLabel" name="labelDC">
+       <property name="text">
+        <string>Delta C</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="editDeltaC"/>
+     </widget>
+    </widget>
+    <widget class="QPushButton" name="btnRotacionar">
+     <property name="text">
+      <string>Rotacionar</string>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">

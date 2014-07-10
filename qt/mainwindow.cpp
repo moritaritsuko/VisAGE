@@ -146,24 +146,31 @@ void MainWindow::on_btnMover_clicked()
     prog.MoverPara(dx,dy,dz);
 }
 
+void MainWindow::on_btnRotacionar_clicked()
+{
+    double da = ui->editDeltaA->text().toFloat();
+    double db = ui->editDeltaB->text().toFloat();
+    double dc = ui->editDeltaC->text().toFloat();
+    prog.Rotacionar(da,db,dc);
+}
+
 void MainWindow::keyPressEvent(QKeyEvent *event){
 
-    if(event->key()==Qt::Key_W){
-        ui->labelDir->setText("W");
-    }
+//    if(event->key()==Qt::Key_W){
+//        ui->labelDir->setText("W");
+//    }
 
-    if(event->key()==Qt::Key_A){
-        ui->labelDir->setText("A");
-    }
+//    if(event->key()==Qt::Key_A){
+//        ui->labelDir->setText("A");
+//    }
 
-    if(event->key()==Qt::Key_D){
-        ui->labelDir->setText("D");
-    }
+//    if(event->key()==Qt::Key_D){
+//        ui->labelDir->setText("D");
+//    }
 
-    if(event->key()==Qt::Key_S){
-        ui->labelDir->setText("S");
-    }
-
+//    if(event->key()==Qt::Key_S){
+//        ui->labelDir->setText("S");
+//    }
 }
 
 void MainWindow::on_btnStereo_clicked()
@@ -179,25 +186,12 @@ void MainWindow::on_btnStereo_clicked()
 
         if (!photo1.empty()){
             cv::waitKey(3);
-            //cv::cvtColor(photo1,photo1,CV_BGR2RGB);
             prog.mMensurium.Rodar("Câmera 1", photo1);
-            cv::resize(photo1, photo1, cv::Size(photo1.cols / 3, photo1.rows / 3));
-            QImage image = QImage((uint8_t*) photo1.data,photo1.cols,photo1.rows,photo1.step,QImage::Format_RGB888);
-            QPixmap pixma = QPixmap::fromImage(image);
-            ui->lblStereoEsq->setPixmap(pixma);
-            ui->lblStereoEsq->setFixedSize(pixma.size());
         }
 
         if (!photo2.empty()){
             cv::waitKey(3);
-            //cv::cvtColor(photo2,photo2,cv::COLOR_BGR2RGB);
-            prog.mMensurium.Rodar("Câmera 2", photo2);
-            cv::resize(photo2, photo2, cv::Size(photo2.cols / 3, photo2.rows / 3));
-            QImage image = QImage((uint8_t*) photo2.data,photo2.cols,photo2.rows,photo2.step,QImage::Format_RGB888);
-            QPixmap pixma = QPixmap::fromImage(image);
-            ui->lblStereoDir->setPixmap(pixma);
-            ui->lblStereoDir->setFixedSize(pixma.size());
+            prog.mMensurium.Rodar("Câmera 2", photo2);            
         }
-
     }
 }
