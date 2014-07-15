@@ -26,6 +26,10 @@ private slots:
 
     void on_btnRotacionar_clicked();
 
+    void on_btnGAMAGON_clicked();
+
+    void on_btnGAMAGOFF_clicked();
+
 private:
     Ui::MainWindow *ui;
     void keyPressEvent(QKeyEvent *event);

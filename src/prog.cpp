@@ -348,6 +348,13 @@ void Programa::Rotacionar(double deltaA, double deltaB, double deltaC, double ve
     }
 }
 
+void Programa::GAMAG(int controle)
+{
+    conectRobo.mutexInfoRoboEnvia.lock();
+    conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(0.f, 0.f, 0.f, 0.f, 0.f, 0.f, controle, 0, 0);
+    conectRobo.mutexInfoRoboEnvia.unlock();
+}
+
 void Programa::IniciarCaptura()
 {
     pthread_t tid;

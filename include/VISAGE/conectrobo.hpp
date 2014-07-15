@@ -17,7 +17,19 @@ public:
 
     struct InfoRobo
     {
-        InfoRobo(){ valido = false; }
+        InfoRobo()
+        : x(0.f)
+        , y(0.f)
+        , z(0.f)
+        , a(0.f)
+        , b(0.f)
+        , c(0.f)
+        , mag(0)
+        , change(0)
+        , vel(0)
+        , valido(false)
+        { }
+
         InfoRobo(double X, double Y, double Z, double A, double B, double C)
         : x(X)
         , y(Y)
@@ -25,8 +37,27 @@ public:
         , a(A)
         , b(B)
         , c(C)
-        { valido = true; }
+        , mag(0)
+        , change(0)
+        , vel(0)
+        , valido(true)
+        { }
+
+        InfoRobo(double X, double Y, double Z, double A, double B, double C, int MAG, int CHANGE, int VEL)
+        : x(X)
+        , y(Y)
+        , z(Z)
+        , a(A)
+        , b(B)
+        , c(C)
+        , mag(MAG)
+        , change(CHANGE)
+        , vel(VEL)
+        , valido(true)
+        { }
+
         double x, y, z, a, b, c;
+        int mag, change, vel;
         bool valido;
     };
 
@@ -48,7 +79,7 @@ private:
     static void* chamarLerMsg(void *arg){ return ((ConectRobo*)arg)->LerMsg(); }
 
 public:
-    void RSI_XML(float x = 0.f, float y = 0.f, float z = 0.f, float a = 0.f, float b = 0.f, float c = 0.f);
+    void RSI_XML(float x = 0.f, float y = 0.f, float z = 0.f, float a = 0.f, float b = 0.f, float c = 0.f, int mag = 0, int change = 0, int vel = 0);
 };
 
 extern ConectRobo conectRobo;

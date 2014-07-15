@@ -195,3 +195,13 @@ void MainWindow::on_btnStereo_clicked()
         }
     }
 }
+
+void MainWindow::on_btnGAMAGON_clicked()
+{
+    prog.GAMAG(0);
+}
+
+void MainWindow::on_btnGAMAGOFF_clicked()
+{
+    prog.GAMAG(1);
+}

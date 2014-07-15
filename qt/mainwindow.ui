@@ -188,6 +188,32 @@
      </property>
     </widget>
    </widget>
+   <widget class="QPushButton" name="btnGAMAGON">
+    <property name="geometry">
+     <rect>
+      <x>280</x>
+      <y>80</y>
+      <width>140</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>GAMAG - ATIVAR</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btnGAMAGOFF">
+    <property name="geometry">
+     <rect>
+      <x>430</x>
+      <y>80</y>
+      <width>140</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>GAMAG - DESATIVAR</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">

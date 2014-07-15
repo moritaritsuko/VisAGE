@@ -110,7 +110,7 @@ void* ConectRobo::LerMsg(void)
                 RSI_XML();
             else
             {
-                RSI_XML(infoRoboEnvia.x, infoRoboEnvia.y, infoRoboEnvia.z, infoRoboEnvia.a, infoRoboEnvia.b, infoRoboEnvia.c);
+                RSI_XML(infoRoboEnvia.x, infoRoboEnvia.y, infoRoboEnvia.z, infoRoboEnvia.a, infoRoboEnvia.b, infoRoboEnvia.c, infoRoboEnvia.mag, infoRoboEnvia.change, infoRoboEnvia.vel);
                 mutexInfoRoboEnvia.lock();
                 infoRoboEnvia.valido = false;
                 mutexInfoRoboEnvia.unlock();
@@ -129,7 +129,7 @@ void ConectRobo::IniciarLeitura()
         pthread_detach(tid);
 }
 
-void ConectRobo::RSI_XML(float x, float y, float z, float a, float b, float c)
+void ConectRobo::RSI_XML(float x, float y, float z, float a, float b, float c, int mag, int change, int vel)
 {
     std::string IPOC;
     if (!mFilaIPOC.empty())
@@ -150,7 +150,13 @@ void ConectRobo::RSI_XML(float x, float y, float z, float a, float b, float c)
         RSI += "\"/><AKorr A1=\"0.0000\" A2=\"0.0000\" A3=\"0.0000\" A4=\"0.0000\" A5=\"0.0000\" A6=\"0.0000\"/>";
         RSI += "<EKorr E1=\"0.0000\" E2=\"0.0000\" E3=\"0.0000\" E4=\"0.0000\" E5=\"0.0000\" E6=\"0.0000\"/>";
         RSI += "<Tech T21=\"1.09\" T22=\"2.08\" T23=\"3.07\" T24=\"4.06\" T25=\"5.05\" T26=\"6.04\" T27=\"7.03\" T28=\"8.02\" T29=\"9.01\" T210=\"10.00\"/>";
-        RSI += "<DiO>0</DiO><IPOC>";
+        RSI += "<MAGNETIC>";
+        RSI += std::to_string(mag);
+        RSI += "</MAGNETIC><CHANGESTON>";
+        RSI += std::to_string(change);
+        RSI += "</CHANGESTON><VELOCITY>";
+        RSI += std::to_string(vel);
+        RSI += "</VELOCITY><IPOC>";
         mutexIPOC.lock();
             IPOC = mFilaIPOC.front();
             RSI += IPOC;
@@ -163,10 +169,10 @@ void ConectRobo::RSI_XML(float x, float y, float z, float a, float b, float c)
         {
             sendto(sockfd, RSI.c_str(), strlen(RSI.c_str()), 0, (struct sockaddr *)&cliaddr, len);
             //      std::cout << "  IPOC enviado: " << IPOC << std::endl;
-            //std::cout << "  Resposta RSI: " << std::endl << RSI << std::endl;
+            std::cout << "  Resposta RSI: " << std::endl << RSI << std::endl;
         }
-        //else
-            //std::cout << "  Resposta RSI [" << std::endl << RSI << std::endl << "] com erro: " << resultado.description() << std::endl;
+        else
+            std::cout << "  Resposta RSI [" << std::endl << RSI << std::endl << "] com erro: " << resultado.description() << std::endl;
     }
 }
 
