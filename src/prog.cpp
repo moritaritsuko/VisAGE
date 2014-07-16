@@ -77,7 +77,7 @@ void Programa::executar(cv::Mat &imgR)
         xRSI = yRSI = zRSI = 0.f;
 
         cv::putText(img, cv::format("Pos(%f, %f, %f)",x,y,z), cv::Point(10, 105), 1, 1, cv::Scalar(255,0,255));
-        cv::putText(img, cv::format("Ori(%f, %f, %f)",a,b,c), cv::Point(10, 120), 1, 1, cv::Scalar(255,0,255));
+        cv::putText(img, cv::format("Ori(%f, %f, %f)",(a*180.f)/CV_PI,(b*180.f)/CV_PI,(c*180.f)/CV_PI), cv::Point(10, 120), 1, 1, cv::Scalar(255,0,255));
 
         if(deltaZ < -10.f || deltaZ > 10.f)
         {
