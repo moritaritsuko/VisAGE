@@ -157,6 +157,7 @@ void ConectRobo::RSI_XML(float x, float y, float z, float a, float b, float c, i
         RSI += "</CHANGESTON><VELOCITY>";
         RSI += std::to_string(vel);
         RSI += "</VELOCITY><IPOC>";
+        //RSI += "<DiO>0</DiO><IPOC>";
         mutexIPOC.lock();
             IPOC = mFilaIPOC.front();
             RSI += IPOC;

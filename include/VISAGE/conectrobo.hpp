@@ -43,7 +43,7 @@ public:
         , valido(true)
         { }
 
-        InfoRobo(double X, double Y, double Z, double A, double B, double C, int MAG, int CHANGE = 0, int VEL = 0)
+        InfoRobo(double X, double Y, double Z, double A, double B, double C, int MAG, int CHANGE = 1, int VEL = 1)
         : x(X)
         , y(Y)
         , z(Z)
@@ -79,7 +79,7 @@ private:
     static void* chamarLerMsg(void *arg){ return ((ConectRobo*)arg)->LerMsg(); }
 
 public:
-    void RSI_XML(float x = 0.f, float y = 0.f, float z = 0.f, float a = 0.f, float b = 0.f, float c = 0.f, int mag = 0, int change = 0, int vel = 0);
+    void RSI_XML(float x = 0.f, float y = 0.f, float z = 0.f, float a = 0.f, float b = 0.f, float c = 0.f, int mag = 0, int change = 1, int vel = 1);
 };
 
 extern ConectRobo conectRobo;
