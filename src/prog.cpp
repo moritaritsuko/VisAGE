@@ -250,42 +250,51 @@ void Programa::MoverPara(double deltax, double deltay, double deltaz, double vel
 
         std::cout << "RSOL: " << conectRobo.infoRoboRecebe.x << " " << conectRobo.infoRoboRecebe.y << " " << conectRobo.infoRoboRecebe.z << std::endl;
 
-        while(abs(pontoFinalX-infoRobo.x)> 0.1f){
-            infoRobo = conectRobo.infoRoboRecebe;
-            std::cout << "detalX= " <<abs(pontoFinalX-infoRobo.x)<<std::endl;
-            std::cout << "X= " <<infoRobo.x<<std::endl;
-            xRSI = vel;
-            if ((pontoFinalX < pontoInicalX))xRSI = -vel;
-            conectRobo.mutexInfoRoboEnvia.lock();
-            conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(xRSI, yRSI, zRSI, 0.f, 0.f, 0.f, controleGAMAG);
-            conectRobo.mutexInfoRoboEnvia.unlock();
-            pthread_yield();
+        if (deltax != 0)
+        {
+            while(abs(pontoFinalX-infoRobo.x)> 0.1f){
+                infoRobo = conectRobo.infoRoboRecebe;
+                std::cout << "detalX= " <<abs(pontoFinalX-infoRobo.x)<<std::endl;
+                std::cout << "X= " <<infoRobo.x<<std::endl;
+                xRSI = -vel;
+                if ((pontoFinalX < pontoInicalX))xRSI = vel;
+                conectRobo.mutexInfoRoboEnvia.lock();
+                conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(xRSI, yRSI, zRSI, 0.f, 0.f, 0.f, controleGAMAG);
+                conectRobo.mutexInfoRoboEnvia.unlock();
+                pthread_yield();
+            }
         }
         xRSI = 0.0f;
 
-        while(abs(pontoFinalY-infoRobo.y)> 0.1f){
-            infoRobo = conectRobo.infoRoboRecebe;
-            std::cout << "detalY= " <<abs(pontoFinalY-infoRobo.y)<<std::endl;
-            std::cout << "Y= " <<infoRobo.y<<std::endl;
-            yRSI = vel;
-            if ((pontoFinalY < pontoInicialY))yRSI = -vel;
-            conectRobo.mutexInfoRoboEnvia.lock();
-            conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(xRSI, yRSI, zRSI, 0.f, 0.f, 0.f, controleGAMAG);
-            conectRobo.mutexInfoRoboEnvia.unlock();
-            pthread_yield();
+        if (deltay != 0)
+        {
+            while(abs(pontoFinalY-infoRobo.y)> 0.1f){
+                infoRobo = conectRobo.infoRoboRecebe;
+                std::cout << "detalY= " <<abs(pontoFinalY-infoRobo.y)<<std::endl;
+                std::cout << "Y= " <<infoRobo.y<<std::endl;
+                yRSI = vel;
+                if ((pontoFinalY < pontoInicialY))yRSI = -vel;
+                conectRobo.mutexInfoRoboEnvia.lock();
+                conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(xRSI, yRSI, zRSI, 0.f, 0.f, 0.f, controleGAMAG);
+                conectRobo.mutexInfoRoboEnvia.unlock();
+                pthread_yield();
+            }
         }
         yRSI = 0.0f;
 
-        while(abs(pontoFinalZ-infoRobo.z)> 0.1f){
-            infoRobo = conectRobo.infoRoboRecebe;
-            std::cout << "detalZ= " <<abs(pontoFinalZ-infoRobo.z)<<std::endl;
-            std::cout << "Z= " <<infoRobo.z<<std::endl;
-            zRSI = vel;
-            if ((pontoFinalZ < pontoInicialZ))zRSI = -vel;
-            conectRobo.mutexInfoRoboEnvia.lock();
-            conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(xRSI, yRSI, zRSI, 0.f, 0.f, 0.f, controleGAMAG);
-            conectRobo.mutexInfoRoboEnvia.unlock();
-            pthread_yield();
+        if (deltaz != 0)
+        {
+            while(abs(pontoFinalZ-infoRobo.z)> 0.1f){
+                infoRobo = conectRobo.infoRoboRecebe;
+                std::cout << "detalZ= " <<abs(pontoFinalZ-infoRobo.z)<<std::endl;
+                std::cout << "Z= " <<infoRobo.z<<std::endl;
+                zRSI = -vel;
+                if ((pontoFinalZ < pontoInicialZ))zRSI = vel;
+                conectRobo.mutexInfoRoboEnvia.lock();
+                conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(xRSI, yRSI, zRSI, 0.f, 0.f, 0.f, controleGAMAG);
+                conectRobo.mutexInfoRoboEnvia.unlock();
+                pthread_yield();
+            }
         }
         zRSI = 0.0f;
     }
