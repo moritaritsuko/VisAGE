@@ -107,7 +107,7 @@ void* ConectRobo::LerMsg(void)
             }
 
             if (!infoRoboEnvia.valido)
-                RSI_XML();
+                RSI_XML(0.f, 0.f, 0.f, 0.f, 0.f, 0.f, infoRoboEnvia.mag);
             else
             {
                 RSI_XML(infoRoboEnvia.x, infoRoboEnvia.y, infoRoboEnvia.z, infoRoboEnvia.a, infoRoboEnvia.b, infoRoboEnvia.c, infoRoboEnvia.mag, infoRoboEnvia.change, infoRoboEnvia.vel);

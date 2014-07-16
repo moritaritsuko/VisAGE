@@ -18,7 +18,9 @@ SOURCES += main.cpp\
     ../src/mensurium.cpp \
     ../src/prog.cpp \
     ../src/pugixml.cpp \
-    ../src/stereocams.cpp
+    ../src/stereocams.cpp \
+    ../src/calibracam.cpp \
+    ../src/oclutil.cpp
 
 HEADERS  += mainwindow.h \    
     ../include/VISAGE/conectrobo.hpp \
@@ -31,7 +33,9 @@ HEADERS  += mainwindow.h \
     ../include/VISAGE/prog.hpp \
     ../include/VISAGE/pugiconfig.hpp \
     ../include/VISAGE/pugixml.hpp \
-    ../include/VISAGE/stereocams.hpp
+    ../include/VISAGE/stereocams.hpp \
+    ../include/VISAGE/calibracam.hpp \
+    ../include/VISAGE/oclutil.h
 
 FORMS    += mainwindow.ui
 
@@ -171,3 +175,8 @@ DEPENDPATH += $$PWD/../../../../../../opt/AMDAPP/include
 
 #INCLUDEPATH += /home/leandro/Projetos/AGE/ViAge/include
 INCLUDEPATH += /home/gabriel/projects/age/visage/include
+
+unix:!macx: LIBS += -L$$PWD/../../../../../../usr/lib/ -lamdocl64
+
+INCLUDEPATH += $$PWD/../../../../../../usr/include
+DEPENDPATH += $$PWD/../../../../../../usr/include

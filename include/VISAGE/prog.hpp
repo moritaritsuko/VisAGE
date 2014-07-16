@@ -15,7 +15,9 @@ class Programa
         void Manipular();
         void MoverPara(double deltax = 0.f, double deltay = 0.f, double deltaz = 0.f, double vel = 1.f);
         void Rotacionar(double deltaA = 0.f,double deltaB = 0.f,double deltaC = 0.f, double vel = 0.1f);
-        void GAMAG(int controle = 1);
+        void GAMAG();
+        void ativarGAMAG();
+        void desativarGAMAG();
         void inic(unsigned int largura, unsigned int altura, float tamanho, unsigned int camera, unsigned int porta);
         void IniciarCaptura();
 
@@ -34,6 +36,7 @@ class Programa
         unsigned int            altura;
         float                   tamanho;
         unsigned int            camera;
+        unsigned int            controleGAMAG;
 
 
     public:

@@ -14,6 +14,7 @@ Programa::Programa(unsigned int l, unsigned int a, float t, unsigned int c, unsi
     , altura(a)
     , tamanho(t)
     , camera(c)
+    , controleGAMAG(0)
     , mAproximando(false)
 {    
     std::cout << "Largura: " << l << std::endl;
@@ -143,7 +144,7 @@ void Programa::executar(cv::Mat &imgR)
         if (!mAproximando)
         {
             conectRobo.mutexInfoRoboEnvia.lock();
-            conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(xRSI, yRSI, zRSI, 0.f, 0.f, 0.f);
+            conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(xRSI, yRSI, zRSI, 0.f, 0.f, 0.f, controleGAMAG);
             conectRobo.mutexInfoRoboEnvia.unlock();
         }
         cv::putText(img, cv::format("Delta X: %f", deltaX), cv::Point(10, 15), 1, 1, cv::Scalar(255,0,255));
@@ -204,24 +205,24 @@ void Programa::Manipular(){
         break;
 
     case 't':
-        bRSI = 0.5f;
+        bRSI = 0.1f;
         break;
 
     case 'g':
-        bRSI = -0.5f;
+        bRSI = -0.1f;
         break;
 
     case 'y':
-        cRSI = 0.5f;
+        cRSI = 0.1f;
         break;
 
     case 'h':
-        cRSI = -0.5f;
+        cRSI = -0.1f;
         break;
     }
 
     conectRobo.mutexInfoRoboEnvia.lock();
-    conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(xRSI, yRSI, zRSI,aRSI,bRSI,cRSI);
+    conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(xRSI, yRSI, zRSI,aRSI,bRSI,cRSI,controleGAMAG);
     conectRobo.mutexInfoRoboEnvia.unlock();
     //conectRobo.RSI_XML(xRSI, yRSI, zRSI,aRSI,bRSI,cRSI);
 
@@ -239,9 +240,13 @@ void Programa::MoverPara(double deltax, double deltay, double deltaz, double vel
     {
         infoRobo = conectRobo.infoRoboRecebe;
 
-        double pontoFinalX = infoRobo.x+deltax;
-        double pontoFinalY = infoRobo.y+deltay;
-        double pontoFinalZ = infoRobo.z+deltaz;
+        double pontoInicalX = infoRobo.x+deltax;
+        double pontoInicialY = infoRobo.y+deltay;
+        double pontoInicialZ = infoRobo.z+deltaz;
+
+        double pontoFinalX = pontoInicalX+deltax;
+        double pontoFinalY = pontoInicialY+deltay;
+        double pontoFinalZ = pontoInicialZ+deltaz;
 
         std::cout << "RSOL: " << conectRobo.infoRoboRecebe.x << " " << conectRobo.infoRoboRecebe.y << " " << conectRobo.infoRoboRecebe.z << std::endl;
 
@@ -250,9 +255,9 @@ void Programa::MoverPara(double deltax, double deltay, double deltaz, double vel
             std::cout << "detalX= " <<abs(pontoFinalX-infoRobo.x)<<std::endl;
             std::cout << "X= " <<infoRobo.x<<std::endl;
             xRSI = vel;
-            if (deltax > 0)xRSI = -vel;
+            if ((pontoFinalX < pontoInicalX))xRSI = -vel;
             conectRobo.mutexInfoRoboEnvia.lock();
-            conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(xRSI, yRSI, zRSI, 0.f, 0.f, 0.f);
+            conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(xRSI, yRSI, zRSI, 0.f, 0.f, 0.f, controleGAMAG);
             conectRobo.mutexInfoRoboEnvia.unlock();
             pthread_yield();
         }
@@ -262,10 +267,10 @@ void Programa::MoverPara(double deltax, double deltay, double deltaz, double vel
             infoRobo = conectRobo.infoRoboRecebe;
             std::cout << "detalY= " <<abs(pontoFinalY-infoRobo.y)<<std::endl;
             std::cout << "Y= " <<infoRobo.y<<std::endl;
-            yRSI = -vel;
-            if (deltay > 0)yRSI = vel;
+            yRSI = vel;
+            if ((pontoFinalY < pontoInicialY))yRSI = -vel;
             conectRobo.mutexInfoRoboEnvia.lock();
-            conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(xRSI, yRSI, zRSI, 0.f, 0.f, 0.f);
+            conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(xRSI, yRSI, zRSI, 0.f, 0.f, 0.f, controleGAMAG);
             conectRobo.mutexInfoRoboEnvia.unlock();
             pthread_yield();
         }
@@ -276,9 +281,9 @@ void Programa::MoverPara(double deltax, double deltay, double deltaz, double vel
             std::cout << "detalZ= " <<abs(pontoFinalZ-infoRobo.z)<<std::endl;
             std::cout << "Z= " <<infoRobo.z<<std::endl;
             zRSI = vel;
-            if (deltaz > 0)zRSI = -vel;
+            if ((pontoFinalZ < pontoInicialZ))zRSI = -vel;
             conectRobo.mutexInfoRoboEnvia.lock();
-            conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(xRSI, yRSI, zRSI, 0.f, 0.f, 0.f);
+            conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(xRSI, yRSI, zRSI, 0.f, 0.f, 0.f, controleGAMAG);
             conectRobo.mutexInfoRoboEnvia.unlock();
             pthread_yield();
         }
@@ -291,14 +296,44 @@ void Programa::Rotacionar(double deltaA, double deltaB, double deltaC, double ve
     double aRSI, bRSI, cRSI;
     aRSI = bRSI = cRSI = 0.f;
     ConectRobo::InfoRobo infoRobo;
+    bool deltaValido = false;
+    if(deltaA <= 360 && deltaA >= -360) deltaValido = true; else deltaValido = false;
+    if(deltaB <= 360 && deltaB >= -360 && deltaValido) deltaValido = true; else deltaValido = false;
+    if(deltaC <= 360 && deltaC >= -360 && deltaValido) deltaValido = true; else deltaValido = false;
 
-    if (conectRobo.infoRoboRecebe.valido)
+    if (conectRobo.infoRoboRecebe.valido && deltaValido)
     {
         infoRobo = conectRobo.infoRoboRecebe;
 
         double pontoFinalA = infoRobo.a+deltaA;
+
+        if(pontoFinalA < -180){
+            pontoFinalA = 180 -(180 + deltaA);
+        }
+
+        if(pontoFinalA > 180){
+            pontoFinalA = 180 -(deltaA - 180);
+        }
+
         double pontoFinalB = infoRobo.b+deltaB;
+
+        if(pontoFinalB < -180){
+            pontoFinalB = 180 -(180 + deltaB);
+        }
+
+        if(pontoFinalB > 180){
+            pontoFinalB = 180 -(deltaB - 180);
+        }
+
         double pontoFinalC = infoRobo.c+deltaC;
+
+        if(pontoFinalC < -180){
+            pontoFinalC = 180 -(180 + deltaC);
+        }
+
+        if(pontoFinalC > 180){
+            pontoFinalC = 180 -(deltaC - 180);
+        }
 
         if (deltaA != 0)
         {
@@ -309,7 +344,7 @@ void Programa::Rotacionar(double deltaA, double deltaB, double deltaC, double ve
                 aRSI = vel;
                 if (deltaA > 0)aRSI = -vel;
                 conectRobo.mutexInfoRoboEnvia.lock();
-                conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(0.f,0.f,0.f,aRSI, bRSI, cRSI);
+                conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(0.f,0.f,0.f,aRSI, bRSI, cRSI, controleGAMAG);
                 conectRobo.mutexInfoRoboEnvia.unlock();
             }
         }
@@ -324,7 +359,7 @@ void Programa::Rotacionar(double deltaA, double deltaB, double deltaC, double ve
                 bRSI = vel;
                 if (deltaB > 0)bRSI = -vel;
                 conectRobo.mutexInfoRoboEnvia.lock();
-                conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(0.f,0.f,0.f,aRSI, bRSI, cRSI);
+                conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(0.f,0.f,0.f,aRSI, bRSI, cRSI, controleGAMAG);
                 conectRobo.mutexInfoRoboEnvia.unlock();
             }
         }
@@ -339,7 +374,7 @@ void Programa::Rotacionar(double deltaA, double deltaB, double deltaC, double ve
                 cRSI = -vel;
                 if (deltaC > 0)cRSI = vel;
                 conectRobo.mutexInfoRoboEnvia.lock();
-                conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(0.f,0.f,0.f,aRSI, bRSI, cRSI);
+                conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(0.f,0.f,0.f,aRSI, bRSI, cRSI, controleGAMAG);
                 conectRobo.mutexInfoRoboEnvia.unlock();
             }
         }
@@ -348,11 +383,23 @@ void Programa::Rotacionar(double deltaA, double deltaB, double deltaC, double ve
     }
 }
 
-void Programa::GAMAG(int controle)
+void Programa::GAMAG()
 {
     conectRobo.mutexInfoRoboEnvia.lock();
-    conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(0.f, 0.f, 0.f, 0.f, 0.f, 0.f, controle, 0, 0);
+    conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(0.f, 0.f, 0.f, 0.f, 0.f, 0.f, controleGAMAG);
     conectRobo.mutexInfoRoboEnvia.unlock();
+}
+
+void Programa::ativarGAMAG()
+{
+    controleGAMAG = 0;
+    GAMAG();
+}
+
+void Programa::desativarGAMAG()
+{
+    controleGAMAG = 1;
+    GAMAG();
 }
 
 void Programa::IniciarCaptura()

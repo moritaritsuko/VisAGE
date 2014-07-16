@@ -43,7 +43,7 @@ public:
         , valido(true)
         { }
 
-        InfoRobo(double X, double Y, double Z, double A, double B, double C, int MAG, int CHANGE, int VEL)
+        InfoRobo(double X, double Y, double Z, double A, double B, double C, int MAG, int CHANGE = 0, int VEL = 0)
         : x(X)
         , y(Y)
         , z(Z)
