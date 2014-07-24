@@ -63,6 +63,7 @@ void Programa::executar(cv::Mat &imgR)
         mutexMarcador.unlock();
         auto posicao = marco.getPosicao();
         auto orientacao = marco.getOrientacao();
+        bool orientacaoOK = false;
 
         auto x = posicao.at<double>(0, 0);
         auto y = posicao.at<double>(1, 0);
@@ -78,6 +79,10 @@ void Programa::executar(cv::Mat &imgR)
 
         cv::putText(img, cv::format("Pos(%f, %f, %f)",x,y,z), cv::Point(10, 105), 1, 1, cv::Scalar(255,0,255));
         cv::putText(img, cv::format("Ori(%f, %f, %f)",(a*180.f)/CV_PI,(b*180.f)/CV_PI,(c*180.f)/CV_PI), cv::Point(10, 120), 1, 1, cv::Scalar(255,0,255));
+
+        if(!orientacaoOK){
+
+        }
 
         if(deltaZ < -10.f || deltaZ > 10.f)
         {
@@ -139,7 +144,14 @@ void Programa::executar(cv::Mat &imgR)
         {
             mAproximando = true;
             char tecla = cv::waitKey(1000);
-            MoverPara(0.f,0.f,-z+260);
+            MoverPara(0.f,0.f,-z+650);
+            cv::waitKey(5000);
+            MoverPara(0,0,500);
+            cv::waitKey(1000);
+            MoverPara(200,200,0);
+            cv::waitKey(1000);
+            Rotacionar(0,0,90);
+
         }
         if (!mAproximando)
         {
@@ -302,6 +314,7 @@ void Programa::MoverPara(double deltax, double deltay, double deltaz, double vel
 
 void Programa::Rotacionar(double deltaA, double deltaB, double deltaC, double vel){
 
+    std::cout<<"Rotação"<<std::endl;
     double aRSI, bRSI, cRSI;
     aRSI = bRSI = cRSI = 0.f;
     ConectRobo::InfoRobo infoRobo;
@@ -310,39 +323,57 @@ void Programa::Rotacionar(double deltaA, double deltaB, double deltaC, double ve
     if(deltaB <= 360 && deltaB >= -360 && deltaValido) deltaValido = true; else deltaValido = false;
     if(deltaC <= 360 && deltaC >= -360 && deltaValido) deltaValido = true; else deltaValido = false;
 
+
     if (conectRobo.infoRoboRecebe.valido && deltaValido)
     {
         infoRobo = conectRobo.infoRoboRecebe;
 
         double pontoFinalA = infoRobo.a+deltaA;
 
+        if((infoRobo.a<0 && deltaA>0)||(infoRobo.a<0 && deltaA<0)){
+             pontoFinalA = infoRobo.a - deltaA;
+        }
+
         if(pontoFinalA < -180){
-            pontoFinalA = 180 -(180 + deltaA);
+            pontoFinalA = -(pontoFinalA + 180);
         }
 
         if(pontoFinalA > 180){
-            pontoFinalA = 180 -(deltaA - 180);
+            pontoFinalA = -(180 -(pontoFinalA - 180));
         }
+
+         std::cout<<"pontoFinalA= "<<pontoFinalA<<std::endl;
 
         double pontoFinalB = infoRobo.b+deltaB;
 
+        if((infoRobo.b<0 && deltaB>0)||(infoRobo.b<0 && deltaB<0)){
+             pontoFinalB = infoRobo.b - deltaB;
+        }
+
         if(pontoFinalB < -180){
-            pontoFinalB = 180 -(180 + deltaB);
+            pontoFinalB = -(pontoFinalB + 180);
         }
 
         if(pontoFinalB > 180){
-            pontoFinalB = 180 -(deltaB - 180);
+            pontoFinalB = -(180 -(pontoFinalB - 180));
         }
+
+        std::cout<<"pontoFinalB= "<<pontoFinalB<<std::endl;
 
         double pontoFinalC = infoRobo.c+deltaC;
 
+        if((infoRobo.c<0 && deltaC>0)||(infoRobo.c<0 && deltaC<0)){
+             pontoFinalC = infoRobo.c - deltaC;
+        }
+
         if(pontoFinalC < -180){
-            pontoFinalC = 180 -(180 + deltaC);
+            pontoFinalC = -(pontoFinalC + 180);
         }
 
         if(pontoFinalC > 180){
-            pontoFinalC = 180 -(deltaC - 180);
+            pontoFinalC = -(180 -(pontoFinalC - 180));
         }
+        std::cout<<"pontoFinalC= "<<pontoFinalC<<std::endl;
 
         if (deltaA != 0)
         {

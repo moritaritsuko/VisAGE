@@ -30,6 +30,10 @@ private slots:
 
     void on_btnGAMAGOFF_clicked();
 
+    void on_btnCaptura_clicked();
+
+    void on_btnPararCap_clicked();
+
 private:
     Ui::MainWindow *ui;
     void keyPressEvent(QKeyEvent *event);

@@ -354,7 +354,7 @@ void Marcador::AcharCantoProx(cv::Mat src, int deltaVan,cv::Mat imgDes){
 
         //    cv::imshow("matHSVTHD",matHSVTH);
 
-        cv::Canny(matHSVTH,imgCanny,100,100);
+        cv::Canny(matHSVTH,imgCanny,30,30);
 
         cv::dilate(imgCanny,imgCanny,cv::Mat(),cv::Point(0,0),2);
     }else{
@@ -375,7 +375,7 @@ void Marcador::AcharCantoProx(cv::Mat src, int deltaVan,cv::Mat imgDes){
         for( size_t i = j; i < lines.size(); i++ )
         {
             cv::Vec4i l = lines[i];
-            cv::line( roiDes, cv::Point(l[0], l[1]), cv::Point(l[2], l[3]), cv::Scalar(0,255,255), 1, CV_AA);
+//            cv::line( roiDes, cv::Point(l[0], l[1]), cv::Point(l[2], l[3]), cv::Scalar(0,255,255), 1, CV_AA);
             ptTmp[0] = cv::Point(lines[j][0], lines[j][1]);
             ptTmp[1] = cv::Point(lines[j][2], lines[j][3]);
             ptTmp[2] = cv::Point(lines[i][0], lines[i][1]);
@@ -408,7 +408,7 @@ void Marcador::AcharCantoProx(cv::Mat src, int deltaVan,cv::Mat imgDes){
 
             if(x>20 && x < votosCantos.cols-20 && y > 20 && y <votosCantos.rows-20){
                 cv::Point ip(x,y);
-                cv::circle(roiDes,ip,1,cv::Scalar(255,255,0),2);
+//                cv::circle(roiDes,ip,1,cv::Scalar(255,255,0),2);
                 votosCantos.at<double>(y,  x  ) += 2.f;
                 votosCantos.at<double>(y+1,x+1) += 1.f;
                 votosCantos.at<double>(y+1,x-1) += 1.f;
@@ -430,15 +430,15 @@ void Marcador::AcharCantoProx(cv::Mat src, int deltaVan,cv::Mat imgDes){
 
     double minVal; double maxVal; cv::Point minLoc; cv::Point maxLoc;
     cv::minMaxLoc( cpyVotos, &minVal, &maxVal, &minLoc, &maxLoc, cv::Mat() );
-    cv::circle(roiDes,maxLoc,1,cv::Scalar(255,0,255),-1);
+    cv::circle(roiDes,maxLoc,5,cv::Scalar(255,255,0),-1);
     cantoProximo = cv::Point(maxLoc.x+centroImg.x-deltaVan,maxLoc.y+centroImg.y-deltaVan);
 
 
-    //        cv::imshow("cpyVotos",cpyVotos);
-    //        cv::imshow("votosCantos",votosCantos);
+            cv::imshow("cpyVotos",cpyVotos);
+            cv::imshow("votosCantos",votosCantos);
 
-    //        cv::imshow("roiDes",roiDes);
-    //        cv::waitKey();
+            cv::imshow("roiDes",roiDes);
+//            cv::waitKey();
 
 
 }
@@ -614,7 +614,12 @@ int  mensuriumAGE::AcharTabs(cv::Mat img, int n, CvMat **trans, int npl,cv::Mat 
             }
 
 
-            cv::putText( imgDes,cv::format("Cor: %i",placa[npl].marco[i].getCor()), placa[npl].marco[i].getCentroImg(), 1, 2,cv::Scalar(0));
+
+            if(placa[npl].marco[i].getCor() == 0) cv::putText( imgDes,cv::format("Cor: %i : Amarelo",placa[npl].marco[i].getCor()), placa[npl].marco[i].getCentroImg(), 1, 2,cv::Scalar(0,255,255));
+            if(placa[npl].marco[i].getCor() == 1) cv::putText( imgDes,cv::format("Cor: %i : Vermelho",placa[npl].marco[i].getCor()), placa[npl].marco[i].getCentroImg(), 1, 2,cv::Scalar(0,0,255));
+            if(placa[npl].marco[i].getCor() == 2) cv::putText( imgDes,cv::format("Cor: %i : Azul",placa[npl].marco[i].getCor()), placa[npl].marco[i].getCentroImg(), 1, 2,cv::Scalar(255,0,0));
+            if(placa[npl].marco[i].getCor() == 3) cv::putText( imgDes,cv::format("Cor: %i : Verde",placa[npl].marco[i].getCor()), placa[npl].marco[i].getCentroImg(), 1, 2,cv::Scalar(0,255,0));
+
 
             cv::line(pb, placa[npl].marco[i].getCantosDigonal()[0], placa[npl].marco[i].getCantosDigonal()[1], cv::Scalar(0,0,0), 50, 1, 0);
             cv::line(pb, placa[npl].marco[i].getCantosDigonal()[2], placa[npl].marco[i].getCantosDigonal()[3], cv::Scalar(0,0,0), 50, 1, 0);

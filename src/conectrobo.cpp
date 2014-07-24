@@ -77,7 +77,7 @@ void* ConectRobo::LerMsg(void)
 
             if (resultado)
             {
-                //std::cout << "RSI recebido:" << std::endl << RSI << std::endl;
+                std::cout << "RSI recebido:" << std::endl << RSI << std::endl;
                 auto ipoc = doc.child("Rob").child("IPOC").text().get();
                 //        std::cout << "IPOC recebido: " << ipoc << std::endl;
                 mutexIPOC.lock();
@@ -96,11 +96,11 @@ void* ConectRobo::LerMsg(void)
             }
             else
             {
-                //          std::cout << "RSI [" << RSI << "] com erro: " << resultado.description() << std::endl;
+                std::cout << "RSI [" << RSI << "] com erro: " << resultado.description() << std::endl;
                 std::string ipoc;
                 for (int i = 24; i < 34; ++i)
                     ipoc += RSI[i];
-                //          std::cout << "IPOC recebido: " << ipoc << std::endl;
+                //std::cout << "IPOC recebido: " << ipoc << std::endl;
                 mutexIPOC.lock();
                     mFilaIPOC.push(ipoc);
                 mutexIPOC.unlock();

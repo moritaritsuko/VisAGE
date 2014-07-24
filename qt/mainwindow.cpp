@@ -21,6 +21,7 @@ float t = 25.4f;
 
 Programa prog(l, a, t, c, p);
 StereoCameras stereoCameras;
+bool pararCap = false;
 
 void uso()
 {
@@ -204,4 +205,43 @@ void MainWindow::on_btnGAMAGON_clicked()
 void MainWindow::on_btnGAMAGOFF_clicked()
 {
     prog.desativarGAMAG();
+}
+
+void MainWindow::on_btnCaptura_clicked()
+{
+    pararCap = false;
+    stereoCameras.exec();
+   while(!pararCap){
+
+       stereoCameras.capture();
+       auto photoPair = stereoCameras.getStereoPhotoPair();
+       auto photo1 = photoPair->matPair.first;
+       auto photo2 = photoPair->matPair.second;
+
+       cv::waitKey(3);
+       cv::imshow("img",photo1);
+
+
+       if (!photo1.empty()){
+           cv::cvtColor(photo1,photo1,cv::COLOR_BGR2RGB);
+
+           cv::resize(photo1,photo1,cv::Size(photo1.cols/3,photo1.rows/3),0,0,cv::INTER_LINEAR);
+
+           QImage image = QImage((uint8_t*) photo1.data,photo1.cols,photo1.rows,photo1.step,QImage::Format_RGB888);
+
+           QPixmap pixma = QPixmap::fromImage(image);
+
+           ui->lblImgCamE->setPixmap(pixma);
+
+           ui->lblImgCamE->setFixedSize(pixma.size());
+       }
+
+   }
+   pararCap = false;
+
+}
+
+void MainWindow::on_btnPararCap_clicked()
+{
+    pararCap = true;
 }
