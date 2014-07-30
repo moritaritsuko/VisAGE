@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1576</width>
+    <width>1841</width>
     <height>801</height>
    </rect>
   </property>
@@ -17,7 +17,7 @@
    <widget class="QLabel" name="lblExibirIMG">
     <property name="geometry">
      <rect>
-      <x>620</x>
+      <x>740</x>
       <y>10</y>
       <width>271</width>
       <height>16</height>
@@ -186,56 +186,79 @@
      <string>Aguardando Imagem para Exibição...</string>
     </property>
    </widget>
-   <widget class="QSplitter" name="splitter_14">
+   <widget class="QLabel" name="lblImgCamD">
+    <property name="geometry">
+     <rect>
+      <x>880</x>
+      <y>120</y>
+      <width>411</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Aguardando Imagem para Exibição...</string>
+    </property>
+   </widget>
+   <widget class="QSplitter" name="splitter_15">
     <property name="geometry">
      <rect>
       <x>10</x>
       <y>80</y>
-      <width>687</width>
+      <width>921</width>
       <height>27</height>
      </rect>
     </property>
     <property name="orientation">
      <enum>Qt::Horizontal</enum>
     </property>
-    <widget class="QSplitter" name="splitter_13">
+    <widget class="QSplitter" name="splitter_14">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
-     <widget class="QPushButton" name="btnManual">
-      <property name="text">
-       <string>Manual</string>
+     <widget class="QSplitter" name="splitter_13">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
       </property>
+      <widget class="QPushButton" name="btnManual">
+       <property name="text">
+        <string>Manual</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btnRodar">
+       <property name="text">
+        <string>Posicionar</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btnStereo">
+       <property name="text">
+        <string>Stereo</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btnGAMAGON">
+       <property name="text">
+        <string>GAMAG - ATIVAR</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btnGAMAGOFF">
+       <property name="text">
+        <string>GAMAG - DESATIVAR</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="btnCaptura">
+       <property name="text">
+        <string>Capturar</string>
+       </property>
+      </widget>
      </widget>
-     <widget class="QPushButton" name="btnRodar">
+     <widget class="QPushButton" name="btnPararCap">
       <property name="text">
-       <string>Posicionar</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="btnStereo">
-      <property name="text">
-       <string>Stereo</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="btnGAMAGON">
-      <property name="text">
-       <string>GAMAG - ATIVAR</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="btnGAMAGOFF">
-      <property name="text">
-       <string>GAMAG - DESATIVAR</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="btnCaptura">
-      <property name="text">
-       <string>Capturar</string>
+       <string>Parar</string>
       </property>
      </widget>
     </widget>
-    <widget class="QPushButton" name="btnPararCap">
+    <widget class="QPushButton" name="btnCalibStr">
      <property name="text">
-      <string>Parar</string>
+      <string>Calibrar Stereo</string>
      </property>
     </widget>
    </widget>
@@ -245,7 +268,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1576</width>
+     <width>1841</width>
      <height>24</height>
     </rect>
    </property>

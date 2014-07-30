@@ -74,15 +74,18 @@ void Programa::executar(cv::Mat &imgR)
         double deltaX = setPX - x;
         double deltaY = setPY - y;
         double deltaZ = setPZ - z;
-        double xRSI, yRSI, zRSI;
-        xRSI = yRSI = zRSI = 0.f;
+        double xRSI, yRSI, zRSI,aRSI, bRSI, cRSI;
+        xRSI = yRSI = zRSI = aRSI = bRSI = cRSI = 0.f;
 
         cv::putText(img, cv::format("Pos(%f, %f, %f)",x,y,z), cv::Point(10, 105), 1, 1, cv::Scalar(255,0,255));
         cv::putText(img, cv::format("Ori(%f, %f, %f)",(a*180.f)/CV_PI,(b*180.f)/CV_PI,(c*180.f)/CV_PI), cv::Point(10, 120), 1, 1, cv::Scalar(255,0,255));
 
         if(!orientacaoOK){
-
-        }
+            if(c < -0.5f || c > 0.5f){
+                aRSI = -0.1f;
+                if (c < 0) aRSI = 0.1f;
+            }
+        }else{
 
         if(deltaZ < -10.f || deltaZ > 10.f)
         {
@@ -153,10 +156,11 @@ void Programa::executar(cv::Mat &imgR)
             Rotacionar(0,0,90);
 
         }
+    }
         if (!mAproximando)
         {
             conectRobo.mutexInfoRoboEnvia.lock();
-            conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(xRSI, yRSI, zRSI, 0.f, 0.f, 0.f, controleGAMAG);
+            conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(xRSI, yRSI, zRSI, aRSI, 0.f, 0.f, controleGAMAG);
             conectRobo.mutexInfoRoboEnvia.unlock();
         }
         cv::putText(img, cv::format("Delta X: %f", deltaX), cv::Point(10, 15), 1, 1, cv::Scalar(255,0,255));

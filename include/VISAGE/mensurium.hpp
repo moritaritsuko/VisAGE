@@ -74,7 +74,7 @@ public:
     mensuriumAGE();
     int AcharTabs(cv::Mat img, int n, CvMat** trans, int npl, cv::Mat imgDes = cv::Mat(0,0,CV_8UC1));
     void AcharCentro1Tab(cv::Mat img, Marcador& marco, unsigned int largura, unsigned int altura, float tamanho);
-    bool Rodar(char *nomeJan, cv::Mat img);
+    bool Rodar(cv::Mat &img);
     cv::Mat Stereo(cv::Mat imgE,cv::Mat imgD);
     cv::Mat steroRegMarcos();
     Placa getPlaca(int i);

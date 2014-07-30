@@ -366,7 +366,7 @@ void Marcador::AcharCantoProx(cv::Mat src, int deltaVan,cv::Mat imgDes){
     }
 
 
-    cv::imshow("imgCanny",imgCanny);
+//    cv::imshow("imgCanny",imgCanny);
 
     std::vector<cv::Vec4i> lines;
     cv::HoughLinesP(imgCanny, lines, 1.3, CV_PI/180, 150, roi.cols/2, 50 );
@@ -434,10 +434,10 @@ void Marcador::AcharCantoProx(cv::Mat src, int deltaVan,cv::Mat imgDes){
     cantoProximo = cv::Point(maxLoc.x+centroImg.x-deltaVan,maxLoc.y+centroImg.y-deltaVan);
 
 
-            cv::imshow("cpyVotos",cpyVotos);
-            cv::imshow("votosCantos",votosCantos);
+//            cv::imshow("cpyVotos",cpyVotos);
+//            cv::imshow("votosCantos",votosCantos);
 
-            cv::imshow("roiDes",roiDes);
+//            cv::imshow("roiDes",roiDes);
 //            cv::waitKey();
 
 
@@ -753,7 +753,7 @@ cv::Mat mensuriumAGE::Stereo(cv::Mat imgE, cv::Mat imgD){
 }
 
 
-bool mensuriumAGE::Rodar(char* nomeJan,cv::Mat img){
+bool mensuriumAGE::Rodar(cv::Mat &img){
 
     bool resp = false;
 
@@ -785,9 +785,8 @@ bool mensuriumAGE::Rodar(char* nomeJan,cv::Mat img){
         resp = true;
     }
 
-    cv::resize(imgSaida,imgSaida,cv::Size(img.cols/2,img.rows/2));
 
-    cv::imshow(nomeJan,imgSaida);
+    imgSaida.copyTo(img);
     cv::waitKey(5);
 
     return resp;

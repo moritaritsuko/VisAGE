@@ -34,6 +34,8 @@ private slots:
 
     void on_btnPararCap_clicked();
 
+    void on_btnCalibStr_clicked();
+
 private:
     Ui::MainWindow *ui;
     void keyPressEvent(QKeyEvent *event);

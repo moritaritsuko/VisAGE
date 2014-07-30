@@ -176,9 +176,10 @@ void MainWindow::keyPressEvent(QKeyEvent *event){
 
 void MainWindow::on_btnStereo_clicked()
 {
+    pararCap = false;
     stereoCameras.exec();
 
-    while (true)
+    while (!pararCap)
     {
         stereoCameras.capture();
         auto photoPair = stereoCameras.getStereoPhotoPair();
@@ -187,14 +188,43 @@ void MainWindow::on_btnStereo_clicked()
 
         if (!photo1.empty()){
             cv::waitKey(3);
-            prog.mMensurium.Rodar("Câmera 1", photo1);
+            prog.mMensurium.Rodar(photo1);
+
+            cv::Mat matEx1(photo1.cols,photo1.rows,CV_8UC3);
+            cv::cvtColor(photo1,matEx1,cv::COLOR_BGR2RGB);
+
+            cv::resize(matEx1,matEx1,cv::Size(matEx1.cols/3,matEx1.rows/3),0,0,cv::INTER_LINEAR);
+
+            QImage image = QImage((uint8_t*) matEx1.data,matEx1.cols,matEx1.rows,matEx1.step,QImage::Format_RGB888);
+
+            QPixmap pixma = QPixmap::fromImage(image);
+
+            ui->lblImgCamE->setPixmap(pixma);
+
+            ui->lblImgCamE->setFixedSize(pixma.size());
         }
 
         if (!photo2.empty()){
             cv::waitKey(3);
-            prog.mMensurium.Rodar("Câmera 2", photo2);            
+            prog.mMensurium.Rodar(photo2);
+
+            if (!photo2.empty()){
+                cv::Mat matEx2(photo1.cols,photo1.rows,CV_8UC3);
+                cv::cvtColor(photo2,matEx2,cv::COLOR_BGR2RGB);
+
+                cv::resize(matEx2,matEx2,cv::Size(matEx2.cols/3,matEx2.rows/3),0,0,cv::INTER_LINEAR);
+
+                QImage imageD = QImage((uint8_t*) matEx2.data,matEx2.cols,matEx2.rows,matEx2.step,QImage::Format_RGB888);
+
+                QPixmap pixmaD = QPixmap::fromImage(imageD);
+
+                ui->lblImgCamD->setPixmap(pixmaD);
+
+                ui->lblImgCamD->setFixedSize(pixmaD.size());
+            }
         }
     }
+    pararCap = false;
 }
 
 void MainWindow::on_btnGAMAGON_clicked()
@@ -218,22 +248,39 @@ void MainWindow::on_btnCaptura_clicked()
        auto photo1 = photoPair->matPair.first;
        auto photo2 = photoPair->matPair.second;
 
+
+
        cv::waitKey(3);
-       cv::imshow("img",photo1);
 
 
        if (!photo1.empty()){
-           cv::cvtColor(photo1,photo1,cv::COLOR_BGR2RGB);
+           cv::Mat matEx1(photo1.cols,photo1.rows,CV_8UC3);
+           cv::cvtColor(photo1,matEx1,cv::COLOR_BGR2RGB);
 
-           cv::resize(photo1,photo1,cv::Size(photo1.cols/3,photo1.rows/3),0,0,cv::INTER_LINEAR);
+           cv::resize(matEx1,matEx1,cv::Size(matEx1.cols/3,matEx1.rows/3),0,0,cv::INTER_LINEAR);
 
-           QImage image = QImage((uint8_t*) photo1.data,photo1.cols,photo1.rows,photo1.step,QImage::Format_RGB888);
+           QImage image = QImage((uint8_t*) matEx1.data,matEx1.cols,matEx1.rows,matEx1.step,QImage::Format_RGB888);
 
            QPixmap pixma = QPixmap::fromImage(image);
 
            ui->lblImgCamE->setPixmap(pixma);
 
            ui->lblImgCamE->setFixedSize(pixma.size());
+       }
+
+       if (!photo2.empty()){
+           cv::Mat matEx2(photo1.cols,photo1.rows,CV_8UC3);
+           cv::cvtColor(photo2,matEx2,cv::COLOR_BGR2RGB);
+
+           cv::resize(matEx2,matEx2,cv::Size(matEx2.cols/3,matEx2.rows/3),0,0,cv::INTER_LINEAR);
+
+           QImage imageD = QImage((uint8_t*) matEx2.data,matEx2.cols,matEx2.rows,matEx2.step,QImage::Format_RGB888);
+
+           QPixmap pixmaD = QPixmap::fromImage(imageD);
+
+           ui->lblImgCamD->setPixmap(pixmaD);
+
+           ui->lblImgCamD->setFixedSize(pixmaD.size());
        }
 
    }
@@ -244,4 +291,9 @@ void MainWindow::on_btnCaptura_clicked()
 void MainWindow::on_btnPararCap_clicked()
 {
     pararCap = true;
+}
+
+void MainWindow::on_btnCalibStr_clicked()
+{
+    stereoCameras.CalibrarStCam(24.f,cv::Size(9,6));
 }

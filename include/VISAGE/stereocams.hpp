@@ -26,6 +26,8 @@ class StereoCameras
             std::pair<cv::Mat, cv::Mat> matPair;
         };
 
+        double CalibrarStCam(float tamQuad, cv::Size TamTab);
+
 
     public:
         void                        exec();
@@ -36,6 +38,11 @@ class StereoCameras
     private:
         bool                        attachDevices();
         void                        registerCameraCapture(StereoPhoto* StereoPhotoPtr);
+        cv::Mat CM1 = cv::Mat(3, 3, CV_64FC1);
+        cv::Mat CM2 = cv::Mat(3, 3, CV_64FC1);
+        cv::Mat D1, D2;
+        cv::Mat R, T, E, F;
+        cv::Mat R1, R2, P1, P2, Q;
 
 
     private:

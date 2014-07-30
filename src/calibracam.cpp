@@ -440,7 +440,7 @@ void CalibraCam::CalibrarPorRegiao(Size boardSize, float tamQuad, bool tipoCam, 
     cv::Mat imgGray;
     cv::Mat copy;
     Pattern pattern = CHESSBOARD;
-    Mat cameraMatrix, distCoeffs;
+    cv::Mat cameraMatrix, distCoeffs;
     const char* outputFilename = nomeFile;
 
     float squareSize = tamQuad;
@@ -559,3 +559,5 @@ calibre:
     std::cout<<"Calibrando!"<<std::endl;
 
 }
+
+
