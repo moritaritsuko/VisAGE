@@ -286,6 +286,7 @@ void MainWindow::on_btnCaptura_clicked()
    }
    pararCap = false;
 
+
 }
 
 void MainWindow::on_btnPararCap_clicked()
@@ -295,5 +296,6 @@ void MainWindow::on_btnPararCap_clicked()
 
 void MainWindow::on_btnCalibStr_clicked()
 {
-    stereoCameras.CalibrarStCam(24.f,cv::Size(9,6));
+    auto rms = stereoCameras.CalibrarStCam(24.f,cv::Size(9,6));
+    std::cout << "Calibração concluída, RMS = " << rms << std::endl;
 }
