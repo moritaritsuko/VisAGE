@@ -22,11 +22,14 @@ StereoCameras::StereoCameras()
     , mDevices()
     , mCameras(2u)
     , mCameraNames()
+    , mDisplayCapture(false)
+    , mDisplayCaptureMutex()
 {
     if (attachDevices())
     {
         // Triggers Configuration Event (CameraConfiguration.cpp)
         mCameras.Open();
+        startDisplayCapture();
     }
     else
         std::cout << "AVISO: Câmeras Estéreo não foram encontradas." << std::endl;
@@ -223,7 +226,9 @@ double StereoCameras::CalibrarStCam(float tamQuad,cv::Size TamTab){
     msgBoxint.exec();
 
 novaImg:
+    mDisplayCaptureMutex.lock();
     capture();
+    mDisplayCaptureMutex.unlock();
     auto photoPair = getStereoPhotoPair();
     auto photo1 = photoPair->matPair.first;
     auto photo2 = photoPair->matPair.second;
@@ -274,12 +279,12 @@ novaImg:
                 imgThreshM=cv::Mat(imgGrayE.rows, imgGrayE.cols, CV_8UC1);
 
                 cv::adaptiveThreshold(imgGrayE,imgThreshM,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,47,15);
-//                cv::imshow("imgThreshME",imgThreshM);
+                //                cv::imshow("imgThreshME",imgThreshM);
                 int foundE = findChessboardCorners( imgThreshM, TamTab, pointbufE,
                                                     CV_CALIB_CB_ADAPTIVE_THRESH  | CV_CALIB_CB_NORMALIZE_IMAGE);
 
                 cv::adaptiveThreshold(imgGrayD,imgThreshM,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,47,15);
-//                cv::imshow("imgThreshMD",imgThreshM);
+                //                cv::imshow("imgThreshMD",imgThreshM);
                 int foundD = findChessboardCorners( imgThreshM, TamTab, pointbufD,
                                                     CV_CALIB_CB_ADAPTIVE_THRESH  | CV_CALIB_CB_NORMALIZE_IMAGE);
                 if(foundE && foundD){
@@ -318,9 +323,9 @@ pgtCalibrar:
 
 
         }else{
-//            QMessageBox msgBoxOK;
-//            msgBoxOK.setText("Tabs não encontrados!");
-//            msgBoxOK.exec();
+            //            QMessageBox msgBoxOK;
+            //            msgBoxOK.setText("Tabs não encontrados!");
+            //            msgBoxOK.exec();
             goto novaImg;
         }
 
@@ -332,7 +337,7 @@ calibrar:
         for( int i = 0; i < TamTab.height; i++ )
             for( int j = 0; j < TamTab.width; j++ )
                 obj.push_back(cv::Point3f(float(j*squareSize),
-                                                   float(i*squareSize), 0));
+                                          float(i*squareSize), 0));
 
 
         std::vector<std::vector<cv::Point3f> > objectPoints;
@@ -362,9 +367,59 @@ calibrar:
 
         fs1.release();
 
-
-
+        QMessageBox msgBoxOK;
+        std::string msg("Calibração concluída, RMS = ");
+        msg += std::to_string(RMS);
+        msgBoxOK.setText(msg.c_str());
+        msgBoxOK.exec();
+        stop();
         return RMS;
     } else
         goto novaImg;
+}
+
+void StereoCameras::stop()
+{
+    mDisplayCapture = false;
+    cv::destroyAllWindows();
+    if (mCameras.IsGrabbing())
+        mCameras.StopGrabbing();
+}
+
+void StereoCameras::showDisplayCapture()
+{
+    mDisplayCapture = true;
+}
+
+void StereoCameras::startDisplayCapture()
+{
+    pthread_t tid;
+    int result;
+    result = pthread_create(&tid, 0, StereoCameras::callDisplayCapture, this);
+    if (result == 0)
+        pthread_detach(tid);
+}
+
+void *StereoCameras::displayCapture(void)
+{
+    while (true)
+    {
+        if (mCameras.IsGrabbing() && mDisplayCapture)
+        {
+            mDisplayCaptureMutex.lock();
+            capture();
+            mDisplayCaptureMutex.unlock();
+            auto photoPair = getStereoPhotoPair();
+            auto photo1 = photoPair->matPair.first;
+            auto photo2 = photoPair->matPair.second;
+
+            if (!photo2.empty())
+            {
+                cv::resize(photo1,photo1,cv::Size(photo1.cols/3,photo1.rows/3));
+                cv::resize(photo2,photo2,cv::Size(photo2.cols/3,photo2.rows/3));
+                cv::imshow("Câmera Esquerda", photo1);
+                cv::imshow("Câmera Direita", photo2);
+            }
+        }
+    }
 }

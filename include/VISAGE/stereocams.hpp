@@ -13,6 +13,7 @@
 #include <string>
 #include <utility>
 #include <memory>
+#include <mutex>
 
 
 class StereoCameras
@@ -33,6 +34,14 @@ class StereoCameras
         void                        exec();
         StereoPhoto*                getStereoPhotoPair();
         void                        capture();
+        void                        stop();
+        void                        startDisplayCapture();
+        void                        showDisplayCapture();
+
+
+    private:
+        void*                       displayCapture(void);
+        static void*                callDisplayCapture(void *arg){return ((StereoCameras*)arg)->displayCapture();}
 
 
     private:
@@ -52,6 +61,8 @@ class StereoCameras
         Pylon::DeviceInfoList_t                     mDevices;
         Pylon::CInstantCameraArray                  mCameras;
         std::vector<std::string>                    mCameraNames;
+        bool                                        mDisplayCapture;
+        std::mutex                                  mDisplayCaptureMutex;
 };
 
 // Forward Declaration
