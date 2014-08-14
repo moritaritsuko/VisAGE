@@ -2,6 +2,7 @@
 
 #include "opencv/cv.h"
 #include "opencv2/opencv.hpp"
+#include "opencv2/ocl/ocl.hpp"
 #include "math.h"
 
 #include <algorithm>
@@ -366,7 +367,7 @@ void Marcador::AcharCantoProx(cv::Mat src, int deltaVan,cv::Mat imgDes){
     }
 
 
-//    cv::imshow("imgCanny",imgCanny);
+    //    cv::imshow("imgCanny",imgCanny);
 
     std::vector<cv::Vec4i> lines;
     cv::HoughLinesP(imgCanny, lines, 1.3, CV_PI/180, 150, roi.cols/2, 50 );
@@ -375,7 +376,7 @@ void Marcador::AcharCantoProx(cv::Mat src, int deltaVan,cv::Mat imgDes){
         for( size_t i = j; i < lines.size(); i++ )
         {
             cv::Vec4i l = lines[i];
-//            cv::line( roiDes, cv::Point(l[0], l[1]), cv::Point(l[2], l[3]), cv::Scalar(0,255,255), 1, CV_AA);
+            //            cv::line( roiDes, cv::Point(l[0], l[1]), cv::Point(l[2], l[3]), cv::Scalar(0,255,255), 1, CV_AA);
             ptTmp[0] = cv::Point(lines[j][0], lines[j][1]);
             ptTmp[1] = cv::Point(lines[j][2], lines[j][3]);
             ptTmp[2] = cv::Point(lines[i][0], lines[i][1]);
@@ -408,7 +409,7 @@ void Marcador::AcharCantoProx(cv::Mat src, int deltaVan,cv::Mat imgDes){
 
             if(x>20 && x < votosCantos.cols-20 && y > 20 && y <votosCantos.rows-20){
                 cv::Point ip(x,y);
-//                cv::circle(roiDes,ip,1,cv::Scalar(255,255,0),2);
+                //                cv::circle(roiDes,ip,1,cv::Scalar(255,255,0),2);
                 votosCantos.at<double>(y,  x  ) += 2.f;
                 votosCantos.at<double>(y+1,x+1) += 1.f;
                 votosCantos.at<double>(y+1,x-1) += 1.f;
@@ -434,11 +435,11 @@ void Marcador::AcharCantoProx(cv::Mat src, int deltaVan,cv::Mat imgDes){
     cantoProximo = cv::Point(maxLoc.x+centroImg.x-deltaVan,maxLoc.y+centroImg.y-deltaVan);
 
 
-//            cv::imshow("cpyVotos",cpyVotos);
-//            cv::imshow("votosCantos",votosCantos);
+    //            cv::imshow("cpyVotos",cpyVotos);
+    //            cv::imshow("votosCantos",votosCantos);
 
-//            cv::imshow("roiDes",roiDes);
-//            cv::waitKey();
+    //            cv::imshow("roiDes",roiDes);
+    //            cv::waitKey();
 
 
 }
@@ -677,6 +678,15 @@ mensuriumAGE::mensuriumAGE()
     cv::FileStorage fs("config/Calib.yml", cv::FileStorage::READ);
     fs["camera_matrix"] >> cameraMatrix;
     fs["distortion_coefficients"] >> distCoeffs;
+
+    try
+    {
+        std::cout << "Dispositivo OpenCL:" << cv::ocl::Context::getContext()->getDeviceInfo().deviceName << std::endl;
+    }
+    catch (const std::exception& e)
+    {
+        std::cout << "Erro: " << e.what() << std::endl;
+    }
 }
 
 
@@ -732,16 +742,27 @@ cv::Mat mensuriumAGE::Stereo(cv::Mat imgE, cv::Mat imgD){
 
     cv::Mat disp;
     cv::StereoBM sbm;
-    sbm.state->SADWindowSize = 5;
-    sbm.state->numberOfDisparities = 3*16;
-    sbm.state->preFilterSize = 5;
-    sbm.state->preFilterCap = 60;
+    //    sbm.state->SADWindowSize = 5;
+    //    sbm.state->numberOfDisparities = 3*16;
+    //    sbm.state->preFilterSize = 5;
+    //    sbm.state->preFilterCap = 60;
+    //    sbm.state->minDisparity = 0;
+    //    sbm.state->textureThreshold = 100;
+    //    sbm.state->uniquenessRatio = 10;
+    //    sbm.state->speckleWindowSize = 255;
+    //    sbm.state->speckleRange = 255;
+    //    sbm.state->disp12MaxDiff = 255;
+
+    sbm.state->preFilterCap = 31;
+    sbm.state->SADWindowSize = 9;
     sbm.state->minDisparity = 0;
-    sbm.state->textureThreshold = 255;
-    sbm.state->uniquenessRatio = 0;
-    sbm.state->speckleWindowSize = 255;
-    sbm.state->speckleRange = 255;
-    sbm.state->disp12MaxDiff = 255;
+    sbm.state->numberOfDisparities = 128;
+    sbm.state->textureThreshold = 10;
+    sbm.state->uniquenessRatio = 15;
+    sbm.state->speckleWindowSize = 100;
+    sbm.state->speckleRange = 32;
+    sbm.state->disp12MaxDiff = 1;
+
     sbm(imgE,imgD,disp);
 
     cv::Mat disp8U;
@@ -749,7 +770,64 @@ cv::Mat mensuriumAGE::Stereo(cv::Mat imgE, cv::Mat imgD){
     minMaxLoc( disp, &minVal, &maxVal );
     disp.convertTo( disp8U, CV_8UC1, 255/(maxVal - minVal));
 
-    return disp8U;
+    cv::namedWindow("Disparidade",0);
+
+    cv::imshow("Disparidade",disp8U);
+
+    return disp;
+}
+
+void mensuriumAGE::StereoOCL(cv::Mat imgE, cv::Mat imgD){
+    enum {BP, CSBP} method;
+    method = CSBP;
+    int ndisp = 128;
+    cv::ocl::oclMat d_left, d_right;
+    cv::ocl::StereoBeliefPropagation bp;
+    cv::ocl::StereoConstantSpaceBP csbp;
+    cv::cvtColor(imgE,imgE,CV_RGB2GRAY);
+    cv::cvtColor(imgD,imgD,CV_RGB2GRAY);
+    cv::resize(imgE, imgE, cv::Size(imgE.cols/3, imgE.rows/3));
+    cv::resize(imgD, imgD, cv::Size(imgD.cols/3, imgD.rows/3));
+
+    d_left.upload(imgE);
+    d_right.upload(imgD);
+
+    cv::imshow("Esquerda", imgE);
+    cv::imshow("Direita", imgD);
+
+    bp.ndisp = ndisp;
+    csbp.ndisp = ndisp;
+
+    cv::Mat disp;
+    cv::ocl::oclMat d_disp;
+
+    switch (method)
+    {
+        case BP:
+            bp(d_left, d_right, d_disp);
+            break;
+        case CSBP:
+            csbp(d_left, d_right, d_disp);
+            break;
+    }
+
+    // Show results
+    d_disp.download(disp);
+    disp.convertTo(disp, 0);
+    //cv::putText(disp, cv::text(), Point(5, 25), FONT_HERSHEY_SIMPLEX, 1.0, Scalar::all(255));
+    cv::imshow("disparity", disp);
+}
+
+cv::Point3d mensuriumAGE::XYZCamCaract(cv::Point ptE,cv::Point ptD, float b_mm,float fx_pixel){
+
+    float disp_pixels = ptE.x - ptD.x;
+
+    double X = b_mm * (ptE.x + ptD.x) / disp_pixels;
+    double Y = b_mm * (ptE.y - ptD.y) / disp_pixels;
+    double Z = 0;
+    if(fx_pixel != 0) Z = b_mm * fx_pixel / disp_pixels;
+    return(cv::Point3d(X,Y,Z));
+
 }
 
 

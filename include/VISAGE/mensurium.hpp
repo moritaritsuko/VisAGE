@@ -76,9 +76,12 @@ public:
     void AcharCentro1Tab(cv::Mat img, Marcador& marco, unsigned int largura, unsigned int altura, float tamanho);
     bool Rodar(cv::Mat &img);
     cv::Mat Stereo(cv::Mat imgE,cv::Mat imgD);
+    void StereoOCL(cv::Mat imgE,cv::Mat imgD);
     cv::Mat steroRegMarcos();
     Placa getPlaca(int i);
     Placa* placa;
+    cv::Point3d XYZCamCaract(cv::Point ptE, cv::Point ptD, float b_mm, float fx_pixel = 0);
+    cv::Point3d XYZCamCaract(float disp_pixels,cv::Mat camMat,cv::Mat T,cv::Size tamSensor);
 private:
 
     cv::Mat distCoeffs;

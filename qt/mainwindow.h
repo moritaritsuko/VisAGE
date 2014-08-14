@@ -36,6 +36,8 @@ private slots:
 
     void on_btnCalibStr_clicked();
 
+    void on_btnDsip_clicked();
+
 private:
     Ui::MainWindow *ui;
     void keyPressEvent(QKeyEvent *event);

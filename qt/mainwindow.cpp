@@ -302,3 +302,22 @@ void MainWindow::on_btnCalibStr_clicked()
     auto rms = stereoCameras.CalibrarStCam(25.f,cv::Size(9,6));
     std::cout << "Calibração concluída, RMS = " << rms << std::endl;
 }
+
+void MainWindow::on_btnDsip_clicked()
+{
+    pararCap = false;
+    stereoCameras.exec();
+   while(!pararCap){
+
+       stereoCameras.capture();
+       auto photoPair = stereoCameras.getStereoPhotoPair();
+       auto photo1 = photoPair->matPair.first;
+       auto photo2 = photoPair->matPair.second;
+
+       if(!photo1.empty() && !photo2.empty())
+       //prog.mMensurium.Stereo(photo1,photo2);
+       prog.mMensurium.StereoOCL(photo1,photo2);
+
+       cv::waitKey(3);
+   }
+}

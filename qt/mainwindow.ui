@@ -199,61 +199,71 @@
      <string>Aguardando Imagem para Exibição...</string>
     </property>
    </widget>
-   <widget class="QSplitter" name="splitter_15">
+   <widget class="QSplitter" name="splitter_16">
     <property name="geometry">
      <rect>
       <x>10</x>
       <y>80</y>
-      <width>921</width>
+      <width>894</width>
       <height>27</height>
      </rect>
     </property>
     <property name="orientation">
      <enum>Qt::Horizontal</enum>
     </property>
-    <widget class="QSplitter" name="splitter_14">
+    <widget class="QSplitter" name="splitter_15">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
-     <widget class="QSplitter" name="splitter_13">
+     <widget class="QSplitter" name="splitter_14">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="QPushButton" name="btnManual">
-       <property name="text">
-        <string>Manual</string>
+      <widget class="QSplitter" name="splitter_13">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
        </property>
-      </widget>
-      <widget class="QPushButton" name="btnRodar">
-       <property name="text">
-        <string>Posicionar</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="btnStereo">
-       <property name="text">
-        <string>Stereo</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="btnGAMAGON">
-       <property name="text">
-        <string>GAMAG - ATIVAR</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="btnGAMAGOFF">
-       <property name="text">
-        <string>GAMAG - DESATIVAR</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="btnCaptura">
-       <property name="text">
-        <string>Capturar</string>
-       </property>
+       <widget class="QPushButton" name="btnManual">
+        <property name="text">
+         <string>Manual</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btnRodar">
+        <property name="text">
+         <string>Posicionar</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btnStereo">
+        <property name="text">
+         <string>Metro MONO</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btnGAMAGON">
+        <property name="text">
+         <string>GAMAG - ATIVAR</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btnGAMAGOFF">
+        <property name="text">
+         <string>GAMAG - DESATIVAR</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="btnCaptura">
+        <property name="text">
+         <string>Capturar</string>
+        </property>
+       </widget>
       </widget>
      </widget>
+     <widget class="QPushButton" name="btnCalibStr">
+      <property name="text">
+       <string>Calibrar Stereo</string>
+      </property>
+     </widget>
     </widget>
-    <widget class="QPushButton" name="btnCalibStr">
+    <widget class="QPushButton" name="btnDsip">
      <property name="text">
-      <string>Calibrar Stereo</string>
+      <string>Disparidade</string>
      </property>
     </widget>
     <widget class="QPushButton" name="btnPararCap">
@@ -269,7 +279,7 @@
      <x>0</x>
      <y>0</y>
      <width>1841</width>
-     <height>24</height>
+     <height>27</height>
     </rect>
    </property>
   </widget>

@@ -11,6 +11,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
 
+#include <unistd.h>
 #include <iostream>
 
 #include <QMessageBox>
@@ -191,11 +192,6 @@ void CameraCapture::OnImageGrabbed(Pylon::CInstantCamera& camera, const Pylon::C
         else
         {
             mStereoPhotoPtr->matPair.second = imageCamera;
-
-            auto leftImage = mStereoPhotoPtr->matPair.first;
-            auto rightImage = mStereoPhotoPtr->matPair.second;
-            auto leftCamera = mStereoPhotoPtr->cameras[0];
-            auto rightCamera = mStereoPhotoPtr->cameras[1];
         }
     }
     else
@@ -232,6 +228,7 @@ novaImg:
     auto photoPair = getStereoPhotoPair();
     auto photo1 = photoPair->matPair.first;
     auto photo2 = photoPair->matPair.second;
+    cv::waitKey(10);
 
     if (!photo2.empty())
     {
@@ -242,23 +239,25 @@ novaImg:
         cv::Mat cinzaMenor;
         cv::cvtColor(imgE,imgGrayE,CV_RGB2GRAY);
         cv::resize(imgGrayE,cinzaMenor,cv::Size(imgGrayE.cols/fs,imgGrayE.rows/fs));
-        cv::Mat imgThreshM=cv::Mat(cinzaMenor.rows, cinzaMenor.cols, CV_8UC1);
-        cv::adaptiveThreshold(cinzaMenor,imgThreshM,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,47,15);
-        int found1 = findChessboardCorners( imgThreshM, TamTab, pointbufE,
+//        cv::Mat imgThreshM=cv::Mat(cinzaMenor.rows, cinzaMenor.cols, CV_8UC1);
+//        cv::adaptiveThreshold(cinzaMenor,imgThreshM,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,47,15);
+        cv::imshow("cinzaMenor",cinzaMenor);
+        int found1 = findChessboardCorners( cinzaMenor, TamTab, pointbufE,
                                             CV_CALIB_CB_ADAPTIVE_THRESH  | CV_CALIB_CB_NORMALIZE_IMAGE);
+
         cinzaMenor.copyTo(copiaImgE);
 
         photo2.copyTo(imgD);
         cv::cvtColor(imgD,imgGrayD,CV_RGB2GRAY);
         cv::resize(imgGrayD,cinzaMenor,cv::Size(imgGrayD.cols/fs,imgGrayD.rows/fs));
-        imgThreshM=cv::Mat(cinzaMenor.rows, cinzaMenor.cols, CV_8UC1);
-        cv::adaptiveThreshold(cinzaMenor,imgThreshM,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,47,15);
-        int found2 = findChessboardCorners( imgThreshM, TamTab, pointbufD,
+//        imgThreshM=cv::Mat(cinzaMenor.rows, cinzaMenor.cols, CV_8UC1);
+//        cv::adaptiveThreshold(cinzaMenor,imgThreshM,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,47,15);
+        int found2 = findChessboardCorners( cinzaMenor, TamTab, pointbufD,
                                             CV_CALIB_CB_ADAPTIVE_THRESH  | CV_CALIB_CB_NORMALIZE_IMAGE);
         cinzaMenor.copyTo(copiaImgD);
 
-        cv::imshow("testeD",copiaImgD);
-        cv::imshow("testeE",copiaImgE);
+        //cv::imshow("testeD",copiaImgD);
+        //cv::imshow("testeE",copiaImgE);
         if(found1 && found2){
 
 
@@ -276,16 +275,16 @@ novaImg:
             int ret = msgBox.exec();
 
             if(ret == QMessageBox::Save){
-                imgThreshM=cv::Mat(imgGrayE.rows, imgGrayE.cols, CV_8UC1);
+//                imgThreshM=cv::Mat(imgGrayE.rows, imgGrayE.cols, CV_8UC1);
 
-                cv::adaptiveThreshold(imgGrayE,imgThreshM,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,47,15);
+//                cv::adaptiveThreshold(imgGrayE,imgThreshM,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,47,15);
                 //                cv::imshow("imgThreshME",imgThreshM);
-                int foundE = findChessboardCorners( imgThreshM, TamTab, pointbufE,
+                int foundE = findChessboardCorners( imgGrayE, TamTab, pointbufE,
                                                     CV_CALIB_CB_ADAPTIVE_THRESH  | CV_CALIB_CB_NORMALIZE_IMAGE);
 
-                cv::adaptiveThreshold(imgGrayD,imgThreshM,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,47,15);
+//                cv::adaptiveThreshold(imgGrayD,imgThreshM,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,47,15);
                 //                cv::imshow("imgThreshMD",imgThreshM);
-                int foundD = findChessboardCorners( imgThreshM, TamTab, pointbufD,
+                int foundD = findChessboardCorners( imgGrayD, TamTab, pointbufD,
                                                     CV_CALIB_CB_ADAPTIVE_THRESH  | CV_CALIB_CB_NORMALIZE_IMAGE);
                 if(foundE && foundD){
                     cv::cvtColor(imgE,imgGrayE,CV_RGB2GRAY);
@@ -412,6 +411,7 @@ void *StereoCameras::displayCapture(void)
             auto photoPair = getStereoPhotoPair();
             auto photo1 = photoPair->matPair.first;
             auto photo2 = photoPair->matPair.second;
+            //sleep(10);
 
             if (!photo2.empty())
             {
