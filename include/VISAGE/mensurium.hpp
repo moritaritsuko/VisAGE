@@ -3,6 +3,7 @@
 
 #include "opencv/cv.h"
 #include "opencv2/opencv.hpp"
+#include "opencv2/ocl/ocl.hpp"
 
 class Marcador{
  public:
@@ -87,6 +88,12 @@ private:
     cv::Mat distCoeffs;
     cv::Mat cameraMatrix;
 
+    //StereoOCL
+    enum {BP, CSBP} method;
+    int ndisp;
+    int fs;
+    cv::ocl::StereoBeliefPropagation bp;
+    cv::ocl::StereoConstantSpaceBP csbp;
 };
 
 #endif // MENSURIUMAGE_HPP

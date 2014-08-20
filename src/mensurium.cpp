@@ -2,7 +2,6 @@
 
 #include "opencv/cv.h"
 #include "opencv2/opencv.hpp"
-#include "opencv2/ocl/ocl.hpp"
 #include "math.h"
 
 #include <algorithm>
@@ -662,6 +661,9 @@ int  mensuriumAGE::AcharTabs(cv::Mat img, int n, CvMat **trans, int npl,cv::Mat 
 
 
 mensuriumAGE::mensuriumAGE()
+    :method(BP)
+    ,ndisp(64)
+    ,fs(3)
 {
     placa = new Placa[2];
     placa[0].Inic(4);
@@ -777,17 +779,12 @@ cv::Mat mensuriumAGE::Stereo(cv::Mat imgE, cv::Mat imgD){
     return disp;
 }
 
-void mensuriumAGE::StereoOCL(cv::Mat imgE, cv::Mat imgD){
-    enum {BP, CSBP} method;
-    method = CSBP;
-    int ndisp = 128;
+void mensuriumAGE::StereoOCL(cv::Mat imgE, cv::Mat imgD){    
     cv::ocl::oclMat d_left, d_right;
-    cv::ocl::StereoBeliefPropagation bp;
-    cv::ocl::StereoConstantSpaceBP csbp;
     cv::cvtColor(imgE,imgE,CV_RGB2GRAY);
     cv::cvtColor(imgD,imgD,CV_RGB2GRAY);
-    cv::resize(imgE, imgE, cv::Size(imgE.cols/3, imgE.rows/3));
-    cv::resize(imgD, imgD, cv::Size(imgD.cols/3, imgD.rows/3));
+    cv::resize(imgE, imgE, cv::Size(imgE.cols/fs, imgE.rows/fs));
+    cv::resize(imgD, imgD, cv::Size(imgD.cols/fs, imgD.rows/fs));
 
     d_left.upload(imgE);
     d_right.upload(imgD);
@@ -803,12 +800,13 @@ void mensuriumAGE::StereoOCL(cv::Mat imgE, cv::Mat imgD){
 
     switch (method)
     {
-        case BP:
-            bp(d_left, d_right, d_disp);
-            break;
-        case CSBP:
-            csbp(d_left, d_right, d_disp);
-            break;
+    case BP:
+        bp(d_left, d_right, d_disp);
+        bp.estimateRecommendedParams(imgE.cols,imgE.rows,ndisp,bp.iters,bp.levels);
+        break;
+    case CSBP:
+        csbp(d_left, d_right, d_disp);
+        break;
     }
 
     // Show results
@@ -816,6 +814,95 @@ void mensuriumAGE::StereoOCL(cv::Mat imgE, cv::Mat imgD){
     disp.convertTo(disp, 0);
     //cv::putText(disp, cv::text(), Point(5, 25), FONT_HERSHEY_SIMPLEX, 1.0, Scalar::all(255));
     cv::imshow("disparity", disp);
+    char key = cv::waitKey(3);
+
+    switch (key)
+    {
+    case 'm':
+    case 'M':
+        switch (method)
+        {
+        case BP:
+            method = CSBP;
+            std::cout << "CSBP" << std::endl;
+            break;
+        case CSBP:
+            method = BP;
+            std::cout << "BP" << std::endl;
+            break;
+        }
+        break;
+    case '1':
+        ndisp == 1 ? ndisp = 8 : ndisp += 8;
+        std::cout << "ndisp: " << ndisp << std::endl;
+        bp.ndisp = ndisp;
+        csbp.ndisp = ndisp;
+        break;
+    case 'q':
+    case 'Q':
+        ndisp = std::max(ndisp - 8, 1);
+        std::cout << "ndisp: " << ndisp << std::endl;
+        bp.ndisp = ndisp;
+        csbp.ndisp = ndisp;
+        break;
+    case '2':
+        if (method == BP)
+        {
+            bp.iters += 1;
+            std::cout << "iter_count: " << bp.iters << std::endl;
+        }
+        else if (method == CSBP)
+        {
+            csbp.iters += 1;
+            std::cout << "iter_count: " << csbp.iters << std::endl;
+        }
+        break;
+    case 'w':
+    case 'W':
+        if (method == BP)
+        {
+            bp.iters = std::max(bp.iters - 1, 1);
+            std::cout << "iter_count: " << bp.iters << std::endl;
+        }
+        else if (method == CSBP)
+        {
+            csbp.iters = std::max(csbp.iters - 1, 1);
+            std::cout << "iter_count: " << csbp.iters << std::endl;
+        }
+        break;
+    case '3':
+        if (method == BP)
+        {
+            bp.levels += 1;
+            std::cout << "level_count: " << bp.levels << std::endl;
+        }
+        else if (method == CSBP)
+        {
+            csbp.levels += 1;
+            std::cout << "level_count: " << csbp.levels << std::endl;
+        }
+        break;
+    case 'e':
+    case 'E':
+        if (method == BP)
+        {
+            bp.levels = std::max(bp.levels - 1, 1);
+            std::cout << "level_count: " << bp.levels << std::endl;
+        }
+        else if (method == CSBP)
+        {
+            csbp.levels = std::max(csbp.levels - 1, 1);
+            std::cout << "level_count: " << csbp.levels << std::endl;
+        }
+        break;
+    case '4':
+        fs += 1;
+        break;
+    case 'r':
+    case 'R':
+        fs = std::max(fs - 1, 1);
+        break;
+    }
 }
 
 cv::Point3d mensuriumAGE::XYZCamCaract(cv::Point ptE,cv::Point ptD, float b_mm,float fx_pixel){
@@ -861,6 +948,8 @@ bool mensuriumAGE::Rodar(cv::Mat &img){
             }
         }
         resp = true;
+
+
     }
 
 
