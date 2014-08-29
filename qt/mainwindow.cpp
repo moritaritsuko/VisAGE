@@ -157,21 +157,21 @@ void MainWindow::on_btnRotacionar_clicked()
 
 void MainWindow::keyPressEvent(QKeyEvent *event){
 
-//    if(event->key()==Qt::Key_W){
-//        ui->labelDir->setText("W");
-//    }
+    //    if(event->key()==Qt::Key_W){
+    //        ui->labelDir->setText("W");
+    //    }
 
-//    if(event->key()==Qt::Key_A){
-//        ui->labelDir->setText("A");
-//    }
+    //    if(event->key()==Qt::Key_A){
+    //        ui->labelDir->setText("A");
+    //    }
 
-//    if(event->key()==Qt::Key_D){
-//        ui->labelDir->setText("D");
-//    }
+    //    if(event->key()==Qt::Key_D){
+    //        ui->labelDir->setText("D");
+    //    }
 
-//    if(event->key()==Qt::Key_S){
-//        ui->labelDir->setText("S");
-//    }
+    //    if(event->key()==Qt::Key_S){
+    //        ui->labelDir->setText("S");
+    //    }
 }
 
 void MainWindow::on_btnStereo_clicked()
@@ -241,50 +241,50 @@ void MainWindow::on_btnCaptura_clicked()
 {
     pararCap = false;
     stereoCameras.exec();
-   while(!pararCap){
+    while(!pararCap){
 
-       stereoCameras.capture();
-       auto photoPair = stereoCameras.getStereoPhotoPair();
-       auto photo1 = photoPair->matPair.first;
-       auto photo2 = photoPair->matPair.second;
-
-
-
-       cv::waitKey(3);
+        stereoCameras.capture();
+        auto photoPair = stereoCameras.getStereoPhotoPair();
+        auto photo1 = photoPair->matPair.first;
+        auto photo2 = photoPair->matPair.second;
 
 
-       if (!photo1.empty()){
-           cv::Mat matEx1(photo1.cols,photo1.rows,CV_8UC3);
-           cv::cvtColor(photo1,matEx1,cv::COLOR_BGR2RGB);
 
-           cv::resize(matEx1,matEx1,cv::Size(matEx1.cols/3,matEx1.rows/3),0,0,cv::INTER_LINEAR);
+        cv::waitKey(3);
 
-           QImage image = QImage((uint8_t*) matEx1.data,matEx1.cols,matEx1.rows,matEx1.step,QImage::Format_RGB888);
 
-           QPixmap pixma = QPixmap::fromImage(image);
+        if (!photo1.empty()){
+            cv::Mat matEx1(photo1.cols,photo1.rows,CV_8UC3);
+            cv::cvtColor(photo1,matEx1,cv::COLOR_BGR2RGB);
 
-           ui->lblImgCamE->setPixmap(pixma);
+            cv::resize(matEx1,matEx1,cv::Size(matEx1.cols/3,matEx1.rows/3),0,0,cv::INTER_LINEAR);
 
-           ui->lblImgCamE->setFixedSize(pixma.size());
-       }
+            QImage image = QImage((uint8_t*) matEx1.data,matEx1.cols,matEx1.rows,matEx1.step,QImage::Format_RGB888);
 
-       if (!photo2.empty()){
-           cv::Mat matEx2(photo1.cols,photo1.rows,CV_8UC3);
-           cv::cvtColor(photo2,matEx2,cv::COLOR_BGR2RGB);
+            QPixmap pixma = QPixmap::fromImage(image);
 
-           cv::resize(matEx2,matEx2,cv::Size(matEx2.cols/3,matEx2.rows/3),0,0,cv::INTER_LINEAR);
+            ui->lblImgCamE->setPixmap(pixma);
 
-           QImage imageD = QImage((uint8_t*) matEx2.data,matEx2.cols,matEx2.rows,matEx2.step,QImage::Format_RGB888);
+            ui->lblImgCamE->setFixedSize(pixma.size());
+        }
 
-           QPixmap pixmaD = QPixmap::fromImage(imageD);
+        if (!photo2.empty()){
+            cv::Mat matEx2(photo1.cols,photo1.rows,CV_8UC3);
+            cv::cvtColor(photo2,matEx2,cv::COLOR_BGR2RGB);
 
-           ui->lblImgCamD->setPixmap(pixmaD);
+            cv::resize(matEx2,matEx2,cv::Size(matEx2.cols/3,matEx2.rows/3),0,0,cv::INTER_LINEAR);
 
-           ui->lblImgCamD->setFixedSize(pixmaD.size());
-       }
+            QImage imageD = QImage((uint8_t*) matEx2.data,matEx2.cols,matEx2.rows,matEx2.step,QImage::Format_RGB888);
 
-   }
-   pararCap = false;
+            QPixmap pixmaD = QPixmap::fromImage(imageD);
+
+            ui->lblImgCamD->setPixmap(pixmaD);
+
+            ui->lblImgCamD->setFixedSize(pixmaD.size());
+        }
+
+    }
+    pararCap = false;
 
 
 }
@@ -307,17 +307,35 @@ void MainWindow::on_btnDsip_clicked()
 {
     pararCap = false;
     stereoCameras.exec();
-   while(!pararCap){
+    while(!pararCap){
 
-       stereoCameras.capture();
-       auto photoPair = stereoCameras.getStereoPhotoPair();
-       auto photo1 = photoPair->matPair.first;
-       auto photo2 = photoPair->matPair.second;
+        stereoCameras.capture();
+        auto photoPair = stereoCameras.getStereoPhotoPair();
+        auto photo1 = photoPair->matPair.first;
+        auto photo2 = photoPair->matPair.second;
 
-       if(!photo1.empty() && !photo2.empty())
-       //prog.mMensurium.Stereo(photo1,photo2);
-       prog.mMensurium.StereoOCL(photo1,photo2);
+        if(!photo1.empty() && !photo2.empty())
+            //prog.mMensurium.Stereo(photo1,photo2);
+            prog.mMensurium.StereoOCL(photo1,photo2);
 
-       cv::waitKey(3);
-   }
+        cv::waitKey(3);
+    }
+}
+
+void MainWindow::on_btnFoco_clicked()
+{
+    pararCap = false;
+    stereoCameras.exec();
+    while(!pararCap){
+
+        stereoCameras.capture();
+        auto photoPair = stereoCameras.getStereoPhotoPair();
+        auto photo1 = photoPair->matPair.first;
+        auto photo2 = photoPair->matPair.second;
+
+        if(!photo1.empty() && !photo2.empty())
+            prog.mMensurium.CalibrarFoco(photo1, photo2, cv::Size(9, 6), 4350);
+        cv::waitKey(3);
+    }
+
 }

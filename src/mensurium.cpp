@@ -905,19 +905,6 @@ void mensuriumAGE::StereoOCL(cv::Mat imgE, cv::Mat imgD){
     }
 }
 
-cv::Point3d mensuriumAGE::XYZCamCaract(cv::Point ptE,cv::Point ptD, float b_mm,float fx_pixel){
-
-    float disp_pixels = ptE.x - ptD.x;
-
-    double X = b_mm * (ptE.x + ptD.x) / disp_pixels;
-    double Y = b_mm * (ptE.y - ptD.y) / disp_pixels;
-    double Z = 0;
-    if(fx_pixel != 0) Z = b_mm * fx_pixel / disp_pixels;
-    return(cv::Point3d(X,Y,Z));
-
-}
-
-
 bool mensuriumAGE::Rodar(cv::Mat &img){
 
     bool resp = false;
@@ -957,4 +944,40 @@ bool mensuriumAGE::Rodar(cv::Mat &img){
     cv::waitKey(5);
 
     return resp;
+}
+
+float mensuriumAGE::CalibrarFoco(cv::Mat imgE, cv::Mat imgD, cv::Size tamTabRef, float distZ, float b_mm){
+
+    Marcador marcoRefE,marcoRefD;
+    AcharCentro1Tab(imgE, marcoRefE, tamTabRef.width, tamTabRef.height);
+    AcharCentro1Tab(imgD, marcoRefD, tamTabRef.width, tamTabRef.height);
+
+    double dispCentros = marcoRefE.getCentroImg().x-marcoRefD.getCentroImg().x;
+
+    focoCalDim = (distZ*dispCentros / b_mm);
+
+    std::cout<<"Disparidade: "<<dispCentros<<std::endl;
+    std::cout<<"Foco em pixels: "<<focoCalDim<<std::endl;
+
+    XYZCamCaract(marcoRefE.getCentroImg(),marcoRefD.getCentroImg());
+
+    return focoCalDim;
+}
+
+cv::Point3d mensuriumAGE::XYZCamCaract(cv::Point ptE, cv::Point ptD, float fx_pixel, float b_mm){
+    float disp_pixels = ptE.x - ptD.x;
+    double X = b_mm * (ptE.x + ptD.x) / disp_pixels;
+    double Y = b_mm * (ptE.y - ptD.y) / disp_pixels;
+    double Z = 0;
+    if(fx_pixel != 0){
+        Z = b_mm * fx_pixel / disp_pixels;
+    }
+    else{
+        if(focoCalDim != 0) Z = b_mm * focoCalDim / disp_pixels;
+    }
+
+    double dist = sqrt(pow(X,2)+pow(Y,2)+pow(Z,2));
+    std::cout<<"Ponto 3D: "<<cv::Point3d(X,Y,Z)<<std::endl;
+    std::cout<<"dist 3D: "<<dist<<std::endl;
+    return(cv::Point3d(X,Y,Z));
 }

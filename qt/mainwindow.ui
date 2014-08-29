@@ -266,6 +266,11 @@
       <string>Disparidade</string>
      </property>
     </widget>
+    <widget class="QPushButton" name="btnFoco">
+     <property name="text">
+      <string>Foco</string>
+     </property>
+    </widget>
     <widget class="QPushButton" name="btnPararCap">
      <property name="text">
       <string>Parar</string>

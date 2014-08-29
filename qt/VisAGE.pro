@@ -159,7 +159,7 @@ INCLUDEPATH += $$PWD/../../../../../../usr/lib/x86_64-linux-gnu
 DEPENDPATH += $$PWD/../../../../../../usr/lib/x86_64-linux-gnu
 
 #unix:!macx: LIBS += -L$$PWD/../../../../../../usr/lib/x86_64-linux-gnu -lGL
-unix:!macx: LIBS += -L$$PWD/../../../../../../usr/lib/ -lGL
+unix:!macx: LIBS += -L$$PWD/../../../../../../usr/lib/fglrx/ -lGL
 
 INCLUDEPATH += $$PWD/../../../../../../usr/include
 DEPENDPATH += $$PWD/../../../../../../usr/include

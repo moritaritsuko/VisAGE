@@ -38,6 +38,8 @@ private slots:
 
     void on_btnDsip_clicked();
 
+    void on_btnFoco_clicked();
+
 private:
     Ui::MainWindow *ui;
     void keyPressEvent(QKeyEvent *event);

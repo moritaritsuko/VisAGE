@@ -6,7 +6,7 @@
 #include "opencv2/ocl/ocl.hpp"
 
 class Marcador{
- public:
+public:
     void Inic(int x, int y,float dx,float dy);
     Marcador();
     CvPoint* CentroTab(std::vector<cv::Point2f> pontos);
@@ -25,7 +25,7 @@ class Marcador{
     int getCor(){return cor;}
     void setValido();
     bool isValido();
- private:
+private:
     CvPoint centroImg;
     cv::Mat orientacao;
     cv::Mat posicao;
@@ -47,7 +47,7 @@ class Marcador{
 };
 
 class Placa{
-  public:
+public:
     Placa();
     Marcador* marco;
     void Inic(int n);
@@ -58,7 +58,7 @@ class Placa{
     cv::Point getPosCentroImg();
     cv::Mat getmatPontosPlaca3D();
     Marcador getMarcador(int i);
-  private:
+private:
     CvMat posicaoCentro;
     CvMat rotacao;
     cv::Point posCentroImg;
@@ -74,20 +74,20 @@ class mensuriumAGE
 public:
     mensuriumAGE();
     int AcharTabs(cv::Mat img, int n, CvMat** trans, int npl, cv::Mat imgDes = cv::Mat(0,0,CV_8UC1));
-    void AcharCentro1Tab(cv::Mat img, Marcador& marco, unsigned int largura, unsigned int altura, float tamanho);
+    void AcharCentro1Tab(cv::Mat img, Marcador& marco, unsigned int largura = 9, unsigned int altura = 6, float tamanho = 25.f);
     bool Rodar(cv::Mat &img);
     cv::Mat Stereo(cv::Mat imgE,cv::Mat imgD);
     void StereoOCL(cv::Mat imgE,cv::Mat imgD);
     cv::Mat steroRegMarcos();
     Placa getPlaca(int i);
     Placa* placa;
-    cv::Point3d XYZCamCaract(cv::Point ptE, cv::Point ptD, float b_mm, float fx_pixel = 0);
     cv::Point3d XYZCamCaract(float disp_pixels,cv::Mat camMat,cv::Mat T,cv::Size tamSensor);
+    float CalibrarFoco(cv::Mat imgE, cv::Mat imgD, cv::Size tamTabRef, float distZ,float b_mm = 55.f);
+    cv::Point3d XYZCamCaract(cv::Point ptE,cv::Point ptD, float fx_pixel = 0,float b_mm = 55.f);
 private:
-
     cv::Mat distCoeffs;
     cv::Mat cameraMatrix;
-
+    float focoCalDim;
     //StereoOCL
     enum {BP, CSBP} method;
     int ndisp;
