@@ -186,9 +186,10 @@ void MainWindow::on_btnStereo_clicked()
         auto photo1 = photoPair->matPair.first;
         auto photo2 = photoPair->matPair.second;
 
-        if (!photo1.empty()){
+        if (!photo1.empty() && !photo2.empty()){
             cv::waitKey(3);
-            prog.mMensurium.Rodar(photo1);
+            prog.mMensurium.Rodar("Cameras",photo1,photo2);
+
 
             cv::Mat matEx1(photo1.cols,photo1.rows,CV_8UC3);
             cv::cvtColor(photo1,matEx1,cv::COLOR_BGR2RGB);
@@ -202,13 +203,45 @@ void MainWindow::on_btnStereo_clicked()
             ui->lblImgCamE->setPixmap(pixma);
 
             ui->lblImgCamE->setFixedSize(pixma.size());
-        }
 
-        if (!photo2.empty()){
-            cv::waitKey(3);
-            prog.mMensurium.Rodar(photo2);
+            cv::Mat matEx2(photo1.cols,photo1.rows,CV_8UC3);
+            cv::cvtColor(photo2,matEx2,cv::COLOR_BGR2RGB);
+
+            cv::resize(matEx2,matEx2,cv::Size(matEx2.cols/3,matEx2.rows/3),0,0,cv::INTER_LINEAR);
+
+            QImage imageD = QImage((uint8_t*) matEx2.data,matEx2.cols,matEx2.rows,matEx2.step,QImage::Format_RGB888);
+
+            QPixmap pixmaD = QPixmap::fromImage(imageD);
+
+            ui->lblImgCamD->setPixmap(pixmaD);
+
+            ui->lblImgCamD->setFixedSize(pixmaD.size());
+        }
+        else{
+
+            if (!photo1.empty() && !photo2.empty()){
+                cv::waitKey(3);
+                prog.mMensurium.Rodar("Cameras 1",photo1);
+
+
+                cv::Mat matEx1(photo1.cols,photo1.rows,CV_8UC3);
+                cv::cvtColor(photo1,matEx1,cv::COLOR_BGR2RGB);
+
+                cv::resize(matEx1,matEx1,cv::Size(matEx1.cols/3,matEx1.rows/3),0,0,cv::INTER_LINEAR);
+
+                QImage image = QImage((uint8_t*) matEx1.data,matEx1.cols,matEx1.rows,matEx1.step,QImage::Format_RGB888);
+
+                QPixmap pixma = QPixmap::fromImage(image);
+
+                ui->lblImgCamE->setPixmap(pixma);
+
+                ui->lblImgCamE->setFixedSize(pixma.size());
+            }
 
             if (!photo2.empty()){
+                cv::waitKey(3);
+                prog.mMensurium.Rodar("Camera 2",photo2);
+
                 cv::Mat matEx2(photo1.cols,photo1.rows,CV_8UC3);
                 cv::cvtColor(photo2,matEx2,cv::COLOR_BGR2RGB);
 
@@ -221,8 +254,12 @@ void MainWindow::on_btnStereo_clicked()
                 ui->lblImgCamD->setPixmap(pixmaD);
 
                 ui->lblImgCamD->setFixedSize(pixmaD.size());
+
             }
+
         }
+
+
     }
     pararCap = false;
 }
@@ -237,10 +274,12 @@ void MainWindow::on_btnGAMAGOFF_clicked()
     prog.desativarGAMAG();
 }
 
+bool salvar = false;
 void MainWindow::on_btnCaptura_clicked()
 {
     pararCap = false;
     stereoCameras.exec();
+    int cont = 0;
     while(!pararCap){
 
         stereoCameras.capture();
@@ -250,11 +289,15 @@ void MainWindow::on_btnCaptura_clicked()
 
 
 
-        cv::waitKey(3);
+        cv::waitKey(5);
+        if(ui->checkBoxSalvar->isChecked()) salvar = true;
+
 
 
         if (!photo1.empty()){
             cv::Mat matEx1(photo1.cols,photo1.rows,CV_8UC3);
+            if(salvar) cv::imwrite("imgE"+std::to_string(cont)+".png",photo2);
+            //             cv::imshow("photo1",matEx1);
             cv::cvtColor(photo1,matEx1,cv::COLOR_BGR2RGB);
 
             cv::resize(matEx1,matEx1,cv::Size(matEx1.cols/3,matEx1.rows/3),0,0,cv::INTER_LINEAR);
@@ -270,6 +313,12 @@ void MainWindow::on_btnCaptura_clicked()
 
         if (!photo2.empty()){
             cv::Mat matEx2(photo1.cols,photo1.rows,CV_8UC3);
+            if(salvar){
+                cv::imwrite("imgD"+std::to_string(cont)+".png",photo2);
+                cont++;
+                salvar = false;
+            }
+            //cv::imshow("photo2",matEx2);
             cv::cvtColor(photo2,matEx2,cv::COLOR_BGR2RGB);
 
             cv::resize(matEx2,matEx2,cv::Size(matEx2.cols/3,matEx2.rows/3),0,0,cv::INTER_LINEAR);
@@ -281,6 +330,8 @@ void MainWindow::on_btnCaptura_clicked()
             ui->lblImgCamD->setPixmap(pixmaD);
 
             ui->lblImgCamD->setFixedSize(pixmaD.size());
+
+
         }
 
     }
@@ -338,4 +389,10 @@ void MainWindow::on_btnFoco_clicked()
         cv::waitKey(3);
     }
 
+}
+
+
+void MainWindow::on_btnSalvar_clicked()
+{
+    salvar = true;
 }

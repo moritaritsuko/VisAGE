@@ -23,7 +23,7 @@ Programa::Programa(unsigned int l, unsigned int a, float t, unsigned int c, unsi
     std::cout << "Camera: " << c << std::endl;
     std::cout << "Porta RSI: " << p << std::endl;
 
-    IniciarCaptura();
+    //IniciarCaptura();
 }
 
 
@@ -61,7 +61,7 @@ void Programa::executar(cv::Mat &imgR)
         marco = filaMarcadores.front();
         filaMarcadores.pop();
         mutexMarcador.unlock();
-        auto posicao = marco.getPosicao();
+        auto posicao = marco.getPosicaoMONO();
         auto orientacao = marco.getOrientacao();
         bool orientacaoOK = false;
 

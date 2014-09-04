@@ -43,6 +43,27 @@ cv::Mat Marcador::PontosTab3D(){
     return mat;
 }
 
+cv::Mat Marcador::getPosicaoMONO() {
+    return posicaoMONO;
+}
+
+void Marcador::setPosicaoMONO(cv::Mat pos) {
+    this->posicaoMONO = pos;
+}
+
+cv::Point3d Marcador::getPosicaoStereo() {
+    return posicaoStereo;
+}
+
+void Marcador::setPosicaoStereo(cv::Point3d pos) {
+    this->posicaoStereo = pos;
+}
+
+CvPoint* Marcador::getCantosDigonal() {
+    return cantosDigonal;
+}
+
+
 cv::Mat Marcador::getMatP3D(){
     return matPontos3D;
 }
@@ -225,17 +246,6 @@ cv::Point Marcador::getCantoProx(){
 //            return pontosTab3D;
 //}
 
-CvPoint* Marcador::getCantosDigonal() {
-    return cantosDigonal;
-}
-
-cv::Mat Marcador::getPosicao() {
-    return posicao;
-}
-
-void Marcador::setPosicao(cv::Mat pos) {
-    this->posicao = pos;
-}
 
 cv::Mat Marcador::getOrientacao()
 {
@@ -249,17 +259,24 @@ void Marcador::setOrientacao(cv::Mat orient)
 
 bool Marcador::VerificaCor(cv::Mat img, int* cor, int* deltaCor,int index){
 
-    cv::Mat roi(img,cv::Rect(cantosDigonal[0],cantosDigonal[1]));
+    cv::Mat roi(img,cv::Rect(cv::Point(cantosDigonal[1].x,cantosDigonal[3].y),cv::Point(cantosDigonal[0].x,cantosDigonal[2].y)));
+
+//    cv::circle(img,cantosDigonal[0],3,cv::Scalar(255,0,0),3);
+//    cv::circle(img,cantosDigonal[1],3,cv::Scalar(0,255,0),3);
+//    cv::circle(img,cantosDigonal[2],3,cv::Scalar(255,255,0),3);
+//    cv::circle(img,cantosDigonal[3],3,cv::Scalar(0,0,255),3);
+//    cv::imshow("imgCor",img);
 
     cv::Mat matHSV(roi.rows,roi.cols,roi.type());
     cv::cvtColor(roi,matHSV,CV_BGR2HSV);
 
     cv::Mat matTh(roi.rows,roi.cols,CV_8UC1);
     cv::inRange(matHSV,cv::Scalar(cor[0],cor[1],cor[2]),
-            cv::Scalar(deltaCor[0],deltaCor[1],deltaCor[2]),matTh);
+    cv::Scalar(deltaCor[0],deltaCor[1],deltaCor[2]),matTh);
 
-    //    cv::imshow("roi",roi);
-    //    cv::imshow("matTh",matTh);
+//        cv::imshow("roi",roi);
+//        cv::imshow("matTh",matTh);
+//        cv::waitKey();
 
     int total = cv::countNonZero(matTh);
 
@@ -560,8 +577,8 @@ int Placa::getnMarcoAch(){
 
 int  mensuriumAGE::AcharTabs(cv::Mat img, int n, CvMat **trans, int npl,cv::Mat imgDes){
 
-    int corI[4][3] =    {{20,20,20},   {0,20,20},   {40,20,20},  {20,20,20}};
-    int corF[4][3] =    {{30,255,255}, {20,255,255},{80,255,255},{40,255,255}};
+    int corI[4][3] =    {{20,20,20},   {0,20,20},   {38,0,0},  {20,20,20}};
+    int corF[4][3] =    {{30,255,255}, {20,255,255},{255,255,255},{40,255,255}};
 
     CvPoint p[n][3];
 
@@ -570,10 +587,15 @@ int  mensuriumAGE::AcharTabs(cv::Mat img, int n, CvMat **trans, int npl,cv::Mat 
 
     cv::Mat cinza = cv::Mat(imgC.cols, imgC.rows, CV_8SC1);
     cv::Mat pb = cv::Mat(imgC.cols, imgC.rows, CV_8SC1);
+    cv::Mat hsv = cv::Mat(imgC.cols, imgC.rows, CV_8SC3);
+    cv::Mat pbHSV = cv::Mat(imgC.cols, imgC.rows, CV_8SC1);
+    cv::cvtColor(img,hsv,CV_BGR2HSV);
+    cv::inRange(hsv,cv::Scalar(0,0,0),cv::Scalar(255,255,48),pbHSV);
+    cv::threshold(pbHSV, pb,1,255 , CV_THRESH_BINARY_INV);// 3 = 70 =72
 
-    cv::cvtColor(imgC, cinza, CV_BGR2GRAY);
-    //    cv::threshold(cinza, pb, 72,255 , CV_THRESH_BINARY);// 3 = 70 =72
-    cv::adaptiveThreshold(cinza,pb,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,47,15);
+    //cv::cvtColor(imgC, cinza, CV_BGR2GRAY);
+        //cv::threshold(cinza, pb,70,255 , CV_THRESH_BINARY);// 3 = 70 =72
+    //cv::adaptiveThreshold(cinza,pb,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,71,17);
     int nAchado = 0;
     trans = new CvMat*[n];
     std::vector<cv::Point2f> imagePoints;
@@ -589,23 +611,24 @@ int  mensuriumAGE::AcharTabs(cv::Mat img, int n, CvMat **trans, int npl,cv::Mat 
 
         if(found){
 
-            //     cv::drawChessboardCorners( imgC, patternSize, cv::Mat(corners), found );
+            cv::drawChessboardCorners( imgDes, patternSize, cv::Mat(corners), found );
             nAchado++;
             //     std::cout<<"c placa= "<<nAchado<<std::endl;
             placa[npl].marco[i].calcCantosDigonal(corners); //CentroTab(cornerCount, corners);
+            cv::circle(imgDes,placa[npl].marco[i].getCentroImg(),3,cv::Scalar(0,255,0),3);
 
             placa[npl].marco[i].getCentroImg();
             //CvMat* R = cvCreateMat(1, 3, CV_32FC1);
             trans[i] = cvCreateMat(1, 3, CV_32FC1);
-            placa[npl].marco[i].setPosicao(trans[i]);
+            placa[npl].marco[i].setPosicaoMONO(trans[i]);
 
             //placa[npl].marco[i].gettPontosTab3D(), pontosCam
             cv::solvePnP(placa[npl].marco[i].getMatP3D(), corners, cameraMatrix, distCoeffs, rvec, tvec, false);
             //cv::solvePnPRansac(placa[npl].marco[i].getMatP3D(), corners, cameraMatrix, distCoeffs, rvec, tvec, false);
             float dist = sqrt(tvec.at<double>(0,0)*tvec.at<double>(0,0)+tvec.at<double>(1,0)*tvec.at<double>(1,0)+tvec.at<double>(2,0)*tvec.at<double>(2,0));
             if(!imgDes.empty()){
-                cv::putText( imgDes,cv::format("Dist: %f",dist), placa[npl].marco[i].getCentroImg()+cv::Point(-100,-100), 1, 2,cv::Scalar(255,0,255));
-                cv::putText( imgDes,cv::format("Rot: %f,%f,%f",rvec.at<double>(0,0)*180.f/CV_PI,rvec.at<double>(1,0)*180.f/CV_PI,rvec.at<double>(2,0)*180.f/CV_PI), placa[npl].marco[i].getCentroImg()+cv::Point(-100,-150), 1, 2,cv::Scalar(255,0,255));
+                cv::putText( imgDes,cv::format("Dist: %f",dist), placa[npl].marco[i].getCentroImg()+cv::Point(-100,-50), 1, 2,cv::Scalar(255,0,255));
+                cv::putText( imgDes,cv::format("Rot: %f,%f,%f",rvec.at<double>(0,0)*180.f/CV_PI,rvec.at<double>(1,0)*180.f/CV_PI,rvec.at<double>(2,0)*180.f/CV_PI), placa[npl].marco[i].getCentroImg()+cv::Point(-100,-100), 1, 2,cv::Scalar(255,0,255));
             }
             //std::cout<<"Dist["<<i<<"]: "<<dist<<std::endl;
 
@@ -615,10 +638,10 @@ int  mensuriumAGE::AcharTabs(cv::Mat img, int n, CvMat **trans, int npl,cv::Mat 
 
 
 
-            if(placa[npl].marco[i].getCor() == 0) cv::putText( imgDes,cv::format("Cor: %i : Amarelo",placa[npl].marco[i].getCor()), placa[npl].marco[i].getCentroImg(), 1, 2,cv::Scalar(0,255,255));
-            if(placa[npl].marco[i].getCor() == 1) cv::putText( imgDes,cv::format("Cor: %i : Vermelho",placa[npl].marco[i].getCor()), placa[npl].marco[i].getCentroImg(), 1, 2,cv::Scalar(0,0,255));
-            if(placa[npl].marco[i].getCor() == 2) cv::putText( imgDes,cv::format("Cor: %i : Azul",placa[npl].marco[i].getCor()), placa[npl].marco[i].getCentroImg(), 1, 2,cv::Scalar(255,0,0));
-            if(placa[npl].marco[i].getCor() == 3) cv::putText( imgDes,cv::format("Cor: %i : Verde",placa[npl].marco[i].getCor()), placa[npl].marco[i].getCentroImg(), 1, 2,cv::Scalar(0,255,0));
+//            if(placa[npl].marco[i].getCor() == 0) cv::putText( imgDes,cv::format("Cor: %i : Amarelo",placa[npl].marco[i].getCor()), placa[npl].marco[i].getCentroImg(), 1, 2,cv::Scalar(0,255,255));
+//            if(placa[npl].marco[i].getCor() == 1) cv::putText( imgDes,cv::format("Cor: %i : Vermelho",placa[npl].marco[i].getCor()), placa[npl].marco[i].getCentroImg(), 1, 2,cv::Scalar(0,0,255));
+//            if(placa[npl].marco[i].getCor() == 2) cv::putText( imgDes,cv::format("Cor: %i : Azul",placa[npl].marco[i].getCor()), placa[npl].marco[i].getCentroImg(), 1, 2,cv::Scalar(255,0,0));
+//            if(placa[npl].marco[i].getCor() == 3) cv::putText( imgDes,cv::format("Cor: %i : Verde",placa[npl].marco[i].getCor()), placa[npl].marco[i].getCentroImg(), 1, 2,cv::Scalar(0,255,0));
 
 
             cv::line(pb, placa[npl].marco[i].getCantosDigonal()[0], placa[npl].marco[i].getCantosDigonal()[1], cv::Scalar(0,0,0), 50, 1, 0);
@@ -631,28 +654,28 @@ int  mensuriumAGE::AcharTabs(cv::Mat img, int n, CvMat **trans, int npl,cv::Mat 
 
         }
 
-        //        cv::imshow("AcharTab",pb);
+//                cv::imshow("AcharTab",pb);
 
     }
 
-    Marcador* marcoTmp = (Marcador*)malloc(sizeof(Marcador) * n);
-    memcpy(marcoTmp,placa[npl].marco,sizeof(Marcador) * n);
-    for(int io = 0;io<nAchado;io++){
-        if(marcoTmp[io].getCor() == 0){
-            placa[npl].marco[0] = marcoTmp[io];
-            //memcpy(placa[npl].marco[0], marcoTmp[io], sizeof(Marcador));
-        }
-        if(marcoTmp[io].getCor() == 1){
-            placa[npl].marco[1] = marcoTmp[io];
-        }
-        if(marcoTmp[io].getCor() == 2){
-            placa[npl].marco[2] = marcoTmp[io];
-        }
-        if(marcoTmp[io].getCor() == 3){
-            placa[npl].marco[3] = marcoTmp[io];
-        }
-    }
-    free(marcoTmp);
+//    Marcador* marcoTmp = (Marcador*)malloc(sizeof(Marcador) * n);
+//    memcpy(marcoTmp,placa[npl].marco,sizeof(Marcador) * n);
+//    for(int io = 0;io<nAchado;io++){
+//        if(marcoTmp[io].getCor() == 0){
+//            placa[npl].marco[0] = marcoTmp[io];
+//            //memcpy(placa[npl].marco[0], marcoTmp[io], sizeof(Marcador));
+//        }
+//        if(marcoTmp[io].getCor() == 1){
+//            placa[npl].marco[1] = marcoTmp[io];
+//        }
+//        if(marcoTmp[io].getCor() == 2){
+//            placa[npl].marco[2] = marcoTmp[io];
+//        }
+//        if(marcoTmp[io].getCor() == 3){
+//            placa[npl].marco[3] = marcoTmp[io];
+//        }
+//    }
+//    free(marcoTmp);
 
     placa[npl].setnMarcoAch(nAchado);
 
@@ -722,7 +745,7 @@ void mensuriumAGE::AcharCentro1Tab(cv::Mat img, Marcador& marco, unsigned int la
 
         cv::solvePnP(marco.getMatP3D(),corners,cameraMatrix,distCoeffs,R,trans,false,0);
 
-        marco.setPosicao(trans);
+        marco.setPosicaoMONO(trans);
         marco.setOrientacao(R);
 
         double dist = sqrt(pow(trans.at<double>(0,0),2)+pow(trans.at<double>(1,0),2)+pow(trans.at<double>(2,0),2));
@@ -905,45 +928,71 @@ void mensuriumAGE::StereoOCL(cv::Mat imgE, cv::Mat imgD){
     }
 }
 
-bool mensuriumAGE::Rodar(cv::Mat &img){
+
+
+void mensuriumAGE::Rodar(char* nomeJan, cv::Mat imgE, cv::Mat imgD){
 
     bool resp = false;
 
     CvMat** trans;
-    //    int corI[4][3] =    {{18,60,30},   {0,30,30},   {42,60,30},  {30,60,30}};
-    //    int corF[4][3] =    {{32,255,255}, {18,255,220},{60,255,255},{38,255,255}};
 
     cv::Mat imgSaida;
-    img.copyTo(imgSaida);
+    imgE.copyTo(imgSaida);
 
-    AcharTabs(img,4,trans,0,imgSaida);
+    AcharTabs(imgE,4,trans,0,imgSaida);
     //std::cout<<"n placa= "<<placa[0].getnMarcoAch()<<std::endl;
 
     if (placa[0].getnMarcoAch()==4){
         placa[0].CalcentroPlaca();
         cv::circle(imgSaida,placa[0].getPosCentroImg(),5,cv::Scalar(255,0,255),2,1,0);
 
-        for(int i= 0;i<4;i++ ){
-            placa[0].marco[i].AcharCantoProx(img,150,imgSaida);
-        }
+//        for(int i= 0;i<4;i++ ){
+//                        placa[0].marco[i].AcharCantoProx(imgE,150,imgSaida);
+//        }
 
-        for(int k = 0; k<4;k++){
-            if(k+1 < 4){
-                cv::line(imgSaida,placa[0].marco[k].getCantoProx(),placa[0].marco[k+1].getCantoProx(),cv::Scalar(0,0,255),3);
-            }else{
-                cv::line(imgSaida,placa[0].marco[3].getCantoProx(),placa[0].marco[0].getCantoProx(),cv::Scalar(0,0,255),3);
-            }
-        }
-        resp = true;
-
+        //        for(int k = 0; k<4;k++){
+        //            if(k+1 > 3){
+        //                cv::line(imgSaida,placa[0].marco[k].getCantoProx(),placa[0].marco[k+1].getCantoProx(),cv::Scalar(0,0,255),3);
+        //            }else{
+        //                cv::line(imgSaida,placa[0].marco[3].getCantoProx(),placa[0].marco[0].getCantoProx(),cv::Scalar(0,0,255),3);
+        //            }
+        //        }
 
     }
 
+    if(!imgD.empty()){
+        AcharTabs(imgD,4,trans,1,imgSaida);
+        placa[1].CalcentroPlaca();
+        if(focoCalDim == 0) CalibrarFoco(imgE,imgD,cv::Size(6,9),3780.f,56.f);
+        std::cout<<"Pontos R: "<<cv::Point(imgE.cols/2,-imgD.rows/2)<<" ; "<<std::endl;
+        std::cout<<"Amarelo:"<<std::endl;
+        placa[0].marco[0].setPosicaoStereo(XYZCamCaract(placa[0].marco[0].getCentroImg()-cv::Point(imgE.cols/2,-imgD.rows/2),placa[1].marco[0].getCentroImg()-cv::Point(imgE.cols/2,-imgD.rows/2),0,56.f));
+        cv::circle(imgE,placa[0].marco[0].getCentroImg(),3,cv::Scalar(0,255,0),3);
+        cv::circle(imgD,placa[1].marco[0].getCentroImg(),3,cv::Scalar(0,255,0),3);
+//        std::cout<<"Pontos E: "<<placa[0].marco[0].getCentroImg()<<" ; "<<std::endl;
+//        std::cout<<"Pontos D: "<<placa[1].marco[0].getCentroImg()<<" ; "<<std::endl;
 
-    imgSaida.copyTo(img);
-    cv::waitKey(5);
+        std::cout<<"Vermelho:"<<std::endl;
+        placa[0].marco[1].setPosicaoStereo(XYZCamCaract(placa[0].marco[1].getCentroImg()-cv::Point(imgE.cols/2,-imgD.rows/2),placa[1].marco[1].getCentroImg()-cv::Point(imgE.cols/2,-imgD.rows/2),0,56.f));
+        cv::circle(imgE,placa[0].marco[1].getCentroImg(),3,cv::Scalar(0,0,255),3);
+        cv::circle(imgD,placa[1].marco[1].getCentroImg(),3,cv::Scalar(0,255,255),3);
+//        std::cout<<"Pontos E: "<<placa[0].marco[1].getCentroImg()<<" ; "<<std::endl;
+//        std::cout<<"Pontos D: "<<placa[1].marco[1].getCentroImg()<<" ; "<<std::endl;
 
-    return resp;
+        std::cout<<"Azul:"<<std::endl;
+        placa[0].marco[2].setPosicaoStereo(XYZCamCaract(placa[0].marco[2].getCentroImg()-cv::Point(imgE.cols/2,-imgD.rows/2),placa[1].marco[2].getCentroImg()-cv::Point(imgE.cols,-imgD.rows/2),0,56.f));
+        std::cout<<"Verde:"<<std::endl;
+        placa[0].marco[3].setPosicaoStereo(XYZCamCaract(placa[0].marco[3].getCentroImg()-cv::Point(imgE.cols/2,-imgD.rows/2),placa[1].marco[3].getCentroImg()-cv::Point(imgE.cols,-imgD.rows/2),0,56.f));
+        std::cout<<"Centro:"<<std::endl;
+        XYZCamCaract(placa[0].getPosCentroImg(),placa[1].getPosCentroImg(),0,56.f);
+
+        placa[1].marco[0].setPosicaoStereo(placa[0].marco[0].getPosicaoStereo());
+        placa[1].marco[1].setPosicaoStereo(placa[0].marco[1].getPosicaoStereo());
+        placa[1].marco[2].setPosicaoStereo(placa[0].marco[2].getPosicaoStereo());
+        placa[1].marco[3].setPosicaoStereo(placa[0].marco[3].getPosicaoStereo());
+    }
+
+//    cv::imshow("imgS",imgSaida);
 }
 
 float mensuriumAGE::CalibrarFoco(cv::Mat imgE, cv::Mat imgD, cv::Size tamTabRef, float distZ, float b_mm){
@@ -966,18 +1015,24 @@ float mensuriumAGE::CalibrarFoco(cv::Mat imgE, cv::Mat imgD, cv::Size tamTabRef,
 
 cv::Point3d mensuriumAGE::XYZCamCaract(cv::Point ptE, cv::Point ptD, float fx_pixel, float b_mm){
     float disp_pixels = ptE.x - ptD.x;
-    double X = b_mm * (ptE.x + ptD.x) / disp_pixels;
-    double Y = b_mm * (ptE.y - ptD.y) / disp_pixels;
+//    std::cout<<"Pontos: "<<ptE<<" ; "<<ptD<<std::endl;
+//    std::cout<<"Disparidade: "<< disp_pixels<<std::endl;
+//    std::cout<<"b: "<< b_mm<<std::endl;
+    double X = (b_mm * (ptE.x + ptD.x)) / (2*disp_pixels);
+    double Y = (b_mm * (ptE.y + ptD.y)) / (2*disp_pixels);
     double Z = 0;
     if(fx_pixel != 0){
         Z = b_mm * fx_pixel / disp_pixels;
+//        std::cout<<"fp: "<< fx_pixel<<std::endl;
     }
     else{
-        if(focoCalDim != 0) Z = b_mm * focoCalDim / disp_pixels;
+        if(focoCalDim != 0){
+//            std::cout<<"fp: "<< focoCalDim<<std::endl;
+            Z = b_mm * focoCalDim / disp_pixels;}
     }
 
     double dist = sqrt(pow(X,2)+pow(Y,2)+pow(Z,2));
     std::cout<<"Ponto 3D: "<<cv::Point3d(X,Y,Z)<<std::endl;
-    std::cout<<"dist 3D: "<<dist<<std::endl;
+//    std::cout<<"dist 3D: "<<dist<<std::endl;
     return(cv::Point3d(X,Y,Z));
 }

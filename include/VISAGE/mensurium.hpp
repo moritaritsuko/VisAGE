@@ -12,8 +12,10 @@ public:
     CvPoint* CentroTab(std::vector<cv::Point2f> pontos);
     cv::Point *calcCantosDigonal(std::vector<cv::Point2f> C);
     CvPoint* getCantosDigonal();
-    cv::Mat getPosicao();
-    void setPosicao(cv::Mat pos);
+    cv::Mat getPosicaoMONO();
+    void setPosicaoMONO(cv::Mat pos);
+    cv::Point3d getPosicaoStereo();
+    void setPosicaoStereo(cv::Point3d pos);
     cv::Mat getOrientacao();
     void setOrientacao(cv::Mat orient);
     cv::Mat getMatP3D();
@@ -27,8 +29,9 @@ public:
     bool isValido();
 private:
     CvPoint centroImg;
-    cv::Mat orientacao;
-    cv::Mat posicao;
+    cv::Mat   orientacao;
+    cv::Mat  posicaoMONO;
+    cv::Point3d posicaoStereo;
     cv::Point cantoProximo;
     CvMat*   posCantoProximo;
     double  tamanhoReal[2];
@@ -75,7 +78,7 @@ public:
     mensuriumAGE();
     int AcharTabs(cv::Mat img, int n, CvMat** trans, int npl, cv::Mat imgDes = cv::Mat(0,0,CV_8UC1));
     void AcharCentro1Tab(cv::Mat img, Marcador& marco, unsigned int largura = 9, unsigned int altura = 6, float tamanho = 25.f);
-    bool Rodar(cv::Mat &img);
+    void Rodar(char* nomeJan, cv::Mat imgE, cv::Mat imgD = cv::Mat());
     cv::Mat Stereo(cv::Mat imgE,cv::Mat imgD);
     void StereoOCL(cv::Mat imgE,cv::Mat imgD);
     cv::Mat steroRegMarcos();

@@ -235,7 +235,7 @@
        </widget>
        <widget class="QPushButton" name="btnStereo">
         <property name="text">
-         <string>Metro MONO</string>
+         <string>Metrologia</string>
         </property>
        </widget>
        <widget class="QPushButton" name="btnGAMAGON">
@@ -276,6 +276,32 @@
       <string>Parar</string>
      </property>
     </widget>
+   </widget>
+   <widget class="QPushButton" name="btnSalvar">
+    <property name="geometry">
+     <rect>
+      <x>620</x>
+      <y>40</y>
+      <width>85</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Salvar</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="checkBoxSalvar">
+    <property name="geometry">
+     <rect>
+      <x>710</x>
+      <y>40</y>
+      <width>131</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Salvar Cont.</string>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
