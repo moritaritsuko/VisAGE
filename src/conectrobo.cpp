@@ -60,6 +60,7 @@ void ConectRobo::CriarConexao()
 
 void* ConectRobo::LerMsg(void)
 {    
+    std::cout << std::endl << "Aguardando Handshake..." << std::endl;
     while (true)
     {
         char req[TAM_MSG];
@@ -79,9 +80,9 @@ void* ConectRobo::LerMsg(void)
             {
                 std::cout << "RSI recebido:" << std::endl << RSI << std::endl;
                 auto ipoc = doc.child("Rob").child("IPOC").text().get();
-                //        std::cout << "IPOC recebido: " << ipoc << std::endl;
+                std::cout << "IPOC recebido: " << ipoc << std::endl;
                 mutexIPOC.lock();
-                    mFilaIPOC.push(ipoc);
+                mFilaIPOC.push(ipoc);
                 mutexIPOC.unlock();
                 double x = doc.child("Rob").child("RSol").attribute("X").as_double();
                 double y = doc.child("Rob").child("RSol").attribute("Y").as_double();
@@ -90,7 +91,7 @@ void* ConectRobo::LerMsg(void)
                 double b = doc.child("Rob").child("RSol").attribute("B").as_double();
                 double c = doc.child("Rob").child("RSol").attribute("C").as_double();
                 mutexInfoRoboRecebe.lock();
-                    infoRoboRecebe = InfoRobo(x, y, z, a, b, c);
+                infoRoboRecebe = InfoRobo(x, y, z, a, b, c);
                 mutexInfoRoboRecebe.unlock();
                 //std::cout << "RSOL: " << infoRoboRecebe.x << " " << infoRoboRecebe.y << " " << infoRoboRecebe.z << std::endl;
             }
@@ -100,9 +101,9 @@ void* ConectRobo::LerMsg(void)
                 std::string ipoc;
                 for (int i = 24; i < 34; ++i)
                     ipoc += RSI[i];
-                //std::cout << "IPOC recebido: " << ipoc << std::endl;
+                std::cout << "IPOC recebido: " << ipoc << std::endl;
                 mutexIPOC.lock();
-                    mFilaIPOC.push(ipoc);
+                mFilaIPOC.push(ipoc);
                 mutexIPOC.unlock();
             }
 
@@ -159,9 +160,9 @@ void ConectRobo::RSI_XML(float x, float y, float z, float a, float b, float c, i
         RSI += "</VELOCITY><IPOC>";
         //RSI += "<DiO>0</DiO><IPOC>";
         mutexIPOC.lock();
-            IPOC = mFilaIPOC.front();
-            RSI += IPOC;
-            mFilaIPOC.pop();
+        IPOC = mFilaIPOC.front();
+        RSI += IPOC;
+        mFilaIPOC.pop();
         mutexIPOC.unlock();
         RSI += "</IPOC></Sen>";
         pugi::xml_document doc;
@@ -169,7 +170,7 @@ void ConectRobo::RSI_XML(float x, float y, float z, float a, float b, float c, i
         if (resultado)
         {
             sendto(sockfd, RSI.c_str(), strlen(RSI.c_str()), 0, (struct sockaddr *)&cliaddr, len);
-            //      std::cout << "  IPOC enviado: " << IPOC << std::endl;
+            std::cout << "  IPOC enviado: " << IPOC << std::endl;
             std::cout << "  Resposta RSI: " << std::endl << RSI << std::endl;
         }
         else

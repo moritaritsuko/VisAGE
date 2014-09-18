@@ -42,6 +42,8 @@ private slots:
 
     void on_btnSalvar_clicked();
 
+    void on_btninVision_clicked();
+
 private:
     Ui::MainWindow *ui;
     void keyPressEvent(QKeyEvent *event);

@@ -396,3 +396,8 @@ void MainWindow::on_btnSalvar_clicked()
 {
     salvar = true;
 }
+
+void MainWindow::on_btninVision_clicked()
+{
+
+}
