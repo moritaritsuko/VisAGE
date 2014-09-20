@@ -16,6 +16,10 @@
 
 #include<QKeyEvent>
 
+#include "camera.hpp"
+#include <iostream>
+#include <fstream>
+
 unsigned int l = 9, a = 6, c = 0, p = 6008, r = 99;
 float t = 25.4f;
 
@@ -399,5 +403,22 @@ void MainWindow::on_btnSalvar_clicked()
 
 void MainWindow::on_btninVision_clicked()
 {
-
+    Camera camera(std::string("192.168.0.197"), 13000);
+    boost::asio::mutable_buffer imgBuffer = camera.capture();
+    size_t bufferSize = boost::asio::buffer_size(imgBuffer);
+    uint16_t* buffer = boost::asio::buffer_cast<uint16_t*>(imgBuffer);
+    size_t width = camera.getWidth();
+    size_t height = camera.getHeight();
+    std::ofstream imageOutputStream("outputImage.pgm");
+    imageOutputStream << "P2\n#Output\n" << width << " " << height << "\n4095\n";
+    for (int i = 0; i < height; i++)
+    {
+        for (int j = 0; j < width; j++)
+        {
+            uint16_t pixel = buffer[i*width+j];
+            imageOutputStream << pixel << " ";
+        }
+        imageOutputStream << "\n";
+    }
+    imageOutputStream.close();
 }
