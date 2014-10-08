@@ -3,6 +3,8 @@
 
 #include <VISAGE/mensurium.hpp>
 
+#include <opencv2/opencv.hpp>
+
 #include <mutex>
 #include <queue>
 
@@ -20,6 +22,7 @@ class Programa
         void desativarGAMAG();
         void inic(unsigned int largura, unsigned int altura, float tamanho, unsigned int camera, unsigned int porta);
         void IniciarCaptura();
+        void CapturaCameraMono();
 
 
     private:        
@@ -42,6 +45,7 @@ class Programa
     public:
         mensuriumAGE            mMensurium;
         bool                    mAproximando;
+        cv::VideoCapture        cap;
 };
 
 #endif // VISAGE_PROG_HPP

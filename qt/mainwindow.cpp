@@ -20,6 +20,15 @@
 #include <iostream>
 #include <fstream>
 
+#include <iostream>
+#include <boost/asio.hpp>
+
+#include "gigabit_devcomm/image_data.hpp"
+#include "gigabit_devcomm/configure_camera.hpp"
+#include "boost/thread/thread.hpp"
+#include  "boost/bind.hpp"
+
+
 unsigned int l = 9, a = 6, c = 0, p = 6008, r = 99;
 float t = 25.4f;
 
@@ -71,7 +80,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_btnRodar_clicked()
 {
-
+    prog.IniciarCaptura();
 
     /*struct sched_param sched;
 
@@ -136,6 +145,7 @@ void MainWindow::on_btnRodar_clicked()
 
 void MainWindow::on_btnManual_clicked()
 {
+    prog.IniciarCaptura();
     for(;;){
         prog.Manipular();
         if((cv::waitKey(3) & 255) == 27)
@@ -340,15 +350,23 @@ void MainWindow::on_btnCaptura_clicked()
 
     }
     pararCap = false;
-
-
 }
+
+void MainWindow::on_btnCapturaMono_clicked()
+{
+    pararCap = false;
+    prog.IniciarCaptura();
+    while (!pararCap)
+        prog.CapturaCameraMono();
+}
+
 
 void MainWindow::on_btnPararCap_clicked()
 {
     pararCap = true;
     stereoCameras.stop();
-
+    if (prog.cap.isOpened())
+        prog.cap.release();
 }
 
 void MainWindow::on_btnCalibStr_clicked()
@@ -403,7 +421,7 @@ void MainWindow::on_btnSalvar_clicked()
 
 void MainWindow::on_btninVision_clicked()
 {
-    Camera camera(std::string("192.168.0.197"), 13000);
+    Camera camera(std::string("192.168.0.37"), 13000);
     boost::asio::mutable_buffer imgBuffer = camera.capture();
     size_t bufferSize = boost::asio::buffer_size(imgBuffer);
     uint16_t* buffer = boost::asio::buffer_cast<uint16_t*>(imgBuffer);
@@ -421,4 +439,60 @@ void MainWindow::on_btninVision_clicked()
         imageOutputStream << "\n";
     }
     imageOutputStream.close();
+}
+
+void MainWindow::on_btnIV_2_clicked()
+{
+    std::cout << "IVISION: Iniciando Gigabit DevComm Test" << std::endl;
+
+        size_t width = 5120;
+        size_t height = 3840;
+        std::string ip = "192.168.0.37";
+
+        ivsn::devcomm::ConfigureCamera config(ip);
+
+        config.updateSensorGain(32);
+        config.updateSensorAnalogGain(0);
+        config.updateSensorExposureTime(3840);
+        config.updateSensorOffset(2840);
+
+        boost::asio::mutable_buffer buffer;
+        ivsn::devcomm::ImageData image;
+        buffer = image.getImage(ip);
+
+        std::size_t bufferSize = boost::asio::buffer_size(buffer);
+
+        if (bufferSize != 0)
+        {
+            cv::Mat_<uint16_t> image(height, width);
+            image.data = (uint8_t*) boost::asio::buffer_cast<uint16_t*>(buffer);
+            cv::imwrite("image.png", image);
+
+            cv::Mat bayer8BitMat;
+            image.convertTo(bayer8BitMat, CV_16UC1, 16);
+            cv::imwrite("bayer8BitMat.png", bayer8BitMat);
+
+            bayer8BitMat.convertTo(bayer8BitMat, CV_8UC1, 1.0/64);
+            cv::imwrite("bayer8BitMat-2.png", bayer8BitMat);
+
+            cv::Mat_<cv::Vec3b> imageToShow(image.size());
+            cv::cvtColor(bayer8BitMat, imageToShow, CV_BayerBG2BGR);
+            cv::imwrite("imageToShow.png", imageToShow);
+
+            //Se possuir interface grafica
+            cv::namedWindow("Imagem", 0);
+            cv::imshow("Imagem", imageToShow);
+            cv::waitKey(0);
+        }
+        else
+        {
+            std::cout << "Imagem vazia." << std::endl;
+        }
+
+        std::cout << "IVISION: Finalizando Gigabit DevComm Test" << std::endl;
+}
+
+void MainWindow::on_MainWindow_destroyed()
+{
+
 }

@@ -1,8 +1,6 @@
 #include <VISAGE/prog.hpp>
 #include <VISAGE/conectrobo.hpp>
 
-#include <opencv2/opencv.hpp>
-
 #include <cstdlib>
 #include <cassert>
 #include <iostream>
@@ -16,14 +14,13 @@ Programa::Programa(unsigned int l, unsigned int a, float t, unsigned int c, unsi
     , camera(c)
     , controleGAMAG(0)
     , mAproximando(false)
+    , cap(c)
 {    
     std::cout << "Largura: " << l << std::endl;
     std::cout << "Altura: " << a << std::endl;
     std::cout << "Tamanho (mm): " << t << std::endl;
     std::cout << "Camera: " << c << std::endl;
-    std::cout << "Porta RSI: " << p << std::endl;
-
-    IniciarCaptura();
+    std::cout << "Porta RSI: " << p << std::endl;    
 }
 
 
@@ -178,7 +175,6 @@ void Programa::executar(cv::Mat &imgR)
 }
 
 void Programa::Manipular(){
-
     double xRSI, yRSI, zRSI;
     double aRSI, bRSI, cRSI;
     xRSI = yRSI = zRSI = 0.f;
@@ -248,7 +244,6 @@ void Programa::Manipular(){
 }
 
 void Programa::MoverPara(double deltax, double deltay, double deltaz, double vel){
-
     double xRSI, yRSI, zRSI;
     xRSI = yRSI = zRSI = 0.f;
     ConectRobo::InfoRobo infoRobo;
@@ -317,7 +312,6 @@ void Programa::MoverPara(double deltax, double deltay, double deltaz, double vel
 }
 
 void Programa::Rotacionar(double deltaA, double deltaB, double deltaC, double vel){
-
     std::cout<<"Rotação"<<std::endl;
     double aRSI, bRSI, cRSI;
     aRSI = bRSI = cRSI = 0.f;
@@ -453,14 +447,17 @@ void Programa::IniciarCaptura()
     result = pthread_create(&tid, 0, Programa::chamarCapturarImagem, this);
     if (result == 0)
         pthread_detach(tid);
+    //cv::waitKey(2000);
 }
 
 void *Programa::CapturarImagem(void)
-{
-    cv::VideoCapture cap(camera);
+{    
+    if (!cap.isOpened())
+        cap.open(camera);
+    //cv::waitKey(1000);
     assert(cap.isOpened());
-
-    while (true)
+    std::cout << "Camera Mono ativada" << std::endl;
+    while (cap.isOpened())
     {
 
         cv::Mat imagem;
@@ -481,4 +478,19 @@ void *Programa::CapturarImagem(void)
             mutexMarcador.unlock();
         }
     }
+}
+
+void Programa::CapturaCameraMono()
+{
+    cv::Mat img;
+    if (!filaImagens.empty())
+    {
+        mutexImagem.lock();
+        img = filaImagens.front();
+        filaImagens.pop();
+        mutexImagem.unlock();
+    }
+
+    if (!img.empty())
+        cv::imshow("Camera Mono", img);
 }

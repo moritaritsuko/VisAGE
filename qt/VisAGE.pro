@@ -118,23 +118,14 @@ DEPENDPATH += $$PWD/../../../../../../usr/lib/x86_64-linux-gnu
 unix:!macx: LIBS += -L$$PWD/../../../../../../opt/AMDAPP/lib/x86_64/ -lGLEW
 INCLUDEPATH += $$PWD/../../../../../../opt/AMDAPP/include
 DEPENDPATH += $$PWD/../../../../../../opt/AMDAPP/include
-#INCLUDEPATH += /home/leandro/Projetos/AGE/ViAge/include
 INCLUDEPATH += /home/lam/projects/age/visage/include
 unix:!macx: LIBS += -L$$PWD/../../../../../../usr/lib/ -lOpenCL
 INCLUDEPATH += $$PWD/../../../../../../usr/include
 DEPENDPATH += $$PWD/../../../../../../usr/include
 
-unix:!macx: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lboost_atomic
 
-INCLUDEPATH += $$PWD/../../../../../../usr/local/include
-DEPENDPATH += $$PWD/../../../../../../usr/local/include
 
 unix:!macx: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lboost_chrono
-
-INCLUDEPATH += $$PWD/../../../../../../usr/local/include
-DEPENDPATH += $$PWD/../../../../../../usr/local/include
-
-unix:!macx: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lboost_container
 
 INCLUDEPATH += $$PWD/../../../../../../usr/local/include
 DEPENDPATH += $$PWD/../../../../../../usr/local/include
@@ -143,6 +134,13 @@ unix:!macx: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lboost_context
 
 INCLUDEPATH += $$PWD/../../../../../../usr/local/include
 DEPENDPATH += $$PWD/../../../../../../usr/local/include
+
+unix:!macx: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lboost_coroutine
+
+INCLUDEPATH += $$PWD/../../../../../../usr/local/include
+DEPENDPATH += $$PWD/../../../../../../usr/local/include
+
+unix:!macx: PRE_TARGETDEPS += $$PWD/../../../../../../usr/local/lib/libboost_coroutine.a
 
 unix:!macx: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lboost_date_time
 
@@ -158,47 +156,129 @@ unix:!macx: PRE_TARGETDEPS += $$PWD/../../../../../../usr/local/lib/libboost_exc
 
 unix:!macx: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lboost_filesystem
 
+INCLUDEPATH += $$PWD/../../../../../../usr/local/include
+DEPENDPATH += $$PWD/../../../../../../usr/local/include
+
 unix:!macx: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lboost_graph
+
+INCLUDEPATH += $$PWD/../../../../../../usr/local/include
+DEPENDPATH += $$PWD/../../../../../../usr/local/include
 
 unix:!macx: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lboost_locale
 
-unix:!macx: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lboost_log
+INCLUDEPATH += $$PWD/../../../../../../usr/local/include
+DEPENDPATH += $$PWD/../../../../../../usr/local/include
 
 unix:!macx: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lboost_log_setup
 
+INCLUDEPATH += $$PWD/../../../../../../usr/local/include
+DEPENDPATH += $$PWD/../../../../../../usr/local/include
+
+unix:!macx: PRE_TARGETDEPS += $$PWD/../../../../../../usr/local/lib/libboost_log_setup.a
+
 unix:!macx: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lboost_math_c99
+
+INCLUDEPATH += $$PWD/../../../../../../usr/local/include
+DEPENDPATH += $$PWD/../../../../../../usr/local/include
 
 unix:!macx: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lboost_math_c99f
 
+INCLUDEPATH += $$PWD/../../../../../../usr/local/include
+DEPENDPATH += $$PWD/../../../../../../usr/local/include
+
 unix:!macx: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lboost_math_c99l
+
+INCLUDEPATH += $$PWD/../../../../../../usr/local/include
+DEPENDPATH += $$PWD/../../../../../../usr/local/include
 
 unix:!macx: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lboost_math_tr1
 
+INCLUDEPATH += $$PWD/../../../../../../usr/local/include
+DEPENDPATH += $$PWD/../../../../../../usr/local/include
+
+unix:!macx: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lboost_math_tr1f
+
+INCLUDEPATH += $$PWD/../../../../../../usr/local/include
+DEPENDPATH += $$PWD/../../../../../../usr/local/include
+
+unix:!macx: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lboost_math_tr1l
+
+INCLUDEPATH += $$PWD/../../../../../../usr/local/include
+DEPENDPATH += $$PWD/../../../../../../usr/local/include
+
 unix:!macx: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lboost_prg_exec_monitor
+
+INCLUDEPATH += $$PWD/../../../../../../usr/local/include
+DEPENDPATH += $$PWD/../../../../../../usr/local/include
 
 unix:!macx: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lboost_program_options
 
+INCLUDEPATH += $$PWD/../../../../../../usr/local/include
+DEPENDPATH += $$PWD/../../../../../../usr/local/include
+
 unix:!macx: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lboost_random
+
+INCLUDEPATH += $$PWD/../../../../../../usr/local/include
+DEPENDPATH += $$PWD/../../../../../../usr/local/include
 
 unix:!macx: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lboost_regex
 
+INCLUDEPATH += $$PWD/../../../../../../usr/local/include
+DEPENDPATH += $$PWD/../../../../../../usr/local/include
+
 unix:!macx: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lboost_serialization
+
+INCLUDEPATH += $$PWD/../../../../../../usr/local/include
+DEPENDPATH += $$PWD/../../../../../../usr/local/include
 
 unix:!macx: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lboost_signals
 
-unix:!macx: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lboost_system
+INCLUDEPATH += $$PWD/../../../../../../usr/local/include
+DEPENDPATH += $$PWD/../../../../../../usr/local/include
 
-unix:!macx: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lboost_thread
+unix:!macx: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lboost_test_exec_monitor
+
+INCLUDEPATH += $$PWD/../../../../../../usr/local/include
+DEPENDPATH += $$PWD/../../../../../../usr/local/include
+
+unix:!macx: PRE_TARGETDEPS += $$PWD/../../../../../../usr/local/lib/libboost_test_exec_monitor.a
 
 unix:!macx: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lboost_timer
 
+INCLUDEPATH += $$PWD/../../../../../../usr/local/include
+DEPENDPATH += $$PWD/../../../../../../usr/local/include
+
 unix:!macx: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lboost_unit_test_framework
 
-unix:!macx: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lboost_wave
+INCLUDEPATH += $$PWD/../../../../../../usr/local/include
+DEPENDPATH += $$PWD/../../../../../../usr/local/include
 
-unix:!macx: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lboost_wave
+unix:!macx: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lboost_wserialization
+
+INCLUDEPATH += $$PWD/../../../../../../usr/local/include
+DEPENDPATH += $$PWD/../../../../../../usr/local/include
+
+unix:!macx: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lboost_thread
+
+INCLUDEPATH += $$PWD/../../../../../../usr/local/include
+DEPENDPATH += $$PWD/../../../../../../usr/local/include
+
+unix:!macx: LIBS += -L$$PWD/../../../../../../usr/local/lib/ -lboost_system
+
+INCLUDEPATH += $$PWD/../../../../../../usr/local/include
+DEPENDPATH += $$PWD/../../../../../../usr/local/include
+
+unix:!macx: LIBS += -L$$PWD/../../../../../../opt/iVision/ -livisionDeviceComm_x64
+
+unix:!macx: LIBS += -L$$PWD/../../../../../../opt/iVision/ -livisionGenICam_x64
+
+unix:!macx: LIBS += -L$$PWD/../../../../../../opt/iVision/ -livisionGigabitDevComm_x64
+
+INCLUDEPATH += $$PWD/../../../../../../opt/iVision/include
+DEPENDPATH += $$PWD/../../../../../../opt/iVision/include
 
 unix:!macx: LIBS += -L$$PWD/../../../../../../opt/iVision/ -lGigabitCam
 
 INCLUDEPATH += $$PWD/../../../../../../opt/iVision
 DEPENDPATH += $$PWD/../../../../../../opt/iVision
+
