@@ -356,17 +356,18 @@ void MainWindow::on_btnCapturaMono_clicked()
 {
     pararCap = false;
     prog.IniciarCaptura();
+
     while (!pararCap)
+    {
         prog.CapturaCameraMono();
+
+    }
 }
 
 
 void MainWindow::on_btnPararCap_clicked()
 {
-    pararCap = true;
-    stereoCameras.stop();
-    if (prog.cap.isOpened())
-        prog.cap.release();
+    liberarRecursos();
 }
 
 void MainWindow::on_btnCalibStr_clicked()
@@ -445,54 +446,63 @@ void MainWindow::on_btnIV_2_clicked()
 {
     std::cout << "IVISION: Iniciando Gigabit DevComm Test" << std::endl;
 
-        size_t width = 5120;
-        size_t height = 3840;
-        std::string ip = "192.168.0.37";
+    size_t width = 5120;
+    size_t height = 3840;
+    std::string ip = "192.168.0.37";
 
-        ivsn::devcomm::ConfigureCamera config(ip);
+    ivsn::devcomm::ConfigureCamera config(ip);
 
-        config.updateSensorGain(32);
-        config.updateSensorAnalogGain(0);
-        config.updateSensorExposureTime(3840);
-        config.updateSensorOffset(2840);
+    config.updateSensorGain(32);
+    config.updateSensorAnalogGain(0);
+    config.updateSensorExposureTime(3840);
+    config.updateSensorOffset(2840);
 
-        boost::asio::mutable_buffer buffer;
-        ivsn::devcomm::ImageData image;
-        buffer = image.getImage(ip);
+    boost::asio::mutable_buffer buffer;
+    ivsn::devcomm::ImageData image;
+    buffer = image.getImage(ip);
 
-        std::size_t bufferSize = boost::asio::buffer_size(buffer);
+    std::size_t bufferSize = boost::asio::buffer_size(buffer);
 
-        if (bufferSize != 0)
-        {
-            cv::Mat_<uint16_t> image(height, width);
-            image.data = (uint8_t*) boost::asio::buffer_cast<uint16_t*>(buffer);
-            cv::imwrite("image.png", image);
+    if (bufferSize != 0)
+    {
+        cv::Mat_<uint16_t> image(height, width);
+        image.data = (uint8_t*) boost::asio::buffer_cast<uint16_t*>(buffer);
+        cv::imwrite("image.png", image);
 
-            cv::Mat bayer8BitMat;
-            image.convertTo(bayer8BitMat, CV_16UC1, 16);
-            cv::imwrite("bayer8BitMat.png", bayer8BitMat);
+        cv::Mat bayer8BitMat;
+        image.convertTo(bayer8BitMat, CV_16UC1, 16);
+        cv::imwrite("bayer8BitMat.png", bayer8BitMat);
 
-            bayer8BitMat.convertTo(bayer8BitMat, CV_8UC1, 1.0/64);
-            cv::imwrite("bayer8BitMat-2.png", bayer8BitMat);
+        bayer8BitMat.convertTo(bayer8BitMat, CV_8UC1, 1.0/64);
+        cv::imwrite("bayer8BitMat-2.png", bayer8BitMat);
 
-            cv::Mat_<cv::Vec3b> imageToShow(image.size());
-            cv::cvtColor(bayer8BitMat, imageToShow, CV_BayerBG2BGR);
-            cv::imwrite("imageToShow.png", imageToShow);
+        cv::Mat_<cv::Vec3b> imageToShow(image.size());
+        cv::cvtColor(bayer8BitMat, imageToShow, CV_BayerBG2BGR);
+        cv::imwrite("imageToShow.png", imageToShow);
 
-            //Se possuir interface grafica
-            cv::namedWindow("Imagem", 0);
-            cv::imshow("Imagem", imageToShow);
-            cv::waitKey(0);
-        }
-        else
-        {
-            std::cout << "Imagem vazia." << std::endl;
-        }
+        //Se possuir interface grafica
+        cv::namedWindow("Imagem", 0);
+        cv::imshow("Imagem", imageToShow);
+        cv::waitKey(0);
+    }
+    else
+    {
+        std::cout << "Imagem vazia." << std::endl;
+    }
 
-        std::cout << "IVISION: Finalizando Gigabit DevComm Test" << std::endl;
+    std::cout << "IVISION: Finalizando Gigabit DevComm Test" << std::endl;
 }
 
 void MainWindow::on_MainWindow_destroyed()
 {
+    liberarRecursos();
+}
 
+void MainWindow::liberarRecursos()
+{
+    std::cout << "Liberando recursos..." << std::endl;
+    pararCap = true;
+    stereoCameras.stop();
+    if (prog.cap.isOpened())
+        prog.cap.release();
 }

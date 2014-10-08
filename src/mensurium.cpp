@@ -731,7 +731,6 @@ void mensuriumAGE::AcharCentro1Tab(cv::Mat img, Marcador& marco, unsigned int la
     cv::adaptiveThreshold(cinza,imgThresh,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,47,15);
     //cv::threshold(cinza,imgThresh,0,255,CV_THRESH_BINARY|CV_THRESH_OTSU);
     //cv::imshow("AcharTab",imgThresh);
-
     std::vector<cv::Point2f> corners;
     bool found = cv::findChessboardCorners( imgThresh, tTab, corners,CV_CALIB_CB_ADAPTIVE_THRESH  | CV_CALIB_CB_NORMALIZE_IMAGE);
 

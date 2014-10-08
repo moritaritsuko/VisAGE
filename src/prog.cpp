@@ -14,7 +14,7 @@ Programa::Programa(unsigned int l, unsigned int a, float t, unsigned int c, unsi
     , camera(c)
     , controleGAMAG(0)
     , mAproximando(false)
-    , cap(c)
+    , cap()
 {    
     std::cout << "Largura: " << l << std::endl;
     std::cout << "Altura: " << a << std::endl;
@@ -442,12 +442,13 @@ void Programa::desativarGAMAG()
 
 void Programa::IniciarCaptura()
 {
+    cap = cv::VideoCapture(camera);
     pthread_t tid;
     int result;
     result = pthread_create(&tid, 0, Programa::chamarCapturarImagem, this);
     if (result == 0)
         pthread_detach(tid);
-    //cv::waitKey(2000);
+    cv::waitKey(100);
 }
 
 void *Programa::CapturarImagem(void)
@@ -459,7 +460,6 @@ void *Programa::CapturarImagem(void)
     std::cout << "Camera Mono ativada" << std::endl;
     while (cap.isOpened())
     {
-
         cv::Mat imagem;
         cap >> imagem;
         Marcador marco;
@@ -482,15 +482,14 @@ void *Programa::CapturarImagem(void)
 
 void Programa::CapturaCameraMono()
 {
-    cv::Mat img;
     if (!filaImagens.empty())
     {
         mutexImagem.lock();
-        img = filaImagens.front();
+        cv::Mat img = filaImagens.front();
         filaImagens.pop();
         mutexImagem.unlock();
+        cv::waitKey(100);
+        if (!img.empty())
+            cv::imshow("Camera Mono", img);
     }
-
-    if (!img.empty())
-        cv::imshow("Camera Mono", img);
 }

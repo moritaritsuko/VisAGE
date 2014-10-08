@@ -53,6 +53,8 @@ private slots:
 private:
     Ui::MainWindow *ui;
     void keyPressEvent(QKeyEvent *event);
+
+    void liberarRecursos();
 };
 
 #endif // MAINWINDOW_H
