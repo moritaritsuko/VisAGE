@@ -76,9 +76,6 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-
-
-
 void MainWindow::on_btnRodar_clicked()
 {
     prog.IniciarCaptura();
@@ -506,11 +503,6 @@ void MainWindow::on_btnIV_2_clicked()
     }
 
     std::cout << "IVISION: Finalizando Gigabit DevComm Test" << std::endl;
-}
-
-void MainWindow::on_MainWindow_destroyed()
-{
-    liberarRecursos();
 }
 
 void MainWindow::liberarRecursos()
