@@ -72,6 +72,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    liberarRecursos();
     delete ui;
 }
 
@@ -467,21 +468,35 @@ void MainWindow::on_btnIV_2_clicked()
     {
         cv::Mat_<uint16_t> image(height, width);
         image.data = (uint8_t*) boost::asio::buffer_cast<uint16_t*>(buffer);
-        cv::imwrite("image.png", image);
+        //        cv::imwrite("image.png", image);
 
         cv::Mat bayer8BitMat;
         image.convertTo(bayer8BitMat, CV_16UC1, 16);
-        cv::imwrite("bayer8BitMat.png", bayer8BitMat);
+        //        cv::imwrite("bayer8BitMat.png", bayer8BitMat);
 
         bayer8BitMat.convertTo(bayer8BitMat, CV_8UC1, 1.0/64);
-        cv::imwrite("bayer8BitMat-2.png", bayer8BitMat);
+        //        cv::imwrite("bayer8BitMat-2.png", bayer8BitMat);
 
         cv::Mat_<cv::Vec3b> imageToShow(image.size());
         cv::cvtColor(bayer8BitMat, imageToShow, CV_BayerBG2BGR);
-        cv::imwrite("imageToShow.png", imageToShow);
+        //        cv::imwrite("imageToShow.png", imageToShow);
+
+        cv::Mat imgPB;
+        cv::Mat imgHSV,pbHSV;
+        cv::cvtColor(imageToShow,imgPB,CV_BGR2GRAY);
+
+        cv::cvtColor(imageToShow,imgHSV,CV_BGR2HSV);
+        cv::inRange(imgHSV,cv::Scalar(0,0,0),cv::Scalar(255,255,50),pbHSV);
+        cv::threshold(pbHSV,pbHSV,20,255 , CV_THRESH_BINARY_INV);// 3 = 70 =72
+
+
+        cv::resize(pbHSV,pbHSV,cv::Size(imgPB.cols/4,imgPB.rows/4));
+
+        cv::imshow("pbHSV", pbHSV);
 
         //Se possuir interface grafica
-        cv::namedWindow("Imagem", 0);
+        cv::resize(imageToShow,imageToShow,cv::Size(imageToShow.cols/4,imageToShow.rows/4));
+        cv::namedWindow("Imagem");
         cv::imshow("Imagem", imageToShow);
         cv::waitKey(0);
     }
