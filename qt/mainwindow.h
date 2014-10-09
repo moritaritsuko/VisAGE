@@ -48,8 +48,6 @@ private slots:
 
     void on_btnCapturaMono_clicked();
 
-    void on_MainWindow_destroyed();
-
 private:
     Ui::MainWindow *ui;
     void keyPressEvent(QKeyEvent *event);

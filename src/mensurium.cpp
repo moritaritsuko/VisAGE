@@ -271,8 +271,7 @@ bool Marcador::VerificaCor(cv::Mat img, int* cor, int* deltaCor,int index){
     cv::cvtColor(roi,matHSV,CV_BGR2HSV);
 
     cv::Mat matTh(roi.rows,roi.cols,CV_8UC1);
-    cv::inRange(matHSV,cv::Scalar(cor[0],cor[1],cor[2]),
-    cv::Scalar(deltaCor[0],deltaCor[1],deltaCor[2]),matTh);
+    cv::inRange(matHSV,cv::Scalar(cor[0],cor[1],cor[2]),cv::Scalar(deltaCor[0],deltaCor[1],deltaCor[2]),matTh);
 
 //        cv::imshow("roi",roi);
 //        cv::imshow("matTh",matTh);

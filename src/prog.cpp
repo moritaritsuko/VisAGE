@@ -455,7 +455,7 @@ void *Programa::CapturarImagem(void)
 {    
     if (!cap.isOpened())
         cap.open(camera);
-    //cv::waitKey(1000);
+    cv::waitKey(30);
     assert(cap.isOpened());
     std::cout << "Camera Mono ativada" << std::endl;
     while (cap.isOpened())
@@ -488,7 +488,7 @@ void Programa::CapturaCameraMono()
         cv::Mat img = filaImagens.front();
         filaImagens.pop();
         mutexImagem.unlock();
-        cv::waitKey(100);
+        cv::waitKey(30);
         if (!img.empty())
             cv::imshow("Camera Mono", img);
     }
