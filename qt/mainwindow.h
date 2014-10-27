@@ -48,11 +48,52 @@ private slots:
 
     void on_btnCapturaMono_clicked();
 
+    void on_btnTesteCor_clicked();
+
+    void on_horizontalSlider_H_sliderMoved(int position);
+
+    void on_horizontalSlider_S_sliderMoved(int position);
+
+    void on_horizontalSlider_V_sliderMoved(int position);
+
+    void on_radioButton_G_clicked();
+
+    void on_radioButton_R_clicked();
+
+    void on_radioButton_Y_clicked();
+
+    void on_radioButton_B_clicked();
+
+    void on_horizontalSlider_H_f_sliderMoved(int position);
+
+    void on_horizontalSlider_S_f_sliderMoved(int position);
+
+    void on_horizontalSlider_V_f_actionTriggered(int action);
+
+    void on_horizontalSlider_V_f_sliderMoved(int position);
+
+    void on_btnCapIV_clicked();
+
+    void on_vtnCalibIV_clicked();
+
+    void on_horizontalSlider_H_valueChanged(int value);
+
+    void on_horizontalSlider_S_valueChanged(int value);
+
+    void on_horizontalSlider_V_valueChanged(int value);
+
+    void on_horizontalSlider_H_f_valueChanged(int value);
+
+    void on_horizontalSlider_S_f_valueChanged(int value);
+
+    void on_horizontalSlider_V_f_valueChanged(int value);
+
 private:
     Ui::MainWindow *ui;
     void keyPressEvent(QKeyEvent *event);
 
     void liberarRecursos();
+
 };
 
 #endif // MAINWINDOW_H

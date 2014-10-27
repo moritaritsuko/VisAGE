@@ -9,9 +9,9 @@ class Marcador{
 public:
     void Inic(int x, int y,float dx,float dy);
     Marcador();
-    CvPoint* CentroTab(std::vector<cv::Point2f> pontos);
-    cv::Point *calcCantosDigonal(std::vector<cv::Point2f> C);
-    CvPoint* getCantosDigonal();
+    CvPoint2D32f *CentroTab(std::vector<cv::Point2f> pontos);
+    cv::Point2f *calcCantosDigonal(std::vector<cv::Point2f> C);
+    CvPoint2D32f *getCantosDigonal();
     cv::Mat getPosicaoMONO();
     void setPosicaoMONO(cv::Mat pos);
     cv::Point3d getPosicaoStereo();
@@ -19,20 +19,21 @@ public:
     cv::Mat getOrientacao();
     void setOrientacao(cv::Mat orient);
     cv::Mat getMatP3D();
-    bool VerificaCor(cv::Mat img, int* cor, int* deltaCor , int index);
+    bool VerificaCor(cv::Mat img, cv::Scalar cor, cv::Scalar deltaCor , int index);
+    int VerificaCor(cv::Mat img, cv::Scalar cor[][2], cv::Scalar deltaCor[][2], int nCores);
     void AcharCantoProx(cv::Mat src, int deltaVan, cv::Mat imgDes);
-    cv::Point getCentroImg();
-    cv::Point getCantoProx();
-    CvPoint cantosDigonal[4];
+    cv::Point2f getCentroImg();
+    cv::Point2f getCantoProx();
+    CvPoint2D32f cantosDigonal[4];
     int getCor(){return cor;}
     void setValido();
     bool isValido();
 private:
-    CvPoint centroImg;
+    CvPoint2D32f centroImg;
     cv::Mat   orientacao;
     cv::Mat  posicaoMONO;
     cv::Point3d posicaoStereo;
-    cv::Point cantoProximo;
+    cv::Point2f cantoProximo;
     CvMat*   posCantoProximo;
     double  tamanhoReal[2];
     double  tamanhoDig;
@@ -42,8 +43,9 @@ private:
     int cornerCount;
     double deltaTab[2];
     cv::Mat PontosTab3D();
+    double Dist(CvPoint2D32f p1, CvPoint2D32f p2);
     double Dist(CvPoint p1, CvPoint p2);
-    cv::Point* pr;
+    cv::Point2f* pr;
     cv::Point canto;
     int cor;
     bool valido;
@@ -87,6 +89,7 @@ public:
     cv::Point3d XYZCamCaract(float disp_pixels,cv::Mat camMat,cv::Mat T,cv::Size tamSensor);
     float CalibrarFoco(cv::Mat imgE, cv::Mat imgD, cv::Size tamTabRef, float distZ,float b_mm = 55.f);
     cv::Point3d XYZCamCaract(cv::Point ptE,cv::Point ptD, float fx_pixel = 0,float b_mm = 55.f);
+    void setarCores(cv::Scalar corI,cv::Scalar corF,int id);
 private:
     cv::Mat distCoeffs;
     cv::Mat cameraMatrix;
@@ -97,6 +100,11 @@ private:
     int fs;
     cv::ocl::StereoBeliefPropagation bp;
     cv::ocl::StereoConstantSpaceBP csbp;
+    cv::Scalar padCor[4][2];
+    void Alinhar(cv::Mat imgDes);
+    void Orientar(cv::Mat imgDes = cv::Mat());
+    float deltaXYZ[3];
+    float deltaABC[3];
 };
 
 #endif // MENSURIUMAGE_HPP

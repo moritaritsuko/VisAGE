@@ -282,3 +282,8 @@ unix:!macx: LIBS += -L$$PWD/../../../../../../opt/iVision/ -lGigabitCam
 INCLUDEPATH += $$PWD/../../../../../../opt/iVision
 DEPENDPATH += $$PWD/../../../../../../opt/iVision
 
+
+unix:!macx: LIBS += -L$$PWD/../../../../../../usr/lib/ -lzbar
+
+INCLUDEPATH += $$PWD/../../../../../../usr/include
+DEPENDPATH += $$PWD/../../../../../../usr/include

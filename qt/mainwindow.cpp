@@ -1,8 +1,13 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+
+#include <QTime>
+#include <QMessageBox>
+
 #include <VISAGE/prog.hpp>
 #include <VISAGE/stereocams.hpp>
 #include <VISAGE/conectrobo.hpp>
+#include <VISAGE/calibracam.hpp>
 
 #include <stdexcept>
 #include <cstdlib>
@@ -28,9 +33,13 @@
 #include "boost/thread/thread.hpp"
 #include  "boost/bind.hpp"
 
+#include<zbar.h>
+
 
 unsigned int l = 9, a = 6, c = 0, p = 6008, r = 99;
 float t = 25.4f;
+cv::Scalar corI[4] =    {cv::Scalar(20,20,90),   cv::Scalar(0,20,90),   cv::Scalar(30,20,90),  cv::Scalar(40,10,20)};
+cv::Scalar corF[4] =    {cv::Scalar(30,250,250), cv::Scalar(20,250,250), cv::Scalar(40,250,250), cv::Scalar(80,250,250)};
 
 Programa prog(l, a, t, c, p);
 StereoCameras stereoCameras;
@@ -45,6 +54,64 @@ void uso()
     std::cerr << "-c   :  [C]âmera a ser utilizada (C >= 0)" << std::endl;
     std::cerr << "-p   :  [P]orta para comunicação RSI (1024 <= P <= 32767)" << std::endl;
     std::cerr << "-r   :  P[r]ioridade (1 <= r <= 99)" << std::endl;
+}
+
+cv::Mat imageIVison(int ganho = 32,int ganhoAn = 8,int exp = 3840, int offS = 2840){
+
+    std::cout<<"Aguardando imagem..."<<std::endl;
+
+    size_t width = 5120;
+    size_t height = 3840;
+    std::string ip = "192.168.0.37";
+
+    ivsn::devcomm::ConfigureCamera config(ip);
+
+    config.updateSensorGain(ganho);
+    config.updateSensorAnalogGain(ganhoAn);
+    config.updateSensorExposureTime(exp);
+    config.updateSensorOffset(offS);
+
+    boost::asio::mutable_buffer buffer;
+    ivsn::devcomm::ImageData image;
+    buffer = image.getImage(ip);
+
+    std::size_t bufferSize = boost::asio::buffer_size(buffer);
+
+    if (bufferSize != 0)
+    {
+        cv::Mat_<uint16_t> image(height, width);
+        image.data = (uint8_t*) boost::asio::buffer_cast<uint16_t*>(buffer);
+        cv::imwrite("image.png", image);
+
+        cv::FileStorage fs("image.yml", cv::FileStorage::WRITE);
+
+            fs << "image" << image ;
+
+            fs.release();
+
+
+        cv::Mat bayer8BitMat;
+        image.convertTo(bayer8BitMat, CV_16UC1, 16);
+        cv::imwrite("bayer8BitMat.png", bayer8BitMat);
+
+        bayer8BitMat.convertTo(bayer8BitMat, CV_8UC1, 1.0/64);
+        cv::imwrite("bayer8BitMat-2.png", bayer8BitMat);
+
+        cv::Mat_<cv::Vec3b> img(image.size());
+        cv::cvtColor(bayer8BitMat, img, CV_BayerBG2BGR);
+        cv::imwrite("imageToShow.png", img);
+        std::cout<<"Imagem adquirida!"<<std::endl;
+
+        return img;
+
+    }
+    else
+    {
+        std::cout << "Imagem vazia." << std::endl;
+        return cv::Mat();
+    }
+
+
 }
 
 
@@ -63,6 +130,7 @@ MainWindow::MainWindow(QWidget *parent) :
         c = 0u;
         p = 6008u;
         r = 99u;
+        for(int i = 0;i<4;++i){ prog.mMensurium.setarCores(corI[i],corF[i],i);}
     }
     else if ((l < 2u) || (a < 2u || a == l) || (t < 20.f) || (c < 0u) || (p < 1024u || p > 32767u) || (r < 1u || r > 99u))
     {
@@ -442,65 +510,90 @@ void MainWindow::on_btninVision_clicked()
 
 void MainWindow::on_btnIV_2_clicked()
 {
-    std::cout << "IVISION: Iniciando Gigabit DevComm Test" << std::endl;
+do{
+    cv::Mat_<cv::Vec3b> imageToShow = imageIVison(ui->spinBoxGain->value(),ui->spinBoxGainAn->value(),ui->spinBoxExp->value(),ui->spinBoxOffS->value());
 
-    size_t width = 5120;
-    size_t height = 3840;
-    std::string ip = "192.168.0.37";
-
-    ivsn::devcomm::ConfigureCamera config(ip);
-
-    config.updateSensorGain(32);
-    config.updateSensorAnalogGain(0);
-    config.updateSensorExposureTime(3840);
-    config.updateSensorOffset(2840);
-
-    boost::asio::mutable_buffer buffer;
-    ivsn::devcomm::ImageData image;
-    buffer = image.getImage(ip);
-
-    std::size_t bufferSize = boost::asio::buffer_size(buffer);
-
-    if (bufferSize != 0)
-    {
-        cv::Mat_<uint16_t> image(height, width);
-        image.data = (uint8_t*) boost::asio::buffer_cast<uint16_t*>(buffer);
-        //        cv::imwrite("image.png", image);
-
-        cv::Mat bayer8BitMat;
-        image.convertTo(bayer8BitMat, CV_16UC1, 16);
-        //        cv::imwrite("bayer8BitMat.png", bayer8BitMat);
-
-        bayer8BitMat.convertTo(bayer8BitMat, CV_8UC1, 1.0/64);
-        //        cv::imwrite("bayer8BitMat-2.png", bayer8BitMat);
-
-        cv::Mat_<cv::Vec3b> imageToShow(image.size());
-        cv::cvtColor(bayer8BitMat, imageToShow, CV_BayerBG2BGR);
-        //        cv::imwrite("imageToShow.png", imageToShow);
-
-        cv::Mat imgPB;
-        cv::Mat imgHSV,pbHSV;
-        cv::cvtColor(imageToShow,imgPB,CV_BGR2GRAY);
-
-        cv::cvtColor(imageToShow,imgHSV,CV_BGR2HSV);
-        cv::inRange(imgHSV,cv::Scalar(0,0,0),cv::Scalar(255,255,50),pbHSV);
-        cv::threshold(pbHSV,pbHSV,20,255 , CV_THRESH_BINARY_INV);// 3 = 70 =72
+        if (!imageToShow.empty())
+        {
 
 
-        cv::resize(pbHSV,pbHSV,cv::Size(imgPB.cols/4,imgPB.rows/4));
+            cv::Mat imgPB;
+            cv::Mat pbHSV;
+            cv::cvtColor(imageToShow,imgPB,CV_BGR2GRAY);
 
-        cv::imshow("pbHSV", pbHSV);
+            //cv::cvtColor(imageToShow,imgHSV,CV_BGR2HSV);
+            //cv::inRange(imgHSV,cv::Scalar(0,0,0),cv::Scalar(255,100,50),pbHSV);
+            //cv::threshold(pbHSV,pbHSV,5,255 , CV_THRESH_BINARY_INV);// 3 = 70 =72
+            cv::adaptiveThreshold(imgPB,pbHSV,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,121,17);
 
-        //Se possuir interface grafica
-        cv::resize(imageToShow,imageToShow,cv::Size(imageToShow.cols/4,imageToShow.rows/4));
-        cv::namedWindow("Imagem");
-        cv::imshow("Imagem", imageToShow);
-        cv::waitKey(0);
-    }
-    else
-    {
-        std::cout << "Imagem vazia." << std::endl;
-    }
+
+            cv::resize(pbHSV,pbHSV,cv::Size(imgPB.cols/4,imgPB.rows/4));
+
+            cv::imshow("pbHSV", pbHSV);
+
+            CvMat** trans;
+
+            cv::Mat imgSaida;
+            imageToShow.copyTo(imgSaida);
+
+            //prog.mMensurium.AcharTabs(imageToShow,4,trans,0,imgSaida);
+
+            prog.mMensurium.Rodar("SaidaMe",imgSaida);
+
+            //Se possuir interface grafica
+            cv::resize(imgSaida,imgSaida,cv::Size(imgSaida.cols/4,imgSaida.rows/4));
+            cv::namedWindow("imgSaida");
+            cv::imshow("imgSaida", imgSaida);
+            if(ui->checkBoxSalIV->isChecked()) cv::imwrite("saida.jpg",imageToShow);
+
+            zbar::ImageScanner scanner;
+            scanner.set_config(zbar::ZBAR_NONE, zbar::ZBAR_CFG_ENABLE, 1);
+
+            cv::Mat grey;
+            cv::cvtColor(imageToShow,grey,CV_BGR2GRAY);
+            int width = imageToShow.cols;
+            int height = imageToShow.rows;
+            uchar *raw = (uchar *)grey.data;
+            // wrap image data
+            zbar::Image image(width, height, "Y800", raw, width * height);
+            // scan the image for barcodes
+            int n = scanner.scan(image);
+
+            // extract results
+            if (n != 0)
+            {
+                for(zbar::Image::SymbolIterator symbol = image.symbol_begin();
+                symbol != image.symbol_end();
+                ++symbol)
+                {
+                    std::vector<cv::Point> vp;
+                // do something useful with results
+                std::cout << "decoded " << symbol->get_type_name() << " symbol \"" << symbol->get_data() << '"' <<" "<< std::endl;
+                  int n = symbol->get_location_size();
+                  for(int i=0;i<n;i++)
+                  {
+                    vp.push_back(cv::Point(symbol->get_location_x(i),symbol->get_location_y(i)));
+                  }
+                  cv::RotatedRect r = cv::minAreaRect(vp);
+                         cv::Point2f pts[4];
+                         r.points(pts);
+                         for(int i=0;i<4;i++){
+                           cv::line(imageToShow,pts[i],pts[(i+1)%4],cv::Scalar(255,0,0),3);
+                         }
+                         //cout<<"Angle: "<<r.angle<<endl;
+                 }
+            }
+            else std::cout << "Nada encontrado" << std::endl;
+
+
+            cv::waitKey(50);
+        }
+        else
+        {
+            std::cout << "Imagem vazia." << std::endl;
+        }
+    }while (ui->checkBoxContIV->isChecked());
+
 
     std::cout << "IVISION: Finalizando Gigabit DevComm Test" << std::endl;
 }
@@ -512,4 +605,244 @@ void MainWindow::liberarRecursos()
     stereoCameras.stop();
     if (prog.cap.isOpened())
         prog.cap.release();
+}
+
+cv::Mat img20MP;
+
+void MainWindow::on_btnTesteCor_clicked()
+{
+
+    pararCap = false;
+
+    //while(!pararCap){
+
+    QTime t;
+    t.start();
+    cv::Mat img;
+    if(ui->checkBoxVivo->isChecked()){ img = imageIVison();img20MP = img;}else{img = img20MP;} // If "Vivo" is checked, work with freshly captured image, otherwise work from previous capture
+    std::cout<<"Tempo de aquisição: "<<t.restart()<<std::endl;
+
+    if(!img.empty()){
+
+        cv::Mat matHSV(img.rows,img.cols,img.type());
+        cv::cvtColor(img,matHSV,CV_BGR2HSV); //Image conversion from GBR to HSV space
+
+        cv::Scalar corIl(ui->horizontalSlider_H->value()  ,ui->horizontalSlider_S->value()  ,ui->horizontalSlider_V->value()); // Lower color bounds acquired from sliders
+        cv::Scalar corFl(ui->horizontalSlider_H_f->value(),ui->horizontalSlider_S_f->value(),ui->horizontalSlider_V_f->value()); // Upper color bounds acquired from sliders
+
+        cv::Mat matTh(img.rows,img.cols,CV_8UC1); // Container for output image
+        cv::inRange(matHSV,corIl,corFl,matTh); // Output image generated for ranges given
+
+        cv::resize(img,img,cv::Size(img.cols/4,img.rows/4)); //Image is resized to permitted dimensions
+        cv::resize(matTh,matTh,cv::Size(matTh.cols/4,matTh.rows/4));
+
+        if(ui->radioButton_Y->isChecked()){
+            prog.mMensurium.setarCores(corIl,corFl,0);
+
+        }
+
+        if(ui->radioButton_R->isChecked()){
+            prog.mMensurium.setarCores(corIl,corFl,1);
+        }
+
+        if(ui->radioButton_G->isChecked()){
+            prog.mMensurium.setarCores(corIl,corFl,2);
+        }
+
+        if(ui->radioButton_B->isChecked()){
+            prog.mMensurium.setarCores(corIl,corFl,3);
+        }
+
+
+        cv::imshow("img",img);
+        cv::imshow("matTh",matTh);
+    }
+    else {
+        std::cout << "Imagem vazia." << std::endl;
+    }
+
+    cv::waitKey(100);
+    // }
+
+}
+
+void MainWindow::on_horizontalSlider_H_sliderMoved(int position)
+{
+    ui->label_H_Value->setText(QString::number(position));
+}
+
+
+void MainWindow::on_horizontalSlider_S_sliderMoved(int position)
+{
+    ui->horizontalSlider_S->setToolTip(QString::number(ui->horizontalSlider_S->value()));
+    ui->label_S_Value->setText(QString::number(position));
+}
+
+void MainWindow::on_horizontalSlider_V_sliderMoved(int position)
+{
+    ui->horizontalSlider_V->setToolTip(QString::number(ui->horizontalSlider_V->value()));
+    ui->label_V_Value->setText(QString::number(position));
+}
+
+void MainWindow::on_radioButton_G_clicked()
+{
+    ui->horizontalSlider_H->setValue(corI[2][0]);ui->horizontalSlider_H_f->setValue(corF[2][0]);
+    ui->horizontalSlider_S->setValue(corI[2][1]);ui->horizontalSlider_S_f->setValue(corF[2][1]);
+    ui->horizontalSlider_V->setValue(corI[2][2]);ui->horizontalSlider_V_f->setValue(corF[2][2]);
+
+}
+
+void MainWindow::on_radioButton_R_clicked()
+{
+    ui->horizontalSlider_H->setValue(corI[1][0]);ui->horizontalSlider_H_f->setValue(corF[1][0]);
+    ui->horizontalSlider_S->setValue(corI[1][1]);ui->horizontalSlider_S_f->setValue(corF[1][1]);
+    ui->horizontalSlider_V->setValue(corI[1][2]);ui->horizontalSlider_V_f->setValue(corF[1][2]);
+
+}
+
+void MainWindow::on_radioButton_Y_clicked()
+{
+    ui->horizontalSlider_H->setValue(corI[0][0]);ui->horizontalSlider_H_f->setValue(corF[0][0]);
+    ui->horizontalSlider_S->setValue(corI[0][1]);ui->horizontalSlider_S_f->setValue(corF[0][1]);
+    ui->horizontalSlider_V->setValue(corI[0][2]);ui->horizontalSlider_V_f->setValue(corF[0][2]);
+}
+
+void MainWindow::on_radioButton_B_clicked()
+{
+    ui->horizontalSlider_H->setValue(corI[3][0]);ui->horizontalSlider_H_f->setValue(corF[3][0]);
+    ui->horizontalSlider_S->setValue(corI[3][1]);ui->horizontalSlider_S_f->setValue(corF[3][1]);
+    ui->horizontalSlider_V->setValue(corI[3][2]);ui->horizontalSlider_V_f->setValue(corF[3][2]);
+}
+
+void MainWindow::on_horizontalSlider_H_f_sliderMoved(int position)
+{
+    ui->horizontalSlider_H_f->setToolTip(QString::number(ui->horizontalSlider_H_f->value()));
+    ui->label_H_Value_f->setText(QString::number(position));
+}
+
+void MainWindow::on_horizontalSlider_S_f_sliderMoved(int position)
+{
+    ui->horizontalSlider_S_f->setToolTip(QString::number(ui->horizontalSlider_S_f->value()));
+    ui->label_S_Value_f->setText(QString::number(position));
+}
+
+void MainWindow::on_horizontalSlider_V_f_sliderMoved(int position)
+{
+    ui->horizontalSlider_V_f->setToolTip(QString::number(ui->horizontalSlider_V_f->value()));
+    ui->label_V_Value_f->setText(QString::number(position));
+}
+
+void MainWindow::on_btnCapIV_clicked()
+{
+
+    do{
+        QTime t;
+        t.start();
+        cv::Mat img = imageIVison(ui->spinBoxGain->value(),ui->spinBoxGainAn->value(),ui->spinBoxExp->value(),ui->spinBoxOffS->value());
+        std::cout<<"Tempo de aquisição: "<<t.restart()<<std::endl;
+
+        cv::resize(img,img,cv::Size(img.cols/ui->spinBoxFator->value(),img.rows/ui->spinBoxFator->value()));
+
+        cv::imshow("Imagem Saida",img);
+
+        cv::waitKey(100);
+
+        if(ui->checkBoxSalIV->isChecked()) cv::imwrite("saida.png",img);
+    }while (ui->checkBoxContIV->isChecked());
+
+
+
+}
+
+void MainWindow::on_vtnCalibIV_clicked()
+{
+    std::vector<cv::Mat>imgsIV;
+
+capImg:
+    cv::Mat img = imageIVison(ui->spinBoxGain->value(),ui->spinBoxGainAn->value(),ui->spinBoxExp->value(),ui->spinBoxOffS->value());
+
+    cv::Mat imgCinza;
+
+    cv::cvtColor(img,imgCinza,CV_BGR2GRAY);
+
+    cv::Mat imgM,imgCM;
+
+    cv::resize(img,imgM,cv::Size(img.cols/ui->spinBoxFator->value(),img.rows/ui->spinBoxFator->value()));
+    cv::resize(imgCinza,imgCM,cv::Size(img.cols/ui->spinBoxFator->value(),img.rows/ui->spinBoxFator->value()));
+
+    cv::imshow("Imagem Para Calibração",imgM);
+    cv::imshow("Imagem Cinza",imgCM);
+
+    QMessageBox msgBoxImg;
+    msgBoxImg.setText("Imagem Adquirida!");
+    msgBoxImg.setInformativeText("Aceitar imagem?");
+    msgBoxImg.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    msgBoxImg.setDefaultButton(QMessageBox::No);
+    int respImg = msgBoxImg.exec();
+
+    if(respImg == QMessageBox::Yes){
+        imgsIV.push_back(img);
+    }
+
+    if(respImg == QMessageBox::No){
+        goto capImg;
+    }
+
+    QMessageBox msgBoxCal;
+    msgBoxCal.setText("Imagem Salva!");
+    msgBoxCal.setInformativeText("Calibrar?");
+    msgBoxCal.setStandardButtons(QMessageBox::Yes | QMessageBox::No|QMessageBox::Abort);
+    msgBoxCal.setDefaultButton(QMessageBox::No);
+    int respCal = msgBoxCal.exec();
+
+    if(respCal == QMessageBox::Yes){
+        CalibraCam calibrador;
+        calibrador.Calibrar(cv::Size(6,9),2.4,imgsIV.data(),imgsIV.size());
+    }
+
+     if(respCal == QMessageBox::No)   goto capImg;
+
+      QMessageBox msgBoxFim;
+      msgBoxFim.setText("FIM!");
+      msgBoxFim.setInformativeText("Processo Terminado!");
+      msgBoxFim.setStandardButtons(QMessageBox::Ok);
+      msgBoxFim.exec();
+
+
+}
+
+void MainWindow::on_horizontalSlider_H_valueChanged(int value)
+{
+    ui->horizontalSlider_H->setToolTip(QString::number(ui->horizontalSlider_H->value()));
+    ui->label_H_Value->setText(QString::number(value));
+}
+
+void MainWindow::on_horizontalSlider_S_valueChanged(int value)
+{
+    ui->horizontalSlider_S->setToolTip(QString::number(ui->horizontalSlider_S->value()));
+    ui->label_S_Value->setText(QString::number(value));
+}
+
+void MainWindow::on_horizontalSlider_V_valueChanged(int value)
+{
+    ui->horizontalSlider_V->setToolTip(QString::number(ui->horizontalSlider_V->value()));
+    ui->label_V_Value->setText(QString::number(value));
+}
+
+void MainWindow::on_horizontalSlider_H_f_valueChanged(int value)
+{
+    ui->horizontalSlider_H_f->setToolTip(QString::number(ui->horizontalSlider_H_f->value()));
+    ui->label_H_Value_f->setText(QString::number(value));
+}
+
+void MainWindow::on_horizontalSlider_S_f_valueChanged(int value)
+{
+    ui->horizontalSlider_S_f->setToolTip(QString::number(ui->horizontalSlider_S_f->value()));
+    ui->label_S_Value_f->setText(QString::number(value));
+}
+
+void MainWindow::on_horizontalSlider_V_f_valueChanged(int value)
+{
+    ui->horizontalSlider_V_f->setToolTip(QString::number(ui->horizontalSlider_V_f->value()));
+    ui->label_V_Value_f->setText(QString::number(value));
 }
