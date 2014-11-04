@@ -1,12 +1,5 @@
 #include <VISAGE/stereocams.hpp>
 
-#include <pylon/InstantCamera.h>
-#include <pylon/FeaturePersistence.h>
-#include <pylon/GrabResultPtr.h>
-
-#include <GenApi/INodeMap.h>
-#include <GenApi/Types.h>
-
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
@@ -40,6 +33,7 @@ void StereoCameras::exec()
 {
     if (mCameras.IsOpen())
     {
+        mDisplayCapture = true;
         auto stereoPhoto = mStereoPhotoPtr.get();
 
         registerCameraCapture(stereoPhoto);
@@ -59,30 +53,40 @@ bool StereoCameras::attachDevices()
     if (mTransportLayerFactory.EnumerateDevices(mDevices) == 0)
         return false;
 
+    int attached = 0;
     for (size_t i = 0; i < mDevices.size(); ++i)
     {
-        std::string cameraName, cameraModel;
+        std::string cameraName;
         // Attach device to Pylon's camera array
-        mCameras[i].Attach(mTransportLayerFactory.CreateDevice(mDevices[i]));
-        Pylon::CInstantCamera &camera = mCameras[i];
-        // Define Camera Name for logging and OpenCV NamedWindow
-        i % 2 == 0 ? cameraName = "Camera 1" : cameraName = "Camera 2";
-        cameraModel += camera.GetDeviceInfo().GetModelName();
-        mCameraNames.push_back(cameraName);
-        // Register Camera's Configuration
-        camera.RegisterConfiguration
-                (
-                    new CameraConfiguration("config/default_linux.pfs", 8192, 4096 * (int) (i + 1), cameraName),
-                    Pylon::RegistrationMode_ReplaceAll,
-                    Pylon::Cleanup_Delete
-                    );
+        auto device = mTransportLayerFactory.CreateDevice(mDevices[i]);
+        auto ip = device->GetDeviceInfo().GetFullName();
+        auto ip1 = "169.254.8.100";
+        auto ip2 = "169.254.8.102";
+
+        if (ip.find(ip1) != std::string::npos || ip.find(ip2) != std::string::npos)
+        {
+            mCameras[attached].Attach(device);
+            Pylon::CInstantCamera &camera = mCameras[attached];
+
+            // Define Camera Name for logging and OpenCV NamedWindow
+            cameraName = camera.GetDeviceInfo().GetFullName();
+            mCameraNames.push_back(cameraName);
+            // Register Camera's Configuration
+            camera.RegisterConfiguration
+                    (
+                        new CameraConfiguration("config/default_linux.pfs", 8192, 4096 * (int) (attached + 1), cameraName),
+                        Pylon::RegistrationMode_ReplaceAll,
+                        Pylon::Cleanup_Delete
+                        );
+            ++attached;
+        }
     }
     return true;
 }
 
 void StereoCameras::registerCameraCapture(StereoCameras::StereoPhoto* stereoPhotoPtr)
 {
-    for (size_t i = 0; i < mDevices.size(); ++i)
+    for (size_t i = 0; i < 2; ++i)
     {
         stereoPhotoPtr->cameras[i] = mCameraNames[i];
         mCameras[i].RegisterImageEventHandler
@@ -103,46 +107,6 @@ void StereoCameras::capture()
         // Triggers Capture Event
         mCameras.RetrieveResult(5000, grabResultPtr, Pylon::TimeoutHandling_ThrowException);
     }
-}
-
-CameraConfiguration::CameraConfiguration(const char* configurationFile, const int interPacketDelay, int frameTransmissionDelay, std::string cameraName)
-    : mConfigurationFile(configurationFile)
-    , mInterPacketDelay(interPacketDelay)
-    , mFrameTransmissionDelay(frameTransmissionDelay)
-    , mCameraName(cameraName)
-{
-}
-
-void CameraConfiguration::OnOpened(Pylon::CInstantCamera& camera)
-{
-    GenApi::INodeMap& nodeMap = camera.GetNodeMap();
-    Pylon::CFeaturePersistence::Load(mConfigurationFile, &nodeMap, true);
-
-    std::cout << "Attached and Opened " << mCameraName << std::endl;
-    std::cout << "Loaded default configurations for " << camera.GetDeviceInfo().GetModelName() << std::endl;
-
-    std::cout << "Area Of Interest (AOI) Settings:" << std::endl;
-    std::cout << "Width: " << GenApi::CIntegerPtr(nodeMap.GetNode("Width"))->GetValue() << std::endl;
-    std::cout << "Height: " << GenApi::CIntegerPtr(nodeMap.GetNode("Height"))->GetValue() << std::endl;
-    std::cout << "Offset X: " << GenApi::CIntegerPtr(nodeMap.GetNode("OffsetX"))->GetValue() << std::endl;
-    std::cout << "Offset Y: " << GenApi::CIntegerPtr(nodeMap.GetNode("OffsetY"))->GetValue() << std::endl;
-    std::cout << std::endl;
-
-    std::cout << "Pixel Format: " << GenApi::CEnumerationPtr(nodeMap.GetNode("PixelFormat"))->ToString() << std::endl;
-    std::cout << std::endl;
-
-    std::cout << "Packet Size: " << GenApi::CIntegerPtr(nodeMap.GetNode("GevSCPSPacketSize"))->GetValue() << std::endl;
-    GenApi::CIntegerPtr interpacketDelay(nodeMap.GetNode("GevSCPD"));
-    interpacketDelay->SetValue(mInterPacketDelay);
-    GenApi::CIntegerPtr frameTransmissionDelay(nodeMap.GetNode("GevSCFTD"));
-    frameTransmissionDelay->SetValue(mFrameTransmissionDelay);
-    std::cout << "Inter-Packet Delay: " << interpacketDelay->GetValue() << std::endl;
-    std::cout << "Frame Transmission Delay: " << frameTransmissionDelay->GetValue() << std::endl;
-}
-
-void CameraConfiguration::OnGrabStarted(Pylon::CInstantCamera& camera)
-{
-    std::cout << mCameraName << " is Capturing." << std::endl;
 }
 
 CameraCapture::CameraCapture(std::string cameraName, StereoCameras::StereoPhoto* stereoPhotoPtr)
@@ -239,8 +203,8 @@ novaImg:
         cv::Mat cinzaMenor;
         cv::cvtColor(imgE,imgGrayE,CV_RGB2GRAY);
         cv::resize(imgGrayE,cinzaMenor,cv::Size(imgGrayE.cols/fs,imgGrayE.rows/fs));
-//        cv::Mat imgThreshM=cv::Mat(cinzaMenor.rows, cinzaMenor.cols, CV_8UC1);
-//        cv::adaptiveThreshold(cinzaMenor,imgThreshM,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,47,15);
+        //        cv::Mat imgThreshM=cv::Mat(cinzaMenor.rows, cinzaMenor.cols, CV_8UC1);
+        //        cv::adaptiveThreshold(cinzaMenor,imgThreshM,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,47,15);
         cv::imshow("cinzaMenor",cinzaMenor);
         int found1 = findChessboardCorners( cinzaMenor, TamTab, pointbufE,
                                             CV_CALIB_CB_ADAPTIVE_THRESH  | CV_CALIB_CB_NORMALIZE_IMAGE);
@@ -250,8 +214,8 @@ novaImg:
         photo2.copyTo(imgD);
         cv::cvtColor(imgD,imgGrayD,CV_RGB2GRAY);
         cv::resize(imgGrayD,cinzaMenor,cv::Size(imgGrayD.cols/fs,imgGrayD.rows/fs));
-//        imgThreshM=cv::Mat(cinzaMenor.rows, cinzaMenor.cols, CV_8UC1);
-//        cv::adaptiveThreshold(cinzaMenor,imgThreshM,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,47,15);
+        //        imgThreshM=cv::Mat(cinzaMenor.rows, cinzaMenor.cols, CV_8UC1);
+        //        cv::adaptiveThreshold(cinzaMenor,imgThreshM,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,47,15);
         int found2 = findChessboardCorners( cinzaMenor, TamTab, pointbufD,
                                             CV_CALIB_CB_ADAPTIVE_THRESH  | CV_CALIB_CB_NORMALIZE_IMAGE);
         cinzaMenor.copyTo(copiaImgD);
@@ -275,14 +239,14 @@ novaImg:
             int ret = msgBox.exec();
 
             if(ret == QMessageBox::Save){
-//                imgThreshM=cv::Mat(imgGrayE.rows, imgGrayE.cols, CV_8UC1);
+                //                imgThreshM=cv::Mat(imgGrayE.rows, imgGrayE.cols, CV_8UC1);
 
-//                cv::adaptiveThreshold(imgGrayE,imgThreshM,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,47,15);
+                //                cv::adaptiveThreshold(imgGrayE,imgThreshM,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,47,15);
                 //                cv::imshow("imgThreshME",imgThreshM);
                 int foundE = findChessboardCorners( imgGrayE, TamTab, pointbufE,
                                                     CV_CALIB_CB_ADAPTIVE_THRESH  | CV_CALIB_CB_NORMALIZE_IMAGE);
 
-//                cv::adaptiveThreshold(imgGrayD,imgThreshM,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,47,15);
+                //                cv::adaptiveThreshold(imgGrayD,imgThreshM,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,47,15);
                 //                cv::imshow("imgThreshMD",imgThreshM);
                 int foundD = findChessboardCorners( imgGrayD, TamTab, pointbufD,
                                                     CV_CALIB_CB_ADAPTIVE_THRESH  | CV_CALIB_CB_NORMALIZE_IMAGE);
@@ -417,8 +381,8 @@ void *StereoCameras::displayCapture(void)
             {
                 cv::resize(photo1,photo1,cv::Size(photo1.cols/3,photo1.rows/3));
                 cv::resize(photo2,photo2,cv::Size(photo2.cols/3,photo2.rows/3));
-                cv::imshow("Câmera Esquerda", photo1);
-                cv::imshow("Câmera Direita", photo2);
+                cv::imshow(mCameraNames[0], photo1);
+                cv::imshow(mCameraNames[1], photo2);
             }
         }
     }

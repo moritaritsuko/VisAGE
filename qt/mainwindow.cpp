@@ -36,7 +36,8 @@
 #include<zbar.h>
 
 
-unsigned int l = 9, a = 6, c = 0, p = 6008, r = 99;
+unsigned int l = 9, a = 6, p = 6008, r = 99;
+std::string c = "169.254.8.106";
 float t = 25.4f;
 cv::Scalar corI[4] =    {cv::Scalar(20,20,90),   cv::Scalar(0,20,90),   cv::Scalar(30,20,90),  cv::Scalar(40,10,20)};
 cv::Scalar corF[4] =    {cv::Scalar(30,250,250), cv::Scalar(20,250,250), cv::Scalar(40,250,250), cv::Scalar(80,250,250)};
@@ -51,7 +52,7 @@ void uso()
     std::cerr << "-l   :  [L]argura do tabuleiro (L >= 2)" << std::endl;
     std::cerr << "-a   :  [A]ltura do tabuleiro (A >= 2 & A != L)" << std::endl;
     std::cerr << "-t   :  [T]amanho do quadrado em milimetros (T >= 20.0)" << std::endl;
-    std::cerr << "-c   :  [C]âmera a ser utilizada (C >= 0)" << std::endl;
+    std::cerr << "-c   :  [C]âmera a ser utilizada (169.254.8.106)" << std::endl;
     std::cerr << "-p   :  [P]orta para comunicação RSI (1024 <= P <= 32767)" << std::endl;
     std::cerr << "-r   :  P[r]ioridade (1 <= r <= 99)" << std::endl;
 }
@@ -127,12 +128,12 @@ MainWindow::MainWindow(QWidget *parent) :
         l = 9u;
         a = 6u;
         t = 25.4f;
-        c = 0u;
+        c = "169.254.8.106";
         p = 6008u;
         r = 99u;
         for(int i = 0;i<4;++i){ prog.mMensurium.setarCores(corI[i],corF[i],i);}
     }
-    else if ((l < 2u) || (a < 2u || a == l) || (t < 20.f) || (c < 0u) || (p < 1024u || p > 32767u) || (r < 1u || r > 99u))
+    else if ((l < 2u) || (a < 2u || a == l) || (t < 20.f) || (c.empty()) || (p < 1024u || p > 32767u) || (r < 1u || r > 99u))
     {
         uso();
     }
@@ -421,13 +422,7 @@ void MainWindow::on_btnCaptura_clicked()
 void MainWindow::on_btnCapturaMono_clicked()
 {
     pararCap = false;
-    prog.IniciarCaptura();
-
-    while (!pararCap)
-    {
-        prog.CapturaCameraMono();
-
-    }
+    prog.IniciarCaptura();  
 }
 
 
@@ -603,8 +598,8 @@ void MainWindow::liberarRecursos()
     std::cout << "Liberando recursos..." << std::endl;
     pararCap = true;
     stereoCameras.stop();
-    if (prog.cap.isOpened())
-        prog.cap.release();
+    if (prog.cap.isGrabbing())
+        prog.cap.stop();
 }
 
 cv::Mat img20MP;

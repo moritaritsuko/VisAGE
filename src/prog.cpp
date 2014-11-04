@@ -6,7 +6,7 @@
 #include <iostream>
 
 
-Programa::Programa(unsigned int l, unsigned int a, float t, unsigned int c, unsigned int p)
+Programa::Programa(unsigned int l, unsigned int a, float t, std::string c, unsigned int p)
     : mMensurium()
     , largura(l)
     , altura(a)
@@ -14,13 +14,13 @@ Programa::Programa(unsigned int l, unsigned int a, float t, unsigned int c, unsi
     , camera(c)
     , controleGAMAG(0)
     , mAproximando(false)
-    , cap()
+    , cap(c)
 {    
     std::cout << "Largura: " << l << std::endl;
     std::cout << "Altura: " << a << std::endl;
     std::cout << "Tamanho (mm): " << t << std::endl;
     std::cout << "Camera: " << c << std::endl;
-    std::cout << "Porta RSI: " << p << std::endl;    
+    std::cout << "Porta RSI: " << p << std::endl;
 }
 
 
@@ -84,76 +84,76 @@ void Programa::executar(cv::Mat &imgR)
             }
         }else{
 
-        if(deltaZ < -10.f || deltaZ > 10.f)
-        {
-            if(deltaZ > 0.f)
+            if(deltaZ < -10.f || deltaZ > 10.f)
             {
-                cv::putText(img, cv::format("DirZ: <"), cv::Point(10, 90), 1, 1, cv::Scalar(255,0,255));
-                zRSI = -1.0f;
-            }
-            else if(deltaZ < 0.f)
-            {
-                cv::putText(img, cv::format("DirZ: >"), cv::Point(10, 90), 1, 1, cv::Scalar(255,0,255));
-                zRSI = 1.0f;
-            }
-        }
-        else
-        {
-            cv::putText(img, cv::format("DirZ: CENTRO"), cv::Point(10, 90), 1, 1, cv::Scalar(255,0,255));
-
-            if(deltaY < -2.5f || deltaY > 2.5f)
-            {
-                if(deltaY > 0.f)
+                if(deltaZ > 0.f)
                 {
-                    cv::putText(img, cv::format("DirY: <"), cv::Point(10, 75), 1, 1, cv::Scalar(255,0,255));
-                    xRSI = -1.0f;
+                    cv::putText(img, cv::format("DirZ: <"), cv::Point(10, 90), 1, 1, cv::Scalar(255,0,255));
+                    zRSI = -1.0f;
                 }
-                else if(deltaY < 0.f)
+                else if(deltaZ < 0.f)
                 {
-                    cv::putText(img, cv::format("DirY: >"), cv::Point(10, 75), 1, 1, cv::Scalar(255,0,255));
-                    xRSI = 1.0f;
+                    cv::putText(img, cv::format("DirZ: >"), cv::Point(10, 90), 1, 1, cv::Scalar(255,0,255));
+                    zRSI = 1.0f;
                 }
             }
             else
             {
-                cv::putText(img, cv::format("DirY: CENTRO"), cv::Point(10, 75), 1, 1, cv::Scalar(255,0,255));
-                xRSI = 0.f;
+                cv::putText(img, cv::format("DirZ: CENTRO"), cv::Point(10, 90), 1, 1, cv::Scalar(255,0,255));
+
+                if(deltaY < -2.5f || deltaY > 2.5f)
+                {
+                    if(deltaY > 0.f)
+                    {
+                        cv::putText(img, cv::format("DirY: <"), cv::Point(10, 75), 1, 1, cv::Scalar(255,0,255));
+                        xRSI = -1.0f;
+                    }
+                    else if(deltaY < 0.f)
+                    {
+                        cv::putText(img, cv::format("DirY: >"), cv::Point(10, 75), 1, 1, cv::Scalar(255,0,255));
+                        xRSI = 1.0f;
+                    }
+                }
+                else
+                {
+                    cv::putText(img, cv::format("DirY: CENTRO"), cv::Point(10, 75), 1, 1, cv::Scalar(255,0,255));
+                    xRSI = 0.f;
+                }
+
+                if(deltaX < -2.5f || deltaX > 2.5f)
+                {
+                    if(deltaX > 0.f)
+                    {
+                        cv::putText(img, cv::format("DirX: <"), cv::Point(10, 60), 1, 1, cv::Scalar(255,0,255));
+                        yRSI = 1.0f;
+                    }
+                    else if(deltaX < 0.f)
+                    {
+                        cv::putText(img, cv::format("DirX: >"), cv::Point(10, 60), 1, 1, cv::Scalar(255,0,255));
+                        yRSI = -1.0f;
+                    }
+                }
+                else
+                {
+                    cv::putText(img, cv::format("DirX: CENTRO"), cv::Point(10, 60), 1, 1, cv::Scalar(255,0,255));
+                    yRSI = 0.f;
+                }
             }
 
-            if(deltaX < -2.5f || deltaX > 2.5f)
+            if (xRSI == 0.f && yRSI == 0.f && zRSI == 0.f)
             {
-                if(deltaX > 0.f)
-                {
-                    cv::putText(img, cv::format("DirX: <"), cv::Point(10, 60), 1, 1, cv::Scalar(255,0,255));
-                    yRSI = 1.0f;
-                }
-                else if(deltaX < 0.f)
-                {
-                    cv::putText(img, cv::format("DirX: >"), cv::Point(10, 60), 1, 1, cv::Scalar(255,0,255));
-                    yRSI = -1.0f;
-                }
-            }
-            else
-            {
-                cv::putText(img, cv::format("DirX: CENTRO"), cv::Point(10, 60), 1, 1, cv::Scalar(255,0,255));
-                yRSI = 0.f;
+                mAproximando = true;
+                char tecla = cv::waitKey(1000);
+                MoverPara(0.f,0.f,-z+650);
+                cv::waitKey(5000);
+                MoverPara(0,0,500);
+                cv::waitKey(1000);
+                MoverPara(200,200,0);
+                cv::waitKey(1000);
+                Rotacionar(0,0,90);
+
             }
         }
-
-        if (xRSI == 0.f && yRSI == 0.f && zRSI == 0.f)
-        {
-            mAproximando = true;
-            char tecla = cv::waitKey(1000);
-            MoverPara(0.f,0.f,-z+650);
-            cv::waitKey(5000);
-            MoverPara(0,0,500);
-            cv::waitKey(1000);
-            MoverPara(200,200,0);
-            cv::waitKey(1000);
-            Rotacionar(0,0,90);
-
-        }
-    }
         if (!mAproximando)
         {
             conectRobo.mutexInfoRoboEnvia.lock();
@@ -329,7 +329,7 @@ void Programa::Rotacionar(double deltaA, double deltaB, double deltaC, double ve
         double pontoFinalA = infoRobo.a+deltaA;
 
         if((infoRobo.a<0 && deltaA>0)||(infoRobo.a<0 && deltaA<0)){
-             pontoFinalA = infoRobo.a - deltaA;
+            pontoFinalA = infoRobo.a - deltaA;
         }
 
         if(pontoFinalA < -180){
@@ -340,12 +340,12 @@ void Programa::Rotacionar(double deltaA, double deltaB, double deltaC, double ve
             pontoFinalA = -(180 -(pontoFinalA - 180));
         }
 
-         std::cout<<"pontoFinalA= "<<pontoFinalA<<std::endl;
+        std::cout<<"pontoFinalA= "<<pontoFinalA<<std::endl;
 
         double pontoFinalB = infoRobo.b+deltaB;
 
         if((infoRobo.b<0 && deltaB>0)||(infoRobo.b<0 && deltaB<0)){
-             pontoFinalB = infoRobo.b - deltaB;
+            pontoFinalB = infoRobo.b - deltaB;
         }
 
         if(pontoFinalB < -180){
@@ -361,7 +361,7 @@ void Programa::Rotacionar(double deltaA, double deltaB, double deltaC, double ve
         double pontoFinalC = infoRobo.c+deltaC;
 
         if((infoRobo.c<0 && deltaC>0)||(infoRobo.c<0 && deltaC<0)){
-             pontoFinalC = infoRobo.c - deltaC;
+            pontoFinalC = infoRobo.c - deltaC;
         }
 
         if(pontoFinalC < -180){
@@ -442,7 +442,6 @@ void Programa::desativarGAMAG()
 
 void Programa::IniciarCaptura()
 {
-    cap = cv::VideoCapture(camera);
     pthread_t tid;
     int result;
     result = pthread_create(&tid, 0, Programa::chamarCapturarImagem, this);
@@ -453,29 +452,31 @@ void Programa::IniciarCaptura()
 
 void *Programa::CapturarImagem(void)
 {    
-    if (!cap.isOpened())
-        cap.open(camera);
-    cv::waitKey(30);
-    assert(cap.isOpened());
-    std::cout << "Camera Mono ativada" << std::endl;
-    while (cap.isOpened())
+    if (!cap.isGrabbing())
     {
-        cv::Mat imagem;
-        cap >> imagem;
-        Marcador marco;
-        mMensurium.AcharCentro1Tab(imagem, marco, largura, altura, tamanho);
-        mutexImagem.lock();
-        filaImagens.push(imagem);
-        mutexImagem.unlock();
-
-        if (marco.isValido())
+        cap.exec();
+        std::cout << "Camera " << cap.getName() << " ativada." << std::endl;
+    }
+    while (cap.isGrabbing())
+    {
+        cv::Mat imagem = cap.getPhoto()->mat;
+        if (!imagem.empty())
         {
-            mutexMarcador.lock();
-            if (filaMarcadores.size() > 10)
-                while (!filaMarcadores.empty())
-                    filaMarcadores.pop();
-            filaMarcadores.push(marco);
-            mutexMarcador.unlock();
+            Marcador marco;
+            mMensurium.AcharCentro1Tab(imagem, marco, largura, altura, tamanho);
+            mutexImagem.lock();
+            filaImagens.push(imagem);
+            mutexImagem.unlock();
+
+            if (marco.isValido())
+            {
+                mutexMarcador.lock();
+                if (filaMarcadores.size() > 10)
+                    while (!filaMarcadores.empty())
+                        filaMarcadores.pop();
+                filaMarcadores.push(marco);
+                mutexMarcador.unlock();
+            }
         }
     }
 }
@@ -490,6 +491,6 @@ void Programa::CapturaCameraMono()
         mutexImagem.unlock();
         cv::waitKey(30);
         if (!img.empty())
-            cv::imshow("Camera Mono", img);
+            cv::imshow(cap.getName(), img);
     }
 }

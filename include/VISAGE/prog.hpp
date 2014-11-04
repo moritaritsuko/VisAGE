@@ -2,6 +2,7 @@
 #define VISAGE_PROG_HPP
 
 #include <VISAGE/mensurium.hpp>
+#include <VISAGE/singlecam.hpp>
 
 #include <opencv2/opencv.hpp>
 
@@ -12,7 +13,7 @@
 class Programa
 {
     public:
-                        Programa(unsigned int largura, unsigned int altura, float tamanho, unsigned int camera, unsigned int porta);
+                        Programa(unsigned int largura, unsigned int altura, float tamanho, std::string camera_ip, unsigned int porta);
         void executar(cv::Mat& imgR);
         void Manipular();
         void MoverPara(double deltax = 0.f, double deltay = 0.f, double deltaz = 0.f, double vel = 1.f);
@@ -38,14 +39,14 @@ class Programa
         unsigned int            largura;
         unsigned int            altura;
         float                   tamanho;
-        unsigned int            camera;
+        std::string             camera;
         unsigned int            controleGAMAG;
 
 
     public:
         mensuriumAGE            mMensurium;
         bool                    mAproximando;
-        cv::VideoCapture        cap;
+        CameraBasler            cap;
 };
 
 #endif // VISAGE_PROG_HPP
