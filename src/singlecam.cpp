@@ -19,26 +19,20 @@ CameraBasler::CameraBasler(std::string ip)
     , mCameraName()
     , mDisplayCaptureMutex()
 {
-    if (attachDevice(ip))
-    {
-        // Triggers Configuration Event (CameraConfigurationMono.cpp)
-        mCamera.Open();
-        startDisplayCapture();
-    }
-    else
+    if (!attachDevice(ip))
         std::cout << "AVISO: Câmera não foi encontrada." << std::endl;
 }
 
 void CameraBasler::exec()
 {
+    mCamera.Open();
     if (mCamera.IsOpen())
     {
         auto Photo = mPhotoPtr.get();
-
         registerCameraCapture(Photo);
-
         // Cameras Synchronization: Round-Robin Strategy
         mCamera.StartGrabbing(Pylon::GrabStrategy_UpcomingImage);
+        startDisplayCapture();
     }
 }
 
@@ -86,9 +80,9 @@ void CameraBasler::registerCameraCapture(CameraBasler::Photo* PhotoPtr)
     mCamera.RegisterImageEventHandler
             (
                 new CameraCaptureMono(mCameraName, PhotoPtr),
-            Pylon::RegistrationMode_ReplaceAll,
-            Pylon::Cleanup_Delete
-            );
+                Pylon::RegistrationMode_ReplaceAll,
+                Pylon::Cleanup_Delete
+                );
 }
 
 void CameraBasler::capture()
@@ -152,7 +146,8 @@ void CameraBasler::stop()
 {
     cv::destroyAllWindows();
     if (mCamera.IsGrabbing())
-        mCamera.StopGrabbing();
+        mCamera.Close();
+    sleep(3);
 }
 
 void CameraBasler::startDisplayCapture()
@@ -166,20 +161,17 @@ void CameraBasler::startDisplayCapture()
 
 void *CameraBasler::displayCapture(void)
 {
-    while (true)
+    if (mCamera.IsGrabbing())
     {
-        if (mCamera.IsGrabbing())
-        {
-            mDisplayCaptureMutex.lock();
-            capture();
-            mDisplayCaptureMutex.unlock();
-            auto photo = getPhoto()->mat;
+        mDisplayCaptureMutex.lock();
+        capture();
+        mDisplayCaptureMutex.unlock();
+        auto photo = getPhoto()->mat;
 
-            if (!photo.empty())
-            {
-                cv::resize(photo,photo,cv::Size(photo.cols/3,photo.rows/3));
-                cv::imshow(mCameraName, photo);
-            }
+        if (!photo.empty())
+        {
+            cv::resize(photo,photo,cv::Size(photo.cols/3,photo.rows/3));
+            cv::imshow(mCameraName, photo);
         }
     }
 }

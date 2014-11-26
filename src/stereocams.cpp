@@ -30,12 +30,10 @@ void StereoCameras::exec()
     {
         mDisplayCapture = true;
         auto stereoPhoto = mStereoPhotoPtr.get();
-
         registerCameraCapture(stereoPhoto);
-        startDisplayCapture();
-
         // Cameras Synchronization: Round-Robin Strategy
         mCameras.StartGrabbing(Pylon::GrabStrategy_UpcomingImage);
+        startDisplayCapture();
     }
 }
 
@@ -362,25 +360,22 @@ void StereoCameras::startDisplayCapture()
 
 void *StereoCameras::displayCapture(void)
 {
-    while (true)
+    if (mCameras.IsGrabbing() && mDisplayCapture)
     {
-        if (mCameras.IsGrabbing() && mDisplayCapture)
-        {
-            mDisplayCaptureMutex.lock();
-            capture();
-            mDisplayCaptureMutex.unlock();
-            auto photoPair = getStereoPhotoPair();
-            auto photo1 = photoPair->matPair.first;
-            auto photo2 = photoPair->matPair.second;
-            //sleep(10);
+        mDisplayCaptureMutex.lock();
+        capture();
+        mDisplayCaptureMutex.unlock();
+        auto photoPair = getStereoPhotoPair();
+        auto photo1 = photoPair->matPair.first;
+        auto photo2 = photoPair->matPair.second;
+        //sleep(10);
 
-            if (!photo2.empty())
-            {
-                cv::resize(photo1,photo1,cv::Size(photo1.cols/3,photo1.rows/3));
-                cv::resize(photo2,photo2,cv::Size(photo2.cols/3,photo2.rows/3));
-                cv::imshow(mCameraNames[0], photo1);
-                cv::imshow(mCameraNames[1], photo2);
-            }
+        if (!photo2.empty())
+        {
+            cv::resize(photo1,photo1,cv::Size(photo1.cols/3,photo1.rows/3));
+            cv::resize(photo2,photo2,cv::Size(photo2.cols/3,photo2.rows/3));
+            cv::imshow(mCameraNames[0], photo1);
+            cv::imshow(mCameraNames[1], photo2);
         }
     }
 }
