@@ -15,7 +15,9 @@ mainwindow.cpp \
 ../src/pugixml.cpp \
 ../src/stereocams.cpp \
 ../src/calibracam.cpp \
-../src/oclutil.cpp
+../src/oclutil.cpp \
+    ../src/baslerconfig.cpp \
+    ../src/singlecam.cpp
 
 HEADERS += mainwindow.h \
 ../include/VISAGE/conectrobo.hpp \
@@ -32,7 +34,9 @@ HEADERS += mainwindow.h \
 ../include/VISAGE/calibracam.hpp \
 ../include/VISAGE/oclutil.h \
     ../../../../../../opt/iVision/camera.hpp \
-    ../../../../../../opt/iVision/udp_channel.hpp
+    ../../../../../../opt/iVision/udp_channel.hpp \
+    ../include/VISAGE/baslerconfig.hpp \
+    ../include/VISAGE/singlecam.hpp
 
 FORMS += mainwindow.ui
 unix:!macx: LIBS += -L$$PWD/../../../../../../opt/pylon4/lib64/ -lgxapi

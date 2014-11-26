@@ -417,7 +417,6 @@ void MainWindow::on_btnCaptura_clicked()
 
 void MainWindow::on_btnCapturaMono_clicked()
 {
-    pararCap = false;
     prog.IniciarCaptura();  
 }
 

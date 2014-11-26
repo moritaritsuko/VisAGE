@@ -496,8 +496,18 @@ void Programa::IniciarCaptura()
 }
 
 void *Programa::CapturarImagem(void)
+<<<<<<< HEAD
 {
+    if (!cap.isOpened())
+        cap.open(camera);
+    cv::waitKey(30);
+    assert(cap.isOpened());
+    std::cout << "Camera Mono ativada" << std::endl;
+    while (cap.isOpened())
+=======
+{    
     if (!cap.isGrabbing())
+>>>>>>> e5260c58ed26927bd6abcab10f6a9781d0454df9
     {
         cap.exec();
         std::cout << "Camera " << cap.getName() << " ativada." << std::endl;
