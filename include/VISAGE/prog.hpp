@@ -8,12 +8,13 @@
 
 #include <mutex>
 #include <queue>
+#include <vector>
 
 
 class Programa
 {
     public:
-                        Programa(unsigned int largura, unsigned int altura, float tamanho, std::string camera_ip, unsigned int porta);
+        Programa(unsigned int largura, unsigned int altura, float tamanho, std::vector<std::string> cameras_ip, unsigned int porta);
         void executar(cv::Mat& imgR);
         void Manipular();
         void MoverPara(double deltax = 0.f, double deltay = 0.f, double deltaz = 0.f, double vel = 0.5f);
@@ -22,10 +23,11 @@ class Programa
         void ativarGAMAG();
         void desativarGAMAG();
         void inic(unsigned int largura, unsigned int altura, float tamanho, unsigned int camera, unsigned int porta);
-        void IniciarCaptura();
+        void IniciarCaptura(int camera = 0);
         void CapturaCameraMono();
         void PosIV400();
         bool PosPixel(bool temImg = false);
+        CameraBasler *getCamera();
 
 
     private:        
@@ -34,21 +36,21 @@ class Programa
 
 
     private:
-        std::queue<Marcador>    filaMarcadores;
-        std::mutex              mutexMarcador;
-        std::queue<cv::Mat>     filaImagens;
-        std::mutex              mutexImagem;
-        unsigned int            largura;
-        unsigned int            altura;
-        float                   tamanho;
-        std::string             camera;
-        unsigned int            controleGAMAG;
-
+        std::queue<Marcador>        filaMarcadores;
+        std::mutex                  mutexMarcador;
+        std::queue<cv::Mat>         filaImagens;
+        std::mutex                  mutexImagem;
+        unsigned int                largura;
+        unsigned int                altura;
+        float                       tamanho;
+        std::vector<std::string>    cameras;
+        unsigned int                controleGAMAG;
+        int                         camera_index;
 
     public:
-        mensuriumAGE            mMensurium;
-        bool                    mAproximando;
-        CameraBasler            cap;
+        mensuriumAGE                mMensurium;
+        bool                        mAproximando;
+        std::vector<std::unique_ptr<CameraBasler>>  mCameras;
 };
 
 #endif // VISAGE_PROG_HPP

@@ -18,6 +18,7 @@
 #include <sys/types.h>
 #include <sys/resource.h>
 #include <fcntl.h>
+#include <vector>
 
 #include<QKeyEvent>
 
@@ -37,7 +38,7 @@
 
 
 unsigned int l = 9, a = 6, p = 6008, r = 99;
-std::string c = "169.254.8.106";
+std::vector<std::string> c = { "169.254.8.106" };
 float t = 25.4f;
 //cv::Scalar corI[4] =    {cv::Scalar(30,20,90),   cv::Scalar(0,20,90),   cv::Scalar(40,20,90),  cv::Scalar(45,10,20)};
 //cv::Scalar corF[4] =    {cv::Scalar(40,250,250), cv::Scalar(20,250,250), cv::Scalar(50,250,250), cv::Scalar(80,250,250)};
@@ -148,7 +149,7 @@ MainWindow::MainWindow(QWidget *parent) :
         l = 9u;
         a = 6u;
         t = 25.4f;
-        c = "169.254.8.106";
+        c = { "169.254.8.106" };
         p = 6008u;
         r = 99u;
         for(int i = 0;i<4;++i){ prog.mMensurium.setarCores(corI[i],corF[i],i);}
@@ -417,7 +418,6 @@ void MainWindow::on_btnCaptura_clicked()
 
 void MainWindow::on_btnCapturaMono_clicked()
 {
-    pararCap = false;
     prog.IniciarCaptura();  
 }
 
@@ -637,8 +637,10 @@ void MainWindow::liberarRecursos()
     std::cout << "Liberando recursos..." << std::endl;
     pararCap = true;
     stereoCameras.stop();
-    if (prog.cap.isGrabbing())
-        prog.cap.stop();
+
+    auto cap = prog.getCamera();
+    if (cap->isGrabbing())
+        cap->stop();
 }
 
 cv::Mat img20MP;

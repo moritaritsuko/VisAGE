@@ -6,20 +6,24 @@
 #include <iostream>
 
 
-Programa::Programa(unsigned int l, unsigned int a, float t, std::string c, unsigned int p)
+Programa::Programa(unsigned int l, unsigned int a, float t, std::vector<std::string> c, unsigned int p)
     : mMensurium()
     , largura(l)
     , altura(a)
     , tamanho(t)
-    , camera(c)
+    , cameras(c)
     , controleGAMAG(0)
     , mAproximando(false)
-    , cap(c)
+    , mCameras()
 {    
     std::cout << "Largura: " << l << std::endl;
     std::cout << "Altura: " << a << std::endl;
     std::cout << "Tamanho (mm): " << t << std::endl;
-    std::cout << "Camera: " << c << std::endl;
+    for (int i = 0; i < cameras.size(); ++i)
+    {
+        std::cout << "Camera: " << cameras[i] << std::endl;        
+        mCameras.push_back(std::unique_ptr<CameraBasler> (new CameraBasler(cameras[i])));
+    }
     std::cout << "Porta RSI: " << p << std::endl;
 }
 
@@ -485,8 +489,9 @@ void Programa::desativarGAMAG()
     GAMAG();
 }
 
-void Programa::IniciarCaptura()
+void Programa::IniciarCaptura(int camera)
 {
+    camera_index = camera;
     pthread_t tid;
     int result;
     result = pthread_create(&tid, 0, Programa::chamarCapturarImagem, this);
@@ -497,14 +502,12 @@ void Programa::IniciarCaptura()
 
 void *Programa::CapturarImagem(void)
 {
-    if (!cap.isGrabbing())
+    auto cap = getCamera();
+    if (!cap->isGrabbing())
+        cap->exec();
+    while (cap->isGrabbing())
     {
-        cap.exec();
-        std::cout << "Camera " << cap.getName() << " ativada." << std::endl;
-    }
-    while (cap.isGrabbing())
-    {
-        cv::Mat imagem = cap.getPhoto()->mat;
+        cv::Mat imagem = cap->getPhoto()->mat;
         if (!imagem.empty())
         {
             Marcador marco;
@@ -528,6 +531,7 @@ void *Programa::CapturarImagem(void)
 
 void Programa::CapturaCameraMono()
 {
+    auto cap = getCamera();
     if (!filaImagens.empty())
     {
         mutexImagem.lock();
@@ -536,7 +540,7 @@ void Programa::CapturaCameraMono()
         mutexImagem.unlock();
         cv::waitKey(30);
         if (!img.empty())
-            cv::imshow(cap.getName(), img);
+            cv::imshow(cap->getName(), img);
     }
 }
 
@@ -656,4 +660,9 @@ bool Programa::PosPixel(bool temImg){
 
 return result;
 
+}
+
+CameraBasler* Programa::getCamera()
+{
+    return mCameras[camera_index].get();
 }

@@ -49,6 +49,7 @@ private:
     cv::Mat R1, R2, P1, P2, Q;
 
 
+
 private:
     std::unique_ptr<CameraBasler::Photo>        mPhotoPtr;
     Pylon::PylonAutoInitTerm                    mAutoInitTerm;

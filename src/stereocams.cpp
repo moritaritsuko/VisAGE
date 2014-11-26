@@ -19,24 +19,20 @@ StereoCameras::StereoCameras()
     , mDisplayCapture(false)
     , mDisplayCaptureMutex()
 {
-    if (attachDevices())
-    {
-        // Triggers Configuration Event (CameraConfiguration.cpp)
-        mCameras.Open();
-        startDisplayCapture();
-    }
-    else
+    if (!attachDevices())
         std::cout << "AVISO: Câmeras Estéreo não foram encontradas." << std::endl;
 }
 
 void StereoCameras::exec()
 {
+    mCameras.Open();
     if (mCameras.IsOpen())
     {
         mDisplayCapture = true;
         auto stereoPhoto = mStereoPhotoPtr.get();
 
         registerCameraCapture(stereoPhoto);
+        startDisplayCapture();
 
         // Cameras Synchronization: Round-Robin Strategy
         mCameras.StartGrabbing(Pylon::GrabStrategy_UpcomingImage);
@@ -346,7 +342,8 @@ void StereoCameras::stop()
     mDisplayCapture = false;
     cv::destroyAllWindows();
     if (mCameras.IsGrabbing())
-        mCameras.StopGrabbing();
+        mCameras.Close();
+    sleep(3);
 }
 
 void StereoCameras::showDisplayCapture()
