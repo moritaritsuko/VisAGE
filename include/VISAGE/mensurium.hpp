@@ -4,6 +4,7 @@
 #include "opencv/cv.h"
 #include "opencv2/opencv.hpp"
 #include "opencv2/ocl/ocl.hpp"
+#include<zbar.h>
 
 class Marcador{
 public:
@@ -28,10 +29,12 @@ public:
     int getCor(){return cor;}
     void setValido();
     bool isValido();
+    cv::Mat PontosTab3D();
+    cv::Mat  posicaoMONO;
+    cv::Mat   orientacao;
+    void IdentQRCode(cv::Mat src, int deltaVan);
 private:
     CvPoint2D32f centroImg;
-    cv::Mat   orientacao;
-    cv::Mat  posicaoMONO;
     cv::Point3d posicaoStereo;
     cv::Point2f cantoProximo;
     CvMat*   posCantoProximo;
@@ -42,7 +45,7 @@ private:
     std::vector<cv::Point2f> corners;
     int cornerCount;
     double deltaTab[2];
-    cv::Mat PontosTab3D();
+
     double Dist(CvPoint2D32f p1, CvPoint2D32f p2);
     double Dist(CvPoint p1, CvPoint p2);
     cv::Point2f* pr;
@@ -54,7 +57,7 @@ private:
 class Placa{
 public:
     Placa();
-    Marcador* marco;
+    std::vector<Marcador> marco;
     void Inic(int n);
     void CalcentroPlaca();
     void setarPontosCam();
@@ -78,18 +81,20 @@ class mensuriumAGE
 {
 public:
     mensuriumAGE();
-    int AcharTabs(cv::Mat img, int n, CvMat** trans, int npl, cv::Mat imgDes = cv::Mat(0,0,CV_8UC1));
+    int AcharTabs(cv::Mat img, int n, int npl, cv::Mat imgDes = cv::Mat(0,0,CV_8UC1));
     void AcharCentro1Tab(cv::Mat img, Marcador& marco, unsigned int largura = 9, unsigned int altura = 6, float tamanho = 25.f);
     void Rodar(char* nomeJan, cv::Mat imgE, cv::Mat imgD = cv::Mat());
     cv::Mat Stereo(cv::Mat imgE,cv::Mat imgD);
     void StereoOCL(cv::Mat imgE,cv::Mat imgD);
     cv::Mat steroRegMarcos();
     Placa getPlaca(int i);
-    Placa* placa;
+    std::vector<Placa> placa;
     cv::Point3d XYZCamCaract(float disp_pixels,cv::Mat camMat,cv::Mat T,cv::Size tamSensor);
     float CalibrarFoco(cv::Mat imgE, cv::Mat imgD, cv::Size tamTabRef, float distZ,float b_mm = 55.f);
     cv::Point3d XYZCamCaract(cv::Point ptE,cv::Point ptD, float fx_pixel = 0,float b_mm = 55.f);
     void setarCores(cv::Scalar corI,cv::Scalar corF,int id);
+    void getDeltaXYZ(float *&dXYZ);
+    void getDeltaABC(float *&dABC);
 private:
     cv::Mat distCoeffs;
     cv::Mat cameraMatrix;
@@ -105,6 +110,8 @@ private:
     void Orientar(cv::Mat imgDes = cv::Mat());
     float deltaXYZ[3];
     float deltaABC[3];
+    float calcAng( cv::Point2f ptCG,cv::Point2f ptCe);
+
 };
 
 #endif // MENSURIUMAGE_HPP

@@ -14,11 +14,16 @@ void Marcador::Inic(int x, int y,float dx,float dy)
     tamanhoReal[0] = tamTab.width*dx;
     tamanhoReal[1] = tamTab.height*dy;
     tamanhoDig = sqrt(pow(tamanhoReal[0], 2)+pow(tamanhoReal[1], 2));
-    //    pontosTab3D = PontosTab3D();
+    //pontosTab3D = PontosTab3D();
+    matPontos3D = cv::Mat(tamTab.width*tamTab.height,3, CV_32FC1);
     matPontos3D = PontosTab3D();
     //    corners = new CvPoint2D32f[tamTab.width * tamTab.height];//cvPoint2D32f(tamTab.width , tamTab.height);
     cornerCount =  tamTab.width * tamTab.height;
     cor = -2;
+
+    posicaoMONO = cv::Mat(3,1,cv::DataType<double>::type);
+
+    orientacao = cv::Mat(3,1,cv::DataType<double>::type);
 }
 
 Marcador::Marcador()
@@ -214,7 +219,7 @@ CvPoint2D32f* Marcador::CentroTab(std::vector<cv::Point2f> pontos){
     p[3] = dig2[0];
     p[4] = dig2[1];
 
-    std::cout<<"centroP = "<<x<<","<<y<<std::endl;
+    //std::cout<<"centroP = "<<x<<","<<y<<std::endl;
 
 
     return p;
@@ -260,7 +265,7 @@ cv::Mat Marcador::getOrientacao()
 
 void Marcador::setOrientacao(cv::Mat orient)
 {
-    orientacao = orient;
+    orient.copyTo(orientacao) ;
 }
 
 bool Marcador::VerificaCor(cv::Mat img, cv::Scalar cor, cv::Scalar deltaCor,int index){
@@ -344,10 +349,81 @@ int Marcador::VerificaCor(cv::Mat img, cv::Scalar cor[][2], cv::Scalar deltaCor[
 //    return 180*acos(cosA)/CV_PI;
 //}*/
 
+void Marcador::IdentQRCode(cv::Mat src, int deltaVan){
+    int xi = centroImg.x-deltaVan;
+    int yi = centroImg.y-deltaVan;
+    int xf = centroImg.x+deltaVan;
+    int yf = centroImg.y+deltaVan;
+
+    cv::Mat imgC;
+    src.copyTo(imgC);
+
+
+    if(xi<0) xi = 0;
+    if(yi<0) yi = 0;
+    if(xf>src.cols) xf = src.cols;
+    if(yf>src.rows) yf = src.rows;
+
+    cv::Point pc1(xi,yi);
+    cv::Point pc2(xf,yf);
+
+    cv::Mat roi(imgC,cv::Rect(pc1,pc2));
+
+    //cv::Mat roi(src,cv::Rect(cv::Point(cantosDigonal[1].x,cantosDigonal[3].y),cv::Point(cantosDigonal[0].x,cantosDigonal[2].y)));
+
+    zbar::ImageScanner scanner;
+
+    scanner.set_config(zbar::ZBAR_NONE, zbar::ZBAR_CFG_ENABLE, 1);
+
+    cv::Mat grey;
+    cv::Mat qr = roi;
+
+    cv::imshow("QRimgPre",qr);
+    cv::waitKey();
+
+    cv::cvtColor(qr,grey,CV_BGR2GRAY);
+    int width = qr.cols;
+    int height = qr.rows;
+    uchar *raw = (uchar *)grey.data;
+    // wrap image data
+    zbar::Image image(width, height, "Y800", raw, width * height);
+    // scan the image for barcodes
+    int n = scanner.scan(image);
+
+    // extract results
+    if (n != 0)
+    {
+        for(zbar::Image::SymbolIterator symbol = image.symbol_begin();
+            symbol != image.symbol_end();
+            ++symbol)
+        {
+            std::vector<cv::Point> vp;
+            // do something useful with results
+            std::cout << "decoded " << symbol->get_type_name() << " symbol \"" << symbol->get_data() << '"' <<" "<< std::endl;
+            int n = symbol->get_location_size();
+            for(int i=0;i<n;i++)
+            {
+                vp.push_back(cv::Point(symbol->get_location_x(i),symbol->get_location_y(i)));
+            }
+            cv::RotatedRect r = cv::minAreaRect(vp);
+            cv::Point2f pts[4];
+            r.points(pts);
+            for(int i=0;i<4;i++){
+                cv::line(roi,pts[i],pts[(i+1)%4],cv::Scalar(255,0,0),1);
+            }
+            std::cout<<"Angle: "<<r.angle<<std::endl;
+        }
+    }else{
+        std::cout<<"QR NÃO ENCONTRADO!"<<std::endl;
+    }
+    //cv::imshow("QRimgPos",qr);
+    //cv::waitKey();
+}
+
 
 void Marcador::AcharCantoProx(cv::Mat src, int deltaVan,cv::Mat imgDes){
 
-    bool comCor = true;
+    bool comCor = false;
 
     int xi = centroImg.x-deltaVan;
     int yi = centroImg.y-deltaVan;
@@ -387,9 +463,9 @@ void Marcador::AcharCantoProx(cv::Mat src, int deltaVan,cv::Mat imgDes){
 
         cv::cvtColor( roi, matHSV, CV_BGR2HSV );
 
-        cv::inRange(matHSV,cv::Scalar(0,80,20),cv::Scalar(255,150,40),matHSVTH);
+        cv::inRange(matHSV,cv::Scalar(0,0,30),cv::Scalar(250,250,60),matHSVTH);
 
-        //    cv::imshow("matHSVTH",matHSVTH);
+            cv::imshow("matHSVTH",matHSVTH);
 
         cv::blur(matHSVTH,matHSVTH,cv::Size(5,5));
 
@@ -399,7 +475,7 @@ void Marcador::AcharCantoProx(cv::Mat src, int deltaVan,cv::Mat imgDes){
 
         cv::erode(matHSVTH,matHSVTH,cv::Mat(),cv::Point(0,0),1);
 
-        //    cv::imshow("matHSVTHD",matHSVTH);
+            cv::imshow("matHSVTHD",matHSVTH);
 
         cv::Canny(matHSVTH,imgCanny,30,30);
 
@@ -413,7 +489,7 @@ void Marcador::AcharCantoProx(cv::Mat src, int deltaVan,cv::Mat imgDes){
     }
 
 
-    //    cv::imshow("imgCanny",imgCanny);
+        //cv::imshow("imgCanny",imgCanny);
 
     std::vector<cv::Vec4i> lines;
     cv::HoughLinesP(imgCanny, lines, 1.3, CV_PI/180, 150, roi.cols/2, 50 );
@@ -422,7 +498,7 @@ void Marcador::AcharCantoProx(cv::Mat src, int deltaVan,cv::Mat imgDes){
         for( size_t i = j; i < lines.size(); i++ )
         {
             cv::Vec4i l = lines[i];
-            //            cv::line( roiDes, cv::Point(l[0], l[1]), cv::Point(l[2], l[3]), cv::Scalar(0,255,255), 1, CV_AA);
+                        //cv::line( roiDes, cv::Point(l[0], l[1]), cv::Point(l[2], l[3]), cv::Scalar(0,255,255), 1, CV_AA);
             ptTmp[0] = cv::Point(lines[j][0], lines[j][1]);
             ptTmp[1] = cv::Point(lines[j][2], lines[j][3]);
             ptTmp[2] = cv::Point(lines[i][0], lines[i][1]);
@@ -455,7 +531,7 @@ void Marcador::AcharCantoProx(cv::Mat src, int deltaVan,cv::Mat imgDes){
 
             if(x>20 && x < votosCantos.cols-20 && y > 20 && y <votosCantos.rows-20){
                 cv::Point ip(x,y);
-                //                cv::circle(roiDes,ip,1,cv::Scalar(255,255,0),2);
+                                //cv::circle(roiDes,ip,1,cv::Scalar(255,255,0),2);
                 votosCantos.at<double>(y,  x  ) += 2.f;
                 votosCantos.at<double>(y+1,x+1) += 1.f;
                 votosCantos.at<double>(y+1,x-1) += 1.f;
@@ -481,11 +557,11 @@ void Marcador::AcharCantoProx(cv::Mat src, int deltaVan,cv::Mat imgDes){
     cantoProximo = cv::Point(maxLoc.x+centroImg.x-deltaVan,maxLoc.y+centroImg.y-deltaVan);
 
 
-    //            cv::imshow("cpyVotos",cpyVotos);
-    //            cv::imshow("votosCantos",votosCantos);
+//                cv::imshow("cpyVotos",cpyVotos);
+//                cv::imshow("votosCantos",votosCantos);
 
-    //            cv::imshow("roiDes",roiDes);
-    //            cv::waitKey();
+//                cv::imshow("roiDes",roiDes);
+//                cv::waitKey();
 
 
 }
@@ -516,9 +592,10 @@ void Placa::Inic(int n){
     pontosPlacaCam = cvCreateMat(4, 2, CV_32FC1);
     matPontosPlaca3D.create(4, 2, CV_32FC1);
 
-    marco = new Marcador[n];
+
 
     for(int i =0;i<n;i++){
+        marco.push_back(Marcador());
         marco[i].Inic(4, 4, 15.0f, 15.0f);
     }
     cvmSet(pontosPlaca3D,0,0,20.0f);
@@ -605,17 +682,23 @@ int Placa::getnMarcoAch(){
 }
 
 
-int  mensuriumAGE::AcharTabs(cv::Mat img, int n, CvMat **trans, int npl, cv::Mat imgDes){
+int nmed = 0;
+int  mensuriumAGE::AcharTabs(cv::Mat img, int n, int npl, cv::Mat imgDes){
 
     CvPoint2D32f p[n][3];
+
+    cv::Mat rvec(3,1,cv::DataType<double>::type);
+    cv::Mat tvec(3,1,cv::DataType<double>::type);
 
     cv::Mat imgC;
     img.copyTo(imgC);
 
+    //std::cout<<"Ajustando Imagem para ser Analizada!"<<std::endl;
+
     cv::Mat cinza = cv::Mat(imgC.cols, imgC.rows, CV_8SC1);
     cv::Mat pb = cv::Mat(imgC.cols, imgC.rows, CV_8SC1);
     //cv::Mat hsv = cv::Mat(imgC.cols, imgC.rows, CV_8SC3);
-    cv::Mat pbHSV = cv::Mat(imgC.cols, imgC.rows, CV_8SC1);
+    //cv::Mat pbHSV = cv::Mat(imgC.cols, imgC.rows, CV_8SC1);
     //cv::cvtColor(img,hsv,CV_BGR2HSV);
     //    cv::inRange(hsv,cv::Scalar(0,0,0),cv::Scalar(255,255,48),pbHSV);
     //    cv::threshold(pbHSV, pb,1,255 , CV_THRESH_BINARY_INV);// 3 = 70 =72
@@ -624,58 +707,85 @@ int  mensuriumAGE::AcharTabs(cv::Mat img, int n, CvMat **trans, int npl, cv::Mat
     //cv::threshold(pbHSV,pb,10,255 , CV_THRESH_BINARY_INV);// 3 = 70 =72
 
     cv::cvtColor(imgC, cinza, CV_BGR2GRAY);
+
     //cv::threshold(cinza, pb,70,255 , CV_THRESH_BINARY);// 3 = 70 =72
     //cv::threshold(pbHSV,pbHSV,5,255 , CV_THRESH_BINARY_INV);// 3 = 70 =72
-    cv::adaptiveThreshold(cinza,pb,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,121,17);
+    //    cv::imshow("cinzaPre",cinza);
+    //    cv::waitKey(0);
+    cv::equalizeHist( cinza, cinza );
+
+    cv::adaptiveThreshold(cinza,pb,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,81,17);
     int nAchado = 0;
-    trans = new CvMat*[n];
-    std::vector<cv::Point2f> imagePoints;
-    std::vector<cv::Point3f> objectPoints;
-    cv::Mat rvec(3,1,cv::DataType<double>::type);
-    cv::Mat tvec(3,1,cv::DataType<double>::type);
+
+
+    //std::cout<<"Imagem para ser Analizada! Incianado busca de "<<n<<" Alvos!"<<std::endl;
 
     for(int i =0;i<n;i++){
 
         CvSize patternSize = cvSize(4, 4);//CvSize(6, 8);cel 6, 9
         std::vector<cv::Point2f> corners;
+        //std::cout<<"Buscando Alvo: "<<nAchado+1<<std::endl;
         bool found = cv::findChessboardCorners( pb, patternSize, corners, CV_CALIB_CB_NORMALIZE_IMAGE);
+        //std::cout<<"Fim da busca alvo: "<<nAchado+1<<std::endl;
 
         if(found){
 
+            //std::cout<<"Alvo "<<nAchado+1<<" encontrado!"<<std::endl;
             cv::drawChessboardCorners( imgDes, patternSize, cv::Mat(corners), found );
 
             nAchado++;
             //     std::cout<<"c placa= "<<nAchado<<std::endl;
+            //std::cout<<"Calculando pontos de interesse 2D!"<<std::endl;
             placa[npl].marco[i].calcCantosDigonal(corners); //CentroTab(cornerCount, corners);
             cv::circle(imgDes,placa[npl].marco[i].getCentroImg(),3,cv::Scalar(0,255,0),3);
 
             placa[npl].marco[i].getCentroImg();
-            //CvMat* R = cvCreateMat(1, 3, CV_32FC1);
-            trans[i] = cvCreateMat(1, 3, CV_32FC1);
-
 
             //placa[npl].marco[i].gettPontosTab3D(), pontosCam
-            cv::solvePnP(placa[npl].marco[i].getMatP3D(), corners, cameraMatrix, distCoeffs, rvec, tvec, false);
-            std::cout<<"tvec"<<tvec<<std::endl;
-            placa[npl].marco[i].setPosicaoMONO( tvec);
-            //cv::solvePnPRansac(placa[npl].marco[i].getMatP3D(), corners, cameraMatrix, distCoeffs, rvec, tvec, false);
+            //std::cout<<"Calculando pontos de interesse 3D!"<<std::endl;
+            cv::Mat Ponto3d = placa[npl].marco[i].PontosTab3D();
+            //std::cout<<"Pontos tab 3D: "<<Ponto3d<<std::endl;
+            //std::cout<<"Cantos img: "<<corners<<std::endl;
+            //std::cout<<"Matriz Câmera: "<<cameraMatrix<<std::endl;
+            //std::cout<<"Coef. Distorção: "<<distCoeffs<<std::endl;
 
+            cv::cornerSubPix( cinza, corners, cv::Size(11,11),cv::Size(-1,-1), cv::TermCriteria( CV_TERMCRIT_EPS+CV_TERMCRIT_ITER, 30, 0.1 ));
+
+            cv::solvePnP(Ponto3d, corners, cameraMatrix, distCoeffs, rvec, tvec, false);
+            //std::cout<<"tvec "<<i<<tvec<<std::endl;
+
+            placa[npl].marco[i].setPosicaoMONO( tvec);
+            //std::cout<<"tMarco "<<i<<": "<<placa[npl].marco[i].getPosicaoMONO()<<std::endl;
+            placa[npl].marco[i].setOrientacao(rvec);
+
+            //std::cout<<"Calculando distancia total câmera - alvo!"<<std::endl;
             float dist = sqrt(tvec.at<double>(0,0)*tvec.at<double>(0,0)+tvec.at<double>(1,0)*tvec.at<double>(1,0)+tvec.at<double>(2,0)*tvec.at<double>(2,0));
+            //std::cout<<"Desenhando na imagem de saida!"<<std::endl;
             if(!imgDes.empty()){
-                cv::putText( imgDes,cv::format("Dist: %f",dist), cv::Point(placa[npl].marco[i].getCentroImg().x,placa[npl].marco[i].getCentroImg().y)+cv::Point(-100,-50), 1, 2,cv::Scalar(255,0,255));
-                cv::putText( imgDes,cv::format("Rot: %f,%f,%f",rvec.at<double>(0,0)*180.f/CV_PI,rvec.at<double>(1,0)*180.f/CV_PI,rvec.at<double>(2,0)*180.f/CV_PI),
-                             cv::Point(placa[npl].marco[i].getCentroImg().x,placa[npl].marco[i].getCentroImg().y)+cv::Point(-100,-100), 1, 2,cv::Scalar(255,0,255));
+                cv::putText( imgDes,cv::format("Dist: %f",dist), cv::Point(placa[npl].marco[i].getCentroImg().x,placa[npl].marco[i].getCentroImg().y)+cv::Point(-100,-50), 1, 3,cv::Scalar(255,0,255),3);
+//                cv::putText( imgDes,cv::format("Rot: %f,%f,%f",rvec.at<double>(0,0)*180.f/CV_PI,rvec.at<double>(1,0)*180.f/CV_PI,rvec.at<double>(2,0)*180.f/CV_PI),
+//                             cv::Point(placa[npl].marco[i].getCentroImg().x,placa[npl].marco[i].getCentroImg().y)+cv::Point(-100,-100), 1, 3,cv::Scalar(255,0,255),3);
+
+                cv::putText( imgDes,cv::format("Pos: %f,%f,%f",tvec.at<double>(0,0),tvec.at<double>(1,0),tvec.at<double>(2,0)),
+                             cv::Point(placa[npl].marco[i].getCentroImg().x,placa[npl].marco[i].getCentroImg().y)+cv::Point(-100,-100), 1, 3,cv::Scalar(255,0,255),3);
             }
-            //std::cout<<"Dist["<<i<<"]: "<<dist<<std::endl;
+
+           // std::cout<<"Rastreando cor!"<<std::endl;
 
             placa[npl].marco[i].VerificaCor(img,padCor,padCor,4);
 
-            if(placa[npl].marco[i].getCor() == 0) cv::putText( imgDes,cv::format("Cor: %i : Amarelo",placa[npl].marco[i].getCor()), placa[npl].marco[i].getCentroImg(), 1, 2,cv::Scalar(0,255,255));
-            if(placa[npl].marco[i].getCor() == 1) cv::putText( imgDes,cv::format("Cor: %i : Vermelho",placa[npl].marco[i].getCor()), placa[npl].marco[i].getCentroImg(), 1, 2,cv::Scalar(0,0,255));
-            if(placa[npl].marco[i].getCor() == 2) cv::putText( imgDes,cv::format("Cor: %i : Verde",placa[npl].marco[i].getCor()), placa[npl].marco[i].getCentroImg(), 1, 2,cv::Scalar(0,255,0));
-            if(placa[npl].marco[i].getCor() == 3) cv::putText( imgDes,cv::format("Cor: %i : Azul",placa[npl].marco[i].getCor()), placa[npl].marco[i].getCentroImg(), 1, 2,cv::Scalar(255,0,0));
+            placa[npl].marco[i].AcharCantoProx(img,200,imgDes);
+
+            placa[npl].marco[i].IdentQRCode(img,500);
 
 
+            if(placa[npl].marco[i].getCor() == 0) cv::putText( imgDes,cv::format("Cor: %i : Amarelo",placa[npl].marco[i].getCor()), placa[npl].marco[i].getCentroImg(), 1, 3,cv::Scalar(0,255,255),3);
+            if(placa[npl].marco[i].getCor() == 1) cv::putText( imgDes,cv::format("Cor: %i : Vermelho",placa[npl].marco[i].getCor()), placa[npl].marco[i].getCentroImg(), 1, 3,cv::Scalar(0,0,255),3);
+            if(placa[npl].marco[i].getCor() == 2) cv::putText( imgDes,cv::format("Cor: %i : Verde",placa[npl].marco[i].getCor()), placa[npl].marco[i].getCentroImg(), 1, 3,cv::Scalar(0,255,0),3);
+            if(placa[npl].marco[i].getCor() == 3) cv::putText( imgDes,cv::format("Cor: %i : Azul",placa[npl].marco[i].getCor()), placa[npl].marco[i].getCentroImg(), 1, 3,cv::Scalar(255,0,0),3);
+
+
+            //std::cout<<"Eliminando alvo"<<nAchado<<"da imagem!"<<std::endl;
             cv::line(pb, placa[npl].marco[i].getCantosDigonal()[0], placa[npl].marco[i].getCantosDigonal()[1], cv::Scalar(0,0,0), 50, 1, 0);
             cv::line(pb, placa[npl].marco[i].getCantosDigonal()[2], placa[npl].marco[i].getCantosDigonal()[3], cv::Scalar(0,0,0), 50, 1, 0);
 
@@ -683,36 +793,53 @@ int  mensuriumAGE::AcharTabs(cv::Mat img, int n, CvMat **trans, int npl, cv::Mat
             p[i][1] = placa[npl].marco[i].getCantosDigonal()[0];
             p[i][2] = placa[npl].marco[i].getCantosDigonal()[1];
 
+            //std::cout<<"Fim do Processo para o alvo: "<<nAchado<<std::endl;
 
+
+        }else{
+            std::cout<<"Alvo"<<n<<"não encontrado!"<<std::endl;
         }
 
         //cv::imshow("AcharTab",pb);
 
     }
 
-    Marcador* marcoTmp = (Marcador*)malloc(sizeof(Marcador) * n);
-    memcpy(marcoTmp,placa[npl].marco,sizeof(Marcador) * n);
-    for(int io = 0;io<nAchado;io++){
-        if(marcoTmp[io].getCor() == 0){
-            placa[npl].marco[0] = marcoTmp[io];
-            //memcpy(placa[npl].marco[0], marcoTmp[io], sizeof(Marcador));
-        }
-        if(marcoTmp[io].getCor() == 1){
-            placa[npl].marco[1] = marcoTmp[io];
-        }
-        if(marcoTmp[io].getCor() == 2){
-            placa[npl].marco[2] = marcoTmp[io];
-        }
-        if(marcoTmp[io].getCor() == 3){
-            placa[npl].marco[3] = marcoTmp[io];
-        }
-    }
-    free(marcoTmp);
+    try{
 
-    Alinhar(imgDes);
-    Orientar(imgDes);
+
+        if(nAchado == n){
+
+            std::vector<Marcador> marcoTmp(placa[npl].marco);
+            for(int io = 0;io<nAchado;io++){
+                if(marcoTmp[io].getCor() == 0){
+                    placa[npl].marco[0] = marcoTmp[io];
+                }
+                if(marcoTmp[io].getCor() == 1){
+                    placa[npl].marco[1] = marcoTmp[io];
+                }
+                if(marcoTmp[io].getCor() == 2){
+                    placa[npl].marco[2] = marcoTmp[io];
+                }
+                if(marcoTmp[io].getCor() == 3){
+                    placa[npl].marco[3] = marcoTmp[io];
+                }
+            }
+            std::cout<<"Medição:"<<nmed++<<std::endl;
+            std::cout<<"tvec 0"<<placa[npl].marco[0].getPosicaoMONO()<<" cor: "<<placa[npl].marco[0].getCor()<<std::endl;
+            std::cout<<"tvec 1"<<placa[npl].marco[1].getPosicaoMONO()<<" cor: "<<placa[npl].marco[1].getCor()<<std::endl;
+            std::cout<<"tvec 2"<<placa[npl].marco[2].getPosicaoMONO()<<" cor: "<<placa[npl].marco[2].getCor()<<std::endl;
+            std::cout<<"tvec 3"<<placa[npl].marco[3].getPosicaoMONO()<<" cor: "<<placa[npl].marco[3].getCor()<<std::endl;
+
+            Alinhar(imgDes);
+            Orientar(imgDes);
+        }
+    }catch(int e){
+        std::cout << "An exception occurred. Exception Nr. " << e << '\n';
+    }
 
     placa[npl].setnMarcoAch(nAchado);
+
+    //std::cout<<"Fim do processo de rastreaneto dos alvos!"<<std::endl;
 
     return nAchado;
 }
@@ -723,7 +850,8 @@ mensuriumAGE::mensuriumAGE()
     ,ndisp(64)
     ,fs(3)
 {
-    placa = new Placa[2];
+    placa.push_back(Placa());
+    placa.push_back(Placa());
     placa[0].Inic(4);
     placa[1].Inic(4);
     //    cv::FileStorage fs("MatCam.xml", cv::FileStorage::READ);
@@ -735,7 +863,7 @@ mensuriumAGE::mensuriumAGE()
     //    fsyml["camera_matrix"]>>cameraMatrix;
     //    fsyml["distortion_coefficients"]>>distCoeffs;
     //    std::cout<<"Mensurium inicializado com Sucesso!"<<std::endl;
-    cv::FileStorage fs("config/calibracao_Basler.yml", cv::FileStorage::READ);
+    cv::FileStorage fs("config/CalIV400.yml", cv::FileStorage::READ);//"config/calibracao_Basler.yml""config/CalIV400.yml"
     fs["camera_matrix"] >> cameraMatrix;
     fs["distortion_coefficients"] >> distCoeffs;
 
@@ -971,17 +1099,15 @@ void mensuriumAGE::setarCores(cv::Scalar corI,cv::Scalar corF,int id){
 
 void mensuriumAGE::Rodar(char* nomeJan, cv::Mat imgE, cv::Mat imgD){
 
-    bool resp = false;
-
-    CvMat** trans;
 
     cv::Mat imgSaida;
     imgE.copyTo(imgSaida);
 
-    AcharTabs(imgE,4,trans,0,imgSaida);
-    //std::cout<<"n placa= "<<placa[0].getnMarcoAch()<<std::endl;
+    AcharTabs(imgE,4,0,imgSaida);
+    //std::cout<<"Ponto 0= "<<placa[0].marco->getPosicaoMONO()<<std::endl;
 
     if (placa[0].getnMarcoAch()==4){
+        std::cout<<"Calculando centro do conjunto de alvos!"<<std::endl;
         placa[0].CalcentroPlaca();
         cv::circle(imgSaida,placa[0].getPosCentroImg(),5,cv::Scalar(255,0,255),2,1,0);
 
@@ -989,13 +1115,12 @@ void mensuriumAGE::Rodar(char* nomeJan, cv::Mat imgE, cv::Mat imgD){
         //                        placa[0].marco[i].AcharCantoProx(imgE,150,imgSaida);
         //        }
 
-        //        for(int k = 0; k<4;k++){
-        //            if(k+1 > 3){
-        //                cv::line(imgSaida,placa[0].marco[k].getCantoProx(),placa[0].marco[k+1].getCantoProx(),cv::Scalar(0,0,255),3);
-        //            }else{
-        //                cv::line(imgSaida,placa[0].marco[3].getCantoProx(),placa[0].marco[0].getCantoProx(),cv::Scalar(0,0,255),3);
-        //            }
-        //        }
+
+                        cv::line(imgSaida,placa[0].marco[0].getCantoProx(),placa[0].marco[1].getCantoProx(),cv::Scalar(0,0,255),3);
+                        cv::line(imgSaida,placa[0].marco[1].getCantoProx(),placa[0].marco[3].getCantoProx(),cv::Scalar(0,0,255),3);
+                        cv::line(imgSaida,placa[0].marco[3].getCantoProx(),placa[0].marco[2].getCantoProx(),cv::Scalar(0,0,255),3);
+                        cv::line(imgSaida,placa[0].marco[2].getCantoProx(),placa[0].marco[0].getCantoProx(),cv::Scalar(0,0,255),3);
+
 
     }
 
@@ -1034,6 +1159,8 @@ void mensuriumAGE::Rodar(char* nomeJan, cv::Mat imgE, cv::Mat imgD){
     cv::resize(imgSaida,imgSaida,cv::Size(imgSaida.cols/4,imgSaida.rows/4));
 
     cv::imshow(nomeJan,imgSaida);
+
+    //std::cout<<"Fim RODAR!"<<std::endl;
 }
 
 float mensuriumAGE::CalibrarFoco(cv::Mat imgE, cv::Mat imgD, cv::Size tamTabRef, float distZ, float b_mm){
@@ -1084,11 +1211,11 @@ void mensuriumAGE::Alinhar(cv::Mat imgDes){
     cv::line(imgDes,placa[0].marco[2].getCentroImg(),placa[0].marco[3].getCentroImg(),cv::Scalar(125,125,0),3);
     cv::line(imgDes,placa[0].marco[1].getCentroImg(),placa[0].marco[0].getCentroImg(),cv::Scalar(0,125,125),3);
 
-    cv::Mat tveci = placa[0].marco[0].getPosicaoMONO();
-    std::cout<<"tveci"<<tveci<<std::endl;
+    cv::Mat tveci = placa[0].marco[2].getPosicaoMONO();
+    //std::cout<<"tveci"<<tveci<<std::endl;
     //float disti = sqrt(tveci.at<double>(0,0)*tveci.at<double>(0,0)+tveci.at<double>(1,0)*tveci.at<double>(1,0)+tveci.at<double>(2,0)*tveci.at<double>(2,0));
     cv::Mat tvecf = placa[0].marco[3].getPosicaoMONO();
-    std::cout<<"tvecf"<<tvecf<<std::endl;
+    //std::cout<<"tvecf"<<tvecf<<std::endl;
     //float distf = sqrt(tvecf.at<double>(0,0)*tvecf.at<double>(0,0)+tvecf.at<double>(1,0)*tvecf.at<double>(1,0)+tvecf.at<double>(2,0)*tvecf.at<double>(2,0));
 
     //    deltaXYZ[0] =placa[0].marco[0].getCentroImg().x-placa[0].marco[3].getCentroImg().y;
@@ -1099,52 +1226,94 @@ void mensuriumAGE::Alinhar(cv::Mat imgDes){
     deltaXYZ[2] =tvecf.at<double>(2,0)-tveci.at<double>(2,0);
 
 
-    std::cout<<"Delta: ("<<deltaXYZ[0]<<","<<deltaXYZ[1]<<","<<deltaXYZ[2]<<")"<<std::endl;
+    std::cout<<"Delta POS: ("<<deltaXYZ[0]<<","<<deltaXYZ[1]<<","<<deltaXYZ[2]<<")"<<std::endl;
 
 
 }
 
+float mensuriumAGE::calcAng(cv::Point2f ptCG, cv::Point2f ptCe){
+    double r = sqrt((ptCG.x-ptCe.x)*(ptCG.x-ptCe.x)+(ptCG.y-ptCe.y)*(ptCG.y-ptCe.y));
+    //std::cout<<"r = "<<r;
+    float projSin = (ptCe.y - ptCG.y)/r;
+    //std::cout<<" projSin = "<<projSin;
+    float ang = asin(projSin);
+    //std::cout<<" asin = "<<ang;
+    ang = 180*ang/CV_PI;
+    //std::cout<<" ang = "<<ang<<std::endl;
+    return ang;
+}
+
 void mensuriumAGE::Orientar(cv::Mat imgDes){
 
+    cv::line(imgDes,placa[0].marco[0].getCentroImg(),placa[0].marco[2].getCentroImg(),cv::Scalar(0,0,255),3);
     cv::line(imgDes,placa[0].marco[1].getCentroImg(),placa[0].marco[3].getCentroImg(),cv::Scalar(0,0,255),3);
-    cv::line(imgDes,placa[0].marco[1].getCentroImg(),placa[0].marco[0].getCentroImg(),cv::Scalar(0,0,255),3);
 
-    cv::Mat tveci = placa[0].marco[1].getPosicaoMONO();
-    std::cout<<"tveci"<<tveci<<std::endl;
+    cv::Mat tveci = placa[0].marco[0].getPosicaoMONO();
+    //std::cout<<"tveci"<<tveci<<std::endl;
 
-    cv::Mat tvecf = placa[0].marco[3].getPosicaoMONO();
-    std::cout<<"tvecf"<<tvecf<<std::endl;
+    cv::Mat tvecf = placa[0].marco[2].getPosicaoMONO();
+    //std::cout<<"tvecf"<<tvecf<<std::endl;
 
     cv::Point2f ptCG(tvecf.at<double>(0,0),tvecf.at<double>(1,0));
     cv::Point2f ptCe(tveci.at<double>(0,0),tveci.at<double>(1,0));
 
-    double r = sqrt((ptCG.x-ptCe.x)*(ptCG.x-ptCe.x)+(ptCG.y-ptCe.y)*(ptCG.y-ptCe.y));
-    float projSin = (ptCe.y - ptCG.y)/r;
-    float ang = asin(projSin);
-    ang = 180*ang/CV_PI;
-
-    deltaABC[2] = ang;
+    deltaABC[2] = calcAng(ptCG,ptCe);
 
     ptCG = cv::Point2f(tvecf.at<double>(0,0),tvecf.at<double>(2,0));
     ptCe = cv::Point2f(tveci.at<double>(0,0),tveci.at<double>(2,0));
 
-    r = sqrt((ptCG.x-ptCe.x)*(ptCG.x-ptCe.x)+(ptCG.y-ptCe.y)*(ptCG.y-ptCe.y));
-    projSin = (ptCe.y - ptCG.y)/r;
-    ang = asin(projSin);
-    ang = 180*ang/CV_PI;
-
-    deltaABC[1] = ang;
+    deltaABC[1] = calcAng(ptCG,ptCe);
 
     ptCG = cv::Point2f(tvecf.at<double>(1,0),tvecf.at<double>(2,0));
     ptCe = cv::Point2f(tveci.at<double>(1,0),tveci.at<double>(2,0));
 
-    r = sqrt((ptCG.x-ptCe.x)*(ptCG.x-ptCe.x)+(ptCG.y-ptCe.y)*(ptCG.y-ptCe.y));
-    projSin = (ptCe.y - ptCG.y)/r;
-    ang = asin(projSin);
-    ang = 180*ang/CV_PI;
+    deltaABC[0] = calcAng(ptCG,ptCe);
 
-    deltaABC[0] = ang;
+    //std::cout<<"ANGs[0-2]: ("<<deltaABC[0]<<","<<deltaABC[1]<<","<<deltaABC[2]<<")"<<std::endl;
 
-    std::cout<<"ANGs: ("<<deltaABC[0]<<","<<deltaABC[1]<<","<<deltaABC[2]<<")"<<std::endl;
+    tveci = placa[0].marco[1].getPosicaoMONO();
+    //std::cout<<"tveci"<<tveci<<std::endl;
+
+    tvecf = placa[0].marco[3].getPosicaoMONO();
+    //std::cout<<"tvecf"<<tvecf<<std::endl;
+
+    float ang2[3];
+
+    ptCG = cv::Point2f(tvecf.at<double>(0,0),tvecf.at<double>(1,0));
+    ptCe = cv::Point2f(tveci.at<double>(0,0),tveci.at<double>(1,0));
+
+    ang2[2] = calcAng(ptCG,ptCe);
+    deltaABC[2] = ang2[2] - deltaABC[2];
+
+
+    ptCG = cv::Point2f(tvecf.at<double>(0,0),tvecf.at<double>(2,0));
+    ptCe = cv::Point2f(tveci.at<double>(0,0),tveci.at<double>(2,0));
+
+    ang2[1] = calcAng(ptCG,ptCe);
+    deltaABC[1] = ang2[1] - deltaABC[1];
+
+    ptCG = cv::Point2f(tvecf.at<double>(1,0),tvecf.at<double>(2,0));
+    ptCe = cv::Point2f(tveci.at<double>(1,0),tveci.at<double>(2,0));
+
+    ang2[0] = calcAng(ptCG,ptCe);
+    deltaABC[0] = ang2[0] - deltaABC[0];
+
+    //std::cout<<"ANGs [1-3]: ("<<ang2[0]<<","<<ang2[1]<<","<<ang2[2]<<")"<<std::endl;
+
+    std::cout<<"ANGs delta: ("<<deltaABC[0]<<","<<deltaABC[1]<<","<<deltaABC[2]<<")"<<std::endl;
+
+}
+
+void mensuriumAGE::getDeltaXYZ(float *&dXYZ){
+    dXYZ[0] = deltaXYZ[0];
+    dXYZ[1] = deltaXYZ[1];
+    dXYZ[2] = deltaXYZ[2];
+}
+
+void mensuriumAGE::getDeltaABC(float *&dABC){
+
+    dABC[0] = deltaABC[0];
+    dABC[1] = deltaABC[1];
+    dABC[2] = deltaABC[2];
 
 }

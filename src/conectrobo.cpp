@@ -78,22 +78,26 @@ void* ConectRobo::LerMsg(void)
 
             if (resultado)
             {
-                std::cout << "RSI recebido:" << std::endl << RSI << std::endl;
+                //std::cout << "RSI recebido:" << std::endl << RSI << std::endl;
                 auto ipoc = doc.child("Rob").child("IPOC").text().get();
-                std::cout << "IPOC recebido: " << ipoc << std::endl;
+                //std::cout << "IPOC recebido: " << ipoc << std::endl;
                 mutexIPOC.lock();
                 mFilaIPOC.push(ipoc);
                 mutexIPOC.unlock();
+
                 double x = doc.child("Rob").child("RSol").attribute("X").as_double();
                 double y = doc.child("Rob").child("RSol").attribute("Y").as_double();
                 double z = doc.child("Rob").child("RSol").attribute("Z").as_double();
                 double a = doc.child("Rob").child("RSol").attribute("A").as_double();
                 double b = doc.child("Rob").child("RSol").attribute("B").as_double();
                 double c = doc.child("Rob").child("RSol").attribute("C").as_double();
+                //std::cout << "Plida: " << x << ","<< y << "," << z <<","<<a<<","<<b<<","<<c<<std::endl;
+
                 mutexInfoRoboRecebe.lock();
                 infoRoboRecebe = InfoRobo(x, y, z, a, b, c);
                 mutexInfoRoboRecebe.unlock();
-                //std::cout << "RSOL: " << infoRoboRecebe.x << " " << infoRoboRecebe.y << " " << infoRoboRecebe.z << std::endl;
+
+                //std::cout << "RSOL: " << infoRoboRecebe.x << ","<< infoRoboRecebe.y << "," << infoRoboRecebe.z <<","<<infoRoboRecebe.a<<","<<infoRoboRecebe.b<<","<<infoRoboRecebe.c<<std::endl;
             }
             else
             {
@@ -130,8 +134,11 @@ void ConectRobo::IniciarLeitura()
         pthread_detach(tid);
 }
 
+
+
 void ConectRobo::RSI_XML(float x, float y, float z, float a, float b, float c, int mag, int change, int vel)
 {
+
     std::string IPOC;
     if (!mFilaIPOC.empty())
     {
@@ -170,8 +177,8 @@ void ConectRobo::RSI_XML(float x, float y, float z, float a, float b, float c, i
         if (resultado)
         {
             sendto(sockfd, RSI.c_str(), strlen(RSI.c_str()), 0, (struct sockaddr *)&cliaddr, len);
-            std::cout << "  IPOC enviado: " << IPOC << std::endl;
-            std::cout << "  Resposta RSI: " << std::endl << RSI << std::endl;
+            //std::cout << "  IPOC enviado: " << IPOC << std::endl;
+            //if ((a != 0.f)||(x != 0.f) )std::cout << "  Resposta RSI: " << std::endl << RSI << std::endl;
         }
         else
             std::cout << "  Resposta RSI [" << std::endl << RSI << std::endl << "] com erro: " << resultado.description() << std::endl;

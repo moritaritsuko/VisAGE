@@ -213,9 +213,9 @@ static bool runAndSave(const string& outputFilename,
     FileStorage fsC("MatCam.xml", FileStorage::WRITE);
     fsC<<"MatCam"<< cameraMatrix;
     FileStorage fsR("Rotacao.xml", FileStorage::WRITE);
-    fsR<<"Rotacao"<< rvecs[2];
+    fsR<<"Rotacao"<< rvecs;
     FileStorage fsT("Translacao.xml", FileStorage::WRITE);
-    fsT<<"Translacao"<< tvecs[2];
+    fsT<<"Translacao"<< tvecs;
 
     fsC.release();
     fsR.release();
@@ -434,7 +434,7 @@ calibrar:
 }
 
 
-void CalibraCam::Calibrar(Size boardSize, float tamQuad,  Mat *imgCamera,int n){
+void CalibraCam::Calibrar(Size boardSize, float tamQuad,  Mat *imgCamera, int n, std::string nomeArq){
 
 
     int flags = 0;
@@ -446,7 +446,7 @@ void CalibraCam::Calibrar(Size boardSize, float tamQuad,  Mat *imgCamera,int n){
     Size imageSize;
     float aspectRatio = 1.f;
     Mat cameraMatrix, distCoeffs;
-    const char* outputFilename = "out_camera_data.yml";
+    const char* outputFilename = nomeArq.data();
 
     int i;
     bool writeExtrinsics = false, writePoints = false;

@@ -38,8 +38,28 @@
 
 unsigned int l = 9, a = 6, c = 0, p = 6008, r = 99;
 float t = 25.4f;
-cv::Scalar corI[4] =    {cv::Scalar(20,20,90),   cv::Scalar(0,20,90),   cv::Scalar(30,20,90),  cv::Scalar(40,10,20)};
-cv::Scalar corF[4] =    {cv::Scalar(30,250,250), cv::Scalar(20,250,250), cv::Scalar(40,250,250), cv::Scalar(80,250,250)};
+//cv::Scalar corI[4] =    {cv::Scalar(30,20,90),   cv::Scalar(0,20,90),   cv::Scalar(40,20,90),  cv::Scalar(45,10,20)};
+//cv::Scalar corF[4] =    {cv::Scalar(40,250,250), cv::Scalar(20,250,250), cv::Scalar(50,250,250), cv::Scalar(80,250,250)};
+
+//cv::Scalar corI[4] =    {cv::Scalar(20,20,90),   cv::Scalar(0,20,90),   cv::Scalar(30,20,90),  cv::Scalar(45,10,20)};
+//cv::Scalar corF[4] =    {cv::Scalar(30,250,250), cv::Scalar(20,250,250), cv::Scalar(45,250,250), cv::Scalar(80,250,250)};
+
+//cv::Scalar corI[4] =    {cv::Scalar(20,20,90),   cv::Scalar(0,20,90),   cv::Scalar(35,20,90),  cv::Scalar(45,10,20)};
+//cv::Scalar corF[4] =    {cv::Scalar(35,250,250), cv::Scalar(20,250,250), cv::Scalar(45,250,250), cv::Scalar(80,250,250)};
+
+cv::Scalar corI[4] =    {cv::Scalar(12,20,90),   cv::Scalar(0,20,90),   cv::Scalar(25,20,90),  cv::Scalar(33,10,30)};
+cv::Scalar corF[4] =    {cv::Scalar(28,250,250), cv::Scalar(20,250,250), cv::Scalar(45,250,250), cv::Scalar(80,250,250)};
+
+double vMatRC[4][4] = {{1 ,0 ,0, 2600 },
+                       {0 ,0 ,1,-3050 },
+                       {0 ,-1,0, 1185 },
+                       {0 ,0 ,0, 1    }};
+
+double vMarRotRC[3][3] = {{1 ,0 ,0},
+                          {0 ,0 ,1},
+                          {0 ,-1,0}};
+
+cv::Mat pt;
 
 Programa prog(l, a, t, c, p);
 StereoCameras stereoCameras;
@@ -85,9 +105,9 @@ cv::Mat imageIVison(int ganho = 32,int ganhoAn = 8,int exp = 3840, int offS = 28
 
         cv::FileStorage fs("image.yml", cv::FileStorage::WRITE);
 
-            fs << "image" << image ;
+        fs << "image" << image ;
 
-            fs.release();
+        fs.release();
 
 
         cv::Mat bayer8BitMat;
@@ -146,66 +166,42 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_btnRodar_clicked()
 {
-    prog.IniciarCaptura();
 
-    /*struct sched_param sched;
+    //cv::Mat_<cv::Vec3b> img= imageIVison(ui->spinBoxGain->value(),ui->spinBoxGainAn->value(),ui->spinBoxExp->value(),ui->spinBoxOffS->value());
 
-    if(sched_getparam(0,&sched)==-1)
-                perror("Falha em sched_getparam");
+    cv::Mat pc = cv::Mat(4,1,CV_64F);
+    pc.at<double>(0,0) = pt.at<double>(0,0);
+    pc.at<double>(1,0) = pt.at<double>(1,0);
+    pc.at<double>(2,0) = pt.at<double>(2,0);
+    pc.at<double>(3,0) = 1.f;
 
-    sched.sched_priority = r;
+    std::cout<<"Ponto Câmera: "<<pc<<std::endl;
 
-    // int sched_setscheduler(pid_t pid, int policy, const struct  sched_param *p);
-    if (sched_setscheduler(0, SCHED_FIFO, &sched) == -1)
-    {
-        perror("Falha em sched_setscheduler");
-        exit(0);
-    }
+    cv::Mat matRC = cv::Mat(4,4,CV_64F,vMatRC);
 
-    if (sched_getparam(0, &sched) == -1)
-        perror("Falha em sched_getparam");
+    cv::Mat pr = matRC*pc;
 
-    switch (sched_getscheduler(0))
-    {
-        case SCHED_FIFO:
-                printf("\nScheduler: SCHED_FIFO. Priority: %d\n",sched.sched_priority);
-                break;
-        case SCHED_RR:
-                printf("\nScheduler: SCHED_RR. Priority: %d\n",sched.sched_priority);
-                break;
-        case SCHED_OTHER:
-                printf("\nScheduler: SCHED_OTHER. Priority: %d\n",sched.sched_priority);
-                break;
-    }*/
+    std::cout<<"Ponto Robô: "<<pr<<std::endl;
 
-    try
-    {
+    cv::Mat rotCam = prog.mMensurium.placa[0].marco[0].getOrientacao();
 
-        cv::Mat imgMat;
-        prog.mAproximando = false;
-        while(true){
-            prog.executar(imgMat);
-            //cv::imshow("img",imgMat);
-            cv::waitKey(3);
-            if (!imgMat.empty()){
-                cv::cvtColor(imgMat,imgMat,cv::COLOR_BGR2RGB);
+    std::cout<<"Roração Câmera: "<<(180/CV_PI)*rotCam<<std::endl;
 
-                //cv::resize(imgMat,imgMat,cv::Size(imgMat.cols/3,imgMat.rows/3),0,0,cv::INTER_LINEAR);
+    cv::Mat matRotRC = cv::Mat(3,3,CV_64F,vMarRotRC);
+    cv::Mat rotR = matRotRC*rotCam;
 
-                QImage image = QImage((uint8_t*) imgMat.data,imgMat.cols,imgMat.rows,imgMat.step,QImage::Format_RGB888);
+    std::cout<<"Roração Robô: "<<(180/CV_PI)*rotR<<std::endl;
 
-                QPixmap pixma = QPixmap::fromImage(image);
+    //bool resp = true;
+    //while(resp){
+    //    resp = prog.PosPixel(true);
+    //    std::cout<<"Resp= "<<resp<<std::endl;
+    //    prog.mMensurium.Rodar("PosPix",img);
+    //}
 
-                ui->lblExibirIMG->setPixmap(pixma);
+    std::cout<<"FIM PROCESSO!!"<<std::endl;
 
-                ui->lblExibirIMG->setFixedSize(pixma.size());
-            }
-        }
-    }
-    catch (std::exception& e)
-    {
-        std::cout << "EXCEPTION: " << e.what() << std::endl;
-    }
+    //prog.PosIV400();
 
 }
 
@@ -488,30 +484,9 @@ void MainWindow::on_btnSalvar_clicked()
 
 void MainWindow::on_btninVision_clicked()
 {
-    Camera camera(std::string("192.168.0.37"), 13000);
-    boost::asio::mutable_buffer imgBuffer = camera.capture();
-    size_t bufferSize = boost::asio::buffer_size(imgBuffer);
-    uint16_t* buffer = boost::asio::buffer_cast<uint16_t*>(imgBuffer);
-    size_t width = camera.getWidth();
-    size_t height = camera.getHeight();
-    std::ofstream imageOutputStream("outputImage.pgm");
-    imageOutputStream << "P2\n#Output\n" << width << " " << height << "\n4095\n";
-    for (int i = 0; i < height; i++)
-    {
-        for (int j = 0; j < width; j++)
-        {
-            uint16_t pixel = buffer[i*width+j];
-            imageOutputStream << pixel << " ";
-        }
-        imageOutputStream << "\n";
-    }
-    imageOutputStream.close();
-}
-
-void MainWindow::on_btnIV_2_clicked()
-{
-do{
-    cv::Mat_<cv::Vec3b> imageToShow = imageIVison(ui->spinBoxGain->value(),ui->spinBoxGainAn->value(),ui->spinBoxExp->value(),ui->spinBoxOffS->value());
+    cv::Mat imageToShow;
+    do{
+        imageToShow  = imageIVison(ui->spinBoxGain->value(),ui->spinBoxGainAn->value(),ui->spinBoxExp->value(),ui->spinBoxOffS->value());
 
         if (!imageToShow.empty())
         {
@@ -521,69 +496,16 @@ do{
             cv::Mat pbHSV;
             cv::cvtColor(imageToShow,imgPB,CV_BGR2GRAY);
 
-            //cv::cvtColor(imageToShow,imgHSV,CV_BGR2HSV);
-            //cv::inRange(imgHSV,cv::Scalar(0,0,0),cv::Scalar(255,100,50),pbHSV);
-            //cv::threshold(pbHSV,pbHSV,5,255 , CV_THRESH_BINARY_INV);// 3 = 70 =72
-            cv::adaptiveThreshold(imgPB,pbHSV,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,121,17);
-
-
-            cv::resize(pbHSV,pbHSV,cv::Size(imgPB.cols/4,imgPB.rows/4));
-
-            cv::imshow("pbHSV", pbHSV);
-
-            CvMat** trans;
-
             cv::Mat imgSaida;
             imageToShow.copyTo(imgSaida);
 
-            //prog.mMensurium.AcharTabs(imageToShow,4,trans,0,imgSaida);
 
             prog.mMensurium.Rodar("SaidaMe",imgSaida);
 
-            //Se possuir interface grafica
-            cv::resize(imgSaida,imgSaida,cv::Size(imgSaida.cols/4,imgSaida.rows/4));
-            cv::namedWindow("imgSaida");
-            cv::imshow("imgSaida", imgSaida);
-            if(ui->checkBoxSalIV->isChecked()) cv::imwrite("saida.jpg",imageToShow);
+            //cv::Mat ptC = prog.mMensurium.placa[0].marco[0].getPosicaoMONO();
+            //ptC.copyTo(pt);
 
-            zbar::ImageScanner scanner;
-            scanner.set_config(zbar::ZBAR_NONE, zbar::ZBAR_CFG_ENABLE, 1);
-
-            cv::Mat grey;
-            cv::cvtColor(imageToShow,grey,CV_BGR2GRAY);
-            int width = imageToShow.cols;
-            int height = imageToShow.rows;
-            uchar *raw = (uchar *)grey.data;
-            // wrap image data
-            zbar::Image image(width, height, "Y800", raw, width * height);
-            // scan the image for barcodes
-            int n = scanner.scan(image);
-
-            // extract results
-            if (n != 0)
-            {
-                for(zbar::Image::SymbolIterator symbol = image.symbol_begin();
-                symbol != image.symbol_end();
-                ++symbol)
-                {
-                    std::vector<cv::Point> vp;
-                // do something useful with results
-                std::cout << "decoded " << symbol->get_type_name() << " symbol \"" << symbol->get_data() << '"' <<" "<< std::endl;
-                  int n = symbol->get_location_size();
-                  for(int i=0;i<n;i++)
-                  {
-                    vp.push_back(cv::Point(symbol->get_location_x(i),symbol->get_location_y(i)));
-                  }
-                  cv::RotatedRect r = cv::minAreaRect(vp);
-                         cv::Point2f pts[4];
-                         r.points(pts);
-                         for(int i=0;i<4;i++){
-                           cv::line(imageToShow,pts[i],pts[(i+1)%4],cv::Scalar(255,0,0),3);
-                         }
-                         //cout<<"Angle: "<<r.angle<<endl;
-                 }
-            }
-            else std::cout << "Nada encontrado" << std::endl;
+            //std::cout << "Ponto: "<< pt << std::endl;
 
 
             cv::waitKey(50);
@@ -592,7 +514,124 @@ do{
         {
             std::cout << "Imagem vazia." << std::endl;
         }
+        cv::waitKey(50);
     }while (ui->checkBoxContIV->isChecked());
+
+}
+
+void MainWindow::on_btnIV_2_clicked()
+{
+    cv::Mat_<cv::Vec3b> imageToShow;
+    bool qrFromCamera = false;
+    if (qrFromCamera)
+    {
+        imageToShow  = imageIVison(ui->spinBoxGain->value(),ui->spinBoxGainAn->value(),ui->spinBoxExp->value(),ui->spinBoxOffS->value());
+    }
+    else
+
+        if (!imageToShow.empty())
+        {
+
+
+            //            //Se possuir interface grafica
+            //            cv::resize(imgSaida,imgSaida,cv::Size(imgSaida.cols/4,imgSaida.rows/4));
+            //            cv::namedWindow("imgSaida");
+            //            cv::imshow("imgSaida", imgSaida);
+            //            if(ui->checkBoxSalIV->isChecked()) cv::imwrite("saida.jpg",imageToShow);
+
+            //            zbar::ImageScanner scanner;
+            //            scanner.set_config(zbar::ZBAR_NONE, zbar::ZBAR_CFG_ENABLE, 1);
+
+            //            cv::Mat grey;
+            //            cv::cvtColor(imageToShow,grey,CV_BGR2GRAY);
+            //            int width = imageToShow.cols;
+            //            int height = imageToShow.rows;
+            //            uchar *raw = (uchar *)grey.data;
+            //             //wrap image data
+            //            zbar::Image image(width, height, "Y800", raw, width * height);
+            //             //scan the image for barcodes
+            //            int n = scanner.scan(image);
+
+            //            // extract results
+            //            if (n != 0)
+            //            {
+            //                for(zbar::Image::SymbolIterator symbol = image.symbol_begin();
+            //                symbol != image.symbol_end();
+            //                ++symbol)
+            //                {
+            //                    std::vector<cv::Point> vp;
+            //                // do something useful with results
+            //                std::cout << "decoded " << symbol->get_type_name() << " symbol \"" << symbol->get_data() << '"' <<" "<< std::endl;
+            //                  int n = symbol->get_location_size();
+            //                  for(int i=0;i<n;i++)
+            //                  {
+            //                    vp.push_back(cv::Point(symbol->get_location_x(i),symbol->get_location_y(i)));
+            //                  }
+            //                  cv::RotatedRect r = cv::minAreaRect(vp);
+            //                         cv::Point2f pts[4];
+            //                         r.points(pts);
+            //                         for(int i=0;i<4;i++){
+            //                           cv::line(imageToShow,pts[i],pts[(i+1)%4],cv::Scalar(255,0,0),3);
+            //                         }
+            //                         //cout<<"Angle: "<<r.angle<<endl;
+            //                 }
+            //            }
+            //            else std::cout << "Nada encontrado" << std::endl;
+
+
+            cv::waitKey(50);
+        }
+        else
+        {
+            std::cout << "Imagem vazia." << std::endl;
+
+            if (!qrFromCamera)
+            {
+                zbar::ImageScanner scanner;
+                scanner.set_config(zbar::ZBAR_NONE, zbar::ZBAR_CFG_ENABLE, 1);
+
+                cv::Mat grey;
+                cv::Mat qr = cv::imread("/home/lam/Pictures/qr7.jpg");
+                cv::cvtColor(qr,grey,CV_BGR2GRAY);
+                int width = qr.cols;
+                int height = qr.rows;
+                uchar *raw = (uchar *)grey.data;
+                // wrap image data
+                zbar::Image image(width, height, "Y800", raw, width * height);
+                // scan the image for barcodes
+                int n = scanner.scan(image);
+
+                // extract results
+                if (n != 0)
+                {
+                    for(zbar::Image::SymbolIterator symbol = image.symbol_begin();
+                        symbol != image.symbol_end();
+                        ++symbol)
+                    {
+                        std::vector<cv::Point> vp;
+                        // do something useful with results
+                        std::cout << "decoded " << symbol->get_type_name() << " symbol \"" << symbol->get_data() << '"' <<" "<< std::endl;
+                        int n = symbol->get_location_size();
+                        for(int i=0;i<n;i++)
+                        {
+                            vp.push_back(cv::Point(symbol->get_location_x(i),symbol->get_location_y(i)));
+                        }
+                        cv::RotatedRect r = cv::minAreaRect(vp);
+                        cv::Point2f pts[4];
+                        r.points(pts);
+                        for(int i=0;i<4;i++){
+                            cv::line(imageToShow,pts[i],pts[(i+1)%4],cv::Scalar(255,0,0),3);
+                        }
+                        //cout<<"Angle: "<<r.angle<<endl;
+                    }
+                }
+                else std::cout << "Nada encontrado" << std::endl;
+            }
+
+
+
+            cv::waitKey(50);
+        }
 
 
     std::cout << "IVISION: Finalizando Gigabit DevComm Test" << std::endl;
@@ -619,13 +658,62 @@ void MainWindow::on_btnTesteCor_clicked()
     QTime t;
     t.start();
     cv::Mat img;
-    if(ui->checkBoxVivo->isChecked()){ img = imageIVison();img20MP = img;}else{img = img20MP;} // If "Vivo" is checked, work with freshly captured image, otherwise work from previous capture
+    if(ui->checkBoxVivo->isChecked()){ img =imageIVison(ui->spinBoxGain->value(),ui->spinBoxGainAn->value(),ui->spinBoxExp->value(),ui->spinBoxOffS->value());img20MP = img;}else{img = img20MP;} // If "Vivo" is checked, work with freshly captured image, otherwise work from previous capture
     std::cout<<"Tempo de aquisição: "<<t.restart()<<std::endl;
 
     if(!img.empty()){
 
+        //                    cv::Mat bgr_image = img;
+        //                    cv::Mat lab_image;
+        //                    cv::cvtColor(bgr_image, lab_image, CV_BGR2Lab);
+
+        //                    // Extract the L channel
+        //                    std::vector<cv::Mat> lab_planes(3);
+        //                    cv::split(lab_image, lab_planes);  // now we have the L image in lab_planes[0]
+
+        //                    // apply the CLAHE algorithm to the L channel
+        //                    cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE();
+        //                    clahe->setClipLimit(4);
+        //                    cv::Mat dst;
+        //                    clahe->apply(lab_planes[0], dst);
+
+        //                    // Merge the the color planes back into an Lab image
+        //                    dst.copyTo(lab_planes[0]);
+        //                    cv::merge(lab_planes, lab_image);
+
+        //                   // convert back to RGB
+        //                   cv::Mat image_clahe;
+        //                   cv::cvtColor(lab_image, image_clahe, CV_Lab2BGR);
+
+
+        std::vector<cv::Mat> channels;
+        cv::Mat img_hist_equalized;
+
+        cv::cvtColor(img, img_hist_equalized, CV_BGR2YCrCb); //change the color image from BGR to YCrCb format
+
+        cv::split(img_hist_equalized,channels); //split the image into channels
+
+        cv::equalizeHist(channels[0], channels[0]); //equalize histogram on the 1st channel (Y)
+
+        cv::merge(channels,img_hist_equalized); //merge 3 channels including the modified 1st channel into one image
+
+        cv::cvtColor(img_hist_equalized, img_hist_equalized, CV_YCrCb2BGR); //change the color image from YCrCb to BGR format (to display image properly)
+
+        //create windows
+        cv::namedWindow("Original Image", CV_WINDOW_AUTOSIZE);
+        cv::namedWindow("Histogram Equalized", CV_WINDOW_AUTOSIZE);
+
+        cv::resize(img_hist_equalized,img_hist_equalized,cv::Size(img_hist_equalized.cols/4,img_hist_equalized.rows/4));
+        cv::imshow("Histogram Equalized", img_hist_equalized);
+
+        cv::waitKey(0); //wait for key press
+
+
+
+
         cv::Mat matHSV(img.rows,img.cols,img.type());
         cv::cvtColor(img,matHSV,CV_BGR2HSV); //Image conversion from GBR to HSV space
+        //image_clahe.copyTo(matHSV);
 
         cv::Scalar corIl(ui->horizontalSlider_H->value()  ,ui->horizontalSlider_S->value()  ,ui->horizontalSlider_V->value()); // Lower color bounds acquired from sliders
         cv::Scalar corFl(ui->horizontalSlider_H_f->value(),ui->horizontalSlider_S_f->value(),ui->horizontalSlider_V_f->value()); // Upper color bounds acquired from sliders
@@ -633,8 +721,10 @@ void MainWindow::on_btnTesteCor_clicked()
         cv::Mat matTh(img.rows,img.cols,CV_8UC1); // Container for output image
         cv::inRange(matHSV,corIl,corFl,matTh); // Output image generated for ranges given
 
+
         cv::resize(img,img,cv::Size(img.cols/4,img.rows/4)); //Image is resized to permitted dimensions
         cv::resize(matTh,matTh,cv::Size(matTh.cols/4,matTh.rows/4));
+        //cv::resize(image_clahe,image_clahe,cv::Size(image_clahe.cols/4,image_clahe.rows/4));
 
         if(ui->radioButton_Y->isChecked()){
             prog.mMensurium.setarCores(corIl,corFl,0);
@@ -656,6 +746,7 @@ void MainWindow::on_btnTesteCor_clicked()
 
         cv::imshow("img",img);
         cv::imshow("matTh",matTh);
+       // cv::imshow("imgCorP",image_clahe);
     }
     else {
         std::cout << "Imagem vazia." << std::endl;
@@ -757,6 +848,7 @@ void MainWindow::on_btnCapIV_clicked()
 void MainWindow::on_vtnCalibIV_clicked()
 {
     std::vector<cv::Mat>imgsIV;
+    int nImg = 0;
 
 capImg:
     cv::Mat img = imageIVison(ui->spinBoxGain->value(),ui->spinBoxGainAn->value(),ui->spinBoxExp->value(),ui->spinBoxOffS->value());
@@ -790,6 +882,12 @@ capImg:
 
     QMessageBox msgBoxCal;
     msgBoxCal.setText("Imagem Salva!");
+    std::string nomeImg = "img";
+    std::string ter = ".png";
+    nomeImg = nomeImg+std::to_string(nImg)+ter;
+    cv::imwrite(nomeImg,img);
+    nImg++;
+    std::cout<<nomeImg<<std::endl;
     msgBoxCal.setInformativeText("Calibrar?");
     msgBoxCal.setStandardButtons(QMessageBox::Yes | QMessageBox::No|QMessageBox::Abort);
     msgBoxCal.setDefaultButton(QMessageBox::No);
@@ -797,16 +895,16 @@ capImg:
 
     if(respCal == QMessageBox::Yes){
         CalibraCam calibrador;
-        calibrador.Calibrar(cv::Size(6,9),2.4,imgsIV.data(),imgsIV.size());
+        calibrador.Calibrar(cv::Size(6,9),2.4,imgsIV.data(),imgsIV.size(),"Cal.yml");
     }
 
-     if(respCal == QMessageBox::No)   goto capImg;
+    if(respCal == QMessageBox::No)   goto capImg;
 
-      QMessageBox msgBoxFim;
-      msgBoxFim.setText("FIM!");
-      msgBoxFim.setInformativeText("Processo Terminado!");
-      msgBoxFim.setStandardButtons(QMessageBox::Ok);
-      msgBoxFim.exec();
+    QMessageBox msgBoxFim;
+    msgBoxFim.setText("FIM!");
+    msgBoxFim.setInformativeText("Processo Terminado!");
+    msgBoxFim.setStandardButtons(QMessageBox::Ok);
+    msgBoxFim.exec();
 
 
 }
