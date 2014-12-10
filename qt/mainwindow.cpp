@@ -427,7 +427,10 @@ void MainWindow::on_btnCaptura_clicked()
 
 void MainWindow::on_btnCapturaMono_clicked()
 {
-    prog.IniciarCaptura();
+    cv::Mat imagem = prog.capturarMat(0);
+    cv::waitKey(30);
+    cv::imshow("teste", imagem);
+    //prog.IniciarCaptura();
 
     //prog.getImgCamMono();
 

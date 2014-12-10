@@ -25,22 +25,21 @@ public:
 
 public:
     void                        exec();
+    void                        execMat();
     Photo*                      getPhoto();
     void                        capture();
     void                        stop();
     void                        startDisplayCapture();
-    void                        showDisplayCapture();
     bool                        isGrabbing();
     std::string                 getName();
-
+    cv::Mat                     matCapture();
 
 private:
     void*                       displayCapture(void);
     static void*                callDisplayCapture(void *arg){return ((CameraBasler*)arg)->displayCapture();}
 
-
 private:
-    bool                        attachDevice(std::string ip);
+    bool                        attachDevice();
     void                        registerCameraCapture(Photo* PhotoPtr);
     cv::Mat CM1 = cv::Mat(3, 3, CV_64FC1);
     cv::Mat CM2 = cv::Mat(3, 3, CV_64FC1);
@@ -57,7 +56,9 @@ private:
     Pylon::DeviceInfoList_t                     mDevices;
     Pylon::CInstantCamera                       mCamera;
     std::string                                 mCameraName;
+    std::string                                 mCameraIp;
     std::mutex                                  mDisplayCaptureMutex;
+    std::mutex                                  mMatCaptureMutex;
 };
 
 class CameraCaptureMono : public Pylon::CImageEventHandler

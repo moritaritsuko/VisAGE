@@ -17,9 +17,11 @@ CameraBasler::CameraBasler(std::string ip)
     , mDevices()
     , mCamera()
     , mCameraName()
+    , mCameraIp(ip)
     , mDisplayCaptureMutex()
+    , mMatCaptureMutex()
 {
-    if (!attachDevice(ip))
+    if (!attachDevice())
         std::cout << "AVISO: Câmera não foi encontrada." << std::endl;
 }
 
@@ -36,12 +38,24 @@ void CameraBasler::exec()
     }
 }
 
+void CameraBasler::execMat()
+{
+    mCamera.Open();
+    if (mCamera.IsOpen())
+    {
+        auto Photo = mPhotoPtr.get();
+        registerCameraCapture(Photo);
+        // Cameras Synchronization: Round-Robin Strategy
+        mCamera.StartGrabbing(Pylon::GrabStrategy_UpcomingImage);
+    }
+}
+
 CameraBasler::Photo* CameraBasler::getPhoto()
 {
     return mPhotoPtr.get();
 }
 
-bool CameraBasler::attachDevice(std::string ip)
+bool CameraBasler::attachDevice()
 {
     if (mTransportLayerFactory.EnumerateDevices(mDevices) == 0)
         return false;
@@ -173,6 +187,20 @@ void *CameraBasler::displayCapture(void)
             cv::resize(photo,photo,cv::Size(photo.cols/3,photo.rows/3));
             cv::imshow(mCameraName, photo);
         }
+    }
+}
+
+cv::Mat CameraBasler::matCapture()
+{
+    if (mCamera.IsGrabbing())
+    {
+        mMatCaptureMutex.lock();
+        capture();
+        mMatCaptureMutex.unlock();
+        auto photo = getPhoto()->mat;
+
+        if (!photo.empty())
+            return photo;
     }
 }
 

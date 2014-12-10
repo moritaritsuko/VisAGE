@@ -726,7 +726,7 @@ int  mensuriumAGE::AcharTabs(cv::Mat img, int n, int npl, cv::Mat imgDes){
     //    cv::waitKey(0);
     cv::equalizeHist( cinza, cinza );
 
-    cv::adaptiveThreshold(cinza,pb,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,81,-17);//81,-17 ; 201,-20
+    cv::adaptiveThreshold(cinza,pb,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,201,-20);//81,-17 ; 201,-20
     //cv::imshow("pb",pb);
     //cv::waitKey();
     int nAchado = 0;

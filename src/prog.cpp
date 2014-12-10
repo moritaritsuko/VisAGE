@@ -187,7 +187,7 @@ std::mutex mutexImg;
 cv::Mat imgCamT;
 bool imgOk = false;
 
-void ImgCapMonoT(){
+cv::Mat ImgCapMonoT(){
 
     static const uint32_t c_countOfImagesToGrab = 2;
     Pylon::PylonAutoInitTerm autoInitTerm;
@@ -201,7 +201,7 @@ void ImgCapMonoT(){
     camera.StartGrabbing( c_countOfImagesToGrab);
 
     Pylon::CGrabResultPtr ptrGrabResult;
-while(true){
+//while(true){
 
    //std::cout<<"Adquirindo IMG..."<<std::endl;
     while ( camera.IsGrabbing())
@@ -226,9 +226,13 @@ while(true){
 
     //std::cout<<"Liberando leitura!"<<std::endl;
     imgOk = true;
-}
+
+
+//}
 
 camera.StopGrabbing();
+
+return imgCamT;
 
 }
 
@@ -294,15 +298,21 @@ void Programa::Manipular(){
     }*/
 
 
-   std::thread thImg(ImgCapMonoT);
+   //std::thread thImg(ImgCapMonoT);
+
+   //imgCamT = capturarMat(0);
+
+
 
 
     while(true){
 
 
-        while (!imgOk) {
+        //while (!imgOk) {
             //std::cout<<"Aguardando IMG"<<std::endl;
-        }
+        //}
+
+        imgCamT = capturarMat(0);
         std::cout<<"Exibindo..."<<std::endl;
         cv::imshow("imgCamT",imgCamT);
         cv::waitKey(20);
@@ -312,51 +322,51 @@ void Programa::Manipular(){
         imgOk = false;
         mMensurium.PosGarra(img,4);
 
-        int setX = 1325;
-        int setY = 1090;
+//        int setX = 1325;
+//        int setY = 1090;
 
 
-        double vel = 75.f;
-        xRSI = 3.f;
-        yRSI = 3.f;
+//        double vel = 75.f;
+//        xRSI = 3.f;
+//        yRSI = 3.f;
 
-        mMensurium.placa[0].CalcentroPlaca();
-        cv::circle(img,mMensurium.placa[0].getPosCentroImg(),10,cv::Scalar(255,0,255),-1);
-        cv::putText(img, cv::format("Ponto: %i,%i", mMensurium.placa[0].getPosCentroImg().x,mMensurium.placa[0].getPosCentroImg().y), mMensurium.placa[0].getPosCentroImg(), 1, 3, cv::Scalar(255,0,255),3);
+//        mMensurium.placa[0].CalcentroPlaca();
+//        cv::circle(img,mMensurium.placa[0].getPosCentroImg(),10,cv::Scalar(255,0,255),-1);
+//        cv::putText(img, cv::format("Ponto: %i,%i", mMensurium.placa[0].getPosCentroImg().x,mMensurium.placa[0].getPosCentroImg().y), mMensurium.placa[0].getPosCentroImg(), 1, 3, cv::Scalar(255,0,255),3);
 
-        cv::circle(img,cv::Point(setX,setY),10,cv::Scalar(0,255,0),-1);
+//        cv::circle(img,cv::Point(setX,setY),10,cv::Scalar(0,255,0),-1);
 
-        cv::line(img,cv::Point(setX,setY),mMensurium.placa[0].getPosCentroImg(),cv::Scalar(255,255,255),2);
+//        cv::line(img,cv::Point(setX,setY),mMensurium.placa[0].getPosCentroImg(),cv::Scalar(255,255,255),2);
 
-        if(fabs(mMensurium.placa[0].getPosCentroImg().x-setX) > 1){
-            if((mMensurium.placa[0].getPosCentroImg().x-setX)>0){
-                conectRobo.mutexInfoRoboEnvia.lock();
-                conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(0, -yRSI,zRSI,aRSI,bRSI,cRSI,controleGAMAG,1,vel);
-                conectRobo.mutexInfoRoboEnvia.unlock();
-            }else{
-                conectRobo.mutexInfoRoboEnvia.lock();
-                conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(0, yRSI,zRSI,aRSI,bRSI,cRSI,controleGAMAG,1,vel);
-                conectRobo.mutexInfoRoboEnvia.unlock();
-            }
-        }else{
-            yRSI = 0.f;
-        }
+//        if(fabs(mMensurium.placa[0].getPosCentroImg().x-setX) > 1){
+//            if((mMensurium.placa[0].getPosCentroImg().x-setX)>0){
+//                conectRobo.mutexInfoRoboEnvia.lock();
+//                conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(0, -yRSI,zRSI,aRSI,bRSI,cRSI,controleGAMAG,1,vel);
+//                conectRobo.mutexInfoRoboEnvia.unlock();
+//            }else{
+//                conectRobo.mutexInfoRoboEnvia.lock();
+//                conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(0, yRSI,zRSI,aRSI,bRSI,cRSI,controleGAMAG,1,vel);
+//                conectRobo.mutexInfoRoboEnvia.unlock();
+//            }
+//        }else{
+//            yRSI = 0.f;
+//        }
 
-        if(fabs(mMensurium.placa[0].getPosCentroImg().y-setY) > 1){
-            if((mMensurium.placa[0].getPosCentroImg().y-setY)>0){
-                conectRobo.mutexInfoRoboEnvia.lock();
-                conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(-xRSI, 0,zRSI,aRSI,bRSI,cRSI,controleGAMAG,1,vel);
-                conectRobo.mutexInfoRoboEnvia.unlock();
-            }else{
-                conectRobo.mutexInfoRoboEnvia.lock();
-                conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(xRSI, 0,zRSI,aRSI,bRSI,cRSI,controleGAMAG,1,vel);
-                conectRobo.mutexInfoRoboEnvia.unlock();
-            }
-        }else{
-            xRSI  = -0.f;
-        }
+//        if(fabs(mMensurium.placa[0].getPosCentroImg().y-setY) > 1){
+//            if((mMensurium.placa[0].getPosCentroImg().y-setY)>0){
+//                conectRobo.mutexInfoRoboEnvia.lock();
+//                conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(-xRSI, 0,zRSI,aRSI,bRSI,cRSI,controleGAMAG,1,vel);
+//                conectRobo.mutexInfoRoboEnvia.unlock();
+//            }else{
+//                conectRobo.mutexInfoRoboEnvia.lock();
+//                conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(xRSI, 0,zRSI,aRSI,bRSI,cRSI,controleGAMAG,1,vel);
+//                conectRobo.mutexInfoRoboEnvia.unlock();
+//            }
+//        }else{
+//            xRSI  = -0.f;
+//        }
 
-        conectRobo.RSI_XML(xRSI, yRSI, zRSI,aRSI,bRSI,cRSI);
+//        conectRobo.RSI_XML(xRSI, yRSI, zRSI,aRSI,bRSI,cRSI);
 
         int fs = 3;
         if (!img.empty()){
@@ -826,4 +836,15 @@ bool Programa::PosPixel(bool temImg){
 CameraBasler* Programa::getCamera()
 {
     return mCameras[camera_index].get();
+}
+
+cv::Mat Programa::capturarMat(int camera)
+{
+    camera_index = camera;
+    auto cap = getCamera();
+    if (!cap->isGrabbing())
+        cap->execMat();
+    cv::Mat imagem = cap->matCapture();
+    if (!imagem.empty())
+        return imagem;
 }

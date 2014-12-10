@@ -24,6 +24,7 @@ class Programa
         void desativarGAMAG();
         void inic(unsigned int largura, unsigned int altura, float tamanho, unsigned int camera, unsigned int porta);
         void IniciarCaptura(int camera = 0);
+        cv::Mat capturarMat(int camera = 0);
         void CapturaCameraMono();
         void PosIV400();
         bool PosPixel(bool temImg = false);
