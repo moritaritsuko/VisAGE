@@ -821,32 +821,32 @@ int  mensuriumAGE::AcharTabs(cv::Mat img, int n, int npl, cv::Mat imgDes){
     try{
 
 
-        if(nAchado == n){
+//        if(nAchado == n){
 
-            std::vector<Marcador> marcoTmp(placa[npl].marco);
-            for(int io = 0;io<nAchado;io++){
-                if(marcoTmp[io].getCor() == 0){
-                    placa[npl].marco[0] = marcoTmp[io];
-                }
-                if(marcoTmp[io].getCor() == 1){
-                    placa[npl].marco[1] = marcoTmp[io];
-                }
-                if(marcoTmp[io].getCor() == 2){
-                    placa[npl].marco[2] = marcoTmp[io];
-                }
-                if(marcoTmp[io].getCor() == 3){
-                    placa[npl].marco[3] = marcoTmp[io];
-                }
-            }
-            std::cout<<"Medição:"<<nmed++<<std::endl;
-            std::cout<<"tvec 0"<<placa[npl].marco[0].getPosicaoMONO()<<" cor: "<<placa[npl].marco[0].getCor()<<std::endl;
-            std::cout<<"tvec 1"<<placa[npl].marco[1].getPosicaoMONO()<<" cor: "<<placa[npl].marco[1].getCor()<<std::endl;
-            std::cout<<"tvec 2"<<placa[npl].marco[2].getPosicaoMONO()<<" cor: "<<placa[npl].marco[2].getCor()<<std::endl;
-            std::cout<<"tvec 3"<<placa[npl].marco[3].getPosicaoMONO()<<" cor: "<<placa[npl].marco[3].getCor()<<std::endl;
+//            std::vector<Marcador> marcoTmp(placa[npl].marco);
+//            for(int io = 0;io<nAchado;io++){
+//                if(marcoTmp[io].getCor() == 0){
+//                    placa[npl].marco[0] = marcoTmp[io];
+//                }
+//                if(marcoTmp[io].getCor() == 1){
+//                    placa[npl].marco[1] = marcoTmp[io];
+//                }
+//                if(marcoTmp[io].getCor() == 2){
+//                    placa[npl].marco[2] = marcoTmp[io];
+//                }
+//                if(marcoTmp[io].getCor() == 3){
+//                    placa[npl].marco[3] = marcoTmp[io];
+//                }
+//            }
+//            std::cout<<"Medição:"<<nmed++<<std::endl;
+//            std::cout<<"tvec 0"<<placa[npl].marco[0].getPosicaoMONO()<<" cor: "<<placa[npl].marco[0].getCor()<<std::endl;
+//            std::cout<<"tvec 1"<<placa[npl].marco[1].getPosicaoMONO()<<" cor: "<<placa[npl].marco[1].getCor()<<std::endl;
+//            std::cout<<"tvec 2"<<placa[npl].marco[2].getPosicaoMONO()<<" cor: "<<placa[npl].marco[2].getCor()<<std::endl;
+//            std::cout<<"tvec 3"<<placa[npl].marco[3].getPosicaoMONO()<<" cor: "<<placa[npl].marco[3].getCor()<<std::endl;
 
-            Alinhar(imgDes);
-            Orientar(imgDes);
-        }
+//            Alinhar(imgDes);
+//            Orientar(imgDes);
+//        }
     }catch(int e){
         std::cout << "An exception occurred. Exception Nr. " << e << '\n';
     }

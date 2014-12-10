@@ -201,9 +201,9 @@ cv::Mat ImgCapMonoT(){
     camera.StartGrabbing( c_countOfImagesToGrab);
 
     Pylon::CGrabResultPtr ptrGrabResult;
-//while(true){
+    //while(true){
 
-   //std::cout<<"Adquirindo IMG..."<<std::endl;
+    //std::cout<<"Adquirindo IMG..."<<std::endl;
     while ( camera.IsGrabbing())
     {
         camera.RetrieveResult( 5000, ptrGrabResult, Pylon::TimeoutHandling_ThrowException);
@@ -215,10 +215,10 @@ cv::Mat ImgCapMonoT(){
     //std::cout<<"Convertendo IMG...!"<<std::endl;
     auto img = cv::Mat(ptrGrabResult->GetHeight(),ptrGrabResult->GetWidth(), CV_8UC1, ptrGrabResult->GetBuffer());
     cv::cvtColor(img, img, CV_BayerGB2RGB);
-        cv::Mat roi = img(cv::Rect(100, 100, 300, 300));
-        cv::Mat color(roi.size(), CV_8UC3, cv::Scalar(0, 0, 255));
-        double alpha = 0.3;
-        cv::addWeighted(color, alpha, roi, 1.0 - alpha , 0.0, roi);
+    cv::Mat roi = img(cv::Rect(100, 100, 300, 300));
+    cv::Mat color(roi.size(), CV_8UC3, cv::Scalar(0, 0, 255));
+    double alpha = 0.3;
+    cv::addWeighted(color, alpha, roi, 1.0 - alpha , 0.0, roi);
     img.copyTo(imgCamT);
     mutexImg.unlock();
 
@@ -228,11 +228,11 @@ cv::Mat ImgCapMonoT(){
     imgOk = true;
 
 
-//}
+    //}
 
-camera.StopGrabbing();
+    camera.StopGrabbing();
 
-return imgCamT;
+    return imgCamT;
 
 }
 
@@ -298,9 +298,9 @@ void Programa::Manipular(){
     }*/
 
 
-   //std::thread thImg(ImgCapMonoT);
+    //std::thread thImg(ImgCapMonoT);
 
-   //imgCamT = capturarMat(0);
+    //imgCamT = capturarMat(0);
 
 
 
@@ -309,71 +309,58 @@ void Programa::Manipular(){
 
 
         //while (!imgOk) {
-            //std::cout<<"Aguardando IMG"<<std::endl;
+        //std::cout<<"Aguardando IMG"<<std::endl;
         //}
 
         imgCamT = capturarMat(0);
-        std::cout<<"Exibindo..."<<std::endl;
-        cv::imshow("imgCamT",imgCamT);
-        cv::waitKey(20);
 
         cv::Mat img;
         imgCamT.copyTo(img);
         imgOk = false;
         mMensurium.PosGarra(img,4);
 
-//        int setX = 1325;
-//        int setY = 1090;
+        int setX = 1325;
+        int setY = 1090;
 
 
-//        double vel = 75.f;
-//        xRSI = 3.f;
-//        yRSI = 3.f;
+        double vel = 3.f;
+        xRSI = 3.f;
+        yRSI = 3.f;
 
-//        mMensurium.placa[0].CalcentroPlaca();
-//        cv::circle(img,mMensurium.placa[0].getPosCentroImg(),10,cv::Scalar(255,0,255),-1);
-//        cv::putText(img, cv::format("Ponto: %i,%i", mMensurium.placa[0].getPosCentroImg().x,mMensurium.placa[0].getPosCentroImg().y), mMensurium.placa[0].getPosCentroImg(), 1, 3, cv::Scalar(255,0,255),3);
+        mMensurium.placa[0].CalcentroPlaca();
+        cv::circle(img,mMensurium.placa[0].getPosCentroImg(),10,cv::Scalar(255,0,255),-1);
+        cv::putText(img, cv::format("Ponto: %i,%i", mMensurium.placa[0].getPosCentroImg().x,mMensurium.placa[0].getPosCentroImg().y), mMensurium.placa[0].getPosCentroImg(), 1, 3, cv::Scalar(255,0,255),3);
 
-//        cv::circle(img,cv::Point(setX,setY),10,cv::Scalar(0,255,0),-1);
+        cv::circle(img,cv::Point(setX,setY),10,cv::Scalar(0,255,0),-1);
 
-//        cv::line(img,cv::Point(setX,setY),mMensurium.placa[0].getPosCentroImg(),cv::Scalar(255,255,255),2);
+        cv::line(img,cv::Point(setX,setY),mMensurium.placa[0].getPosCentroImg(),cv::Scalar(255,255,255),2);
 
-//        if(fabs(mMensurium.placa[0].getPosCentroImg().x-setX) > 1){
-//            if((mMensurium.placa[0].getPosCentroImg().x-setX)>0){
-//                conectRobo.mutexInfoRoboEnvia.lock();
-//                conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(0, -yRSI,zRSI,aRSI,bRSI,cRSI,controleGAMAG,1,vel);
-//                conectRobo.mutexInfoRoboEnvia.unlock();
-//            }else{
-//                conectRobo.mutexInfoRoboEnvia.lock();
-//                conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(0, yRSI,zRSI,aRSI,bRSI,cRSI,controleGAMAG,1,vel);
-//                conectRobo.mutexInfoRoboEnvia.unlock();
-//            }
-//        }else{
-//            yRSI = 0.f;
-//        }
+        if(fabs(mMensurium.placa[0].getPosCentroImg().x-setX) > 1){
+            if((mMensurium.placa[0].getPosCentroImg().x-setX)>0){
+                yRSI = -yRSI;
+            }
+        }else{
+            yRSI = 0.f;
+        }
 
-//        if(fabs(mMensurium.placa[0].getPosCentroImg().y-setY) > 1){
-//            if((mMensurium.placa[0].getPosCentroImg().y-setY)>0){
-//                conectRobo.mutexInfoRoboEnvia.lock();
-//                conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(-xRSI, 0,zRSI,aRSI,bRSI,cRSI,controleGAMAG,1,vel);
-//                conectRobo.mutexInfoRoboEnvia.unlock();
-//            }else{
-//                conectRobo.mutexInfoRoboEnvia.lock();
-//                conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(xRSI, 0,zRSI,aRSI,bRSI,cRSI,controleGAMAG,1,vel);
-//                conectRobo.mutexInfoRoboEnvia.unlock();
-//            }
-//        }else{
-//            xRSI  = -0.f;
-//        }
+        if(fabs(mMensurium.placa[0].getPosCentroImg().y-setY) > 1){
+            if((mMensurium.placa[0].getPosCentroImg().y-setY)>0){
+                xRSI = -xRSI;
+            }
+        }else{
+            xRSI  = 0.f;
+        }
 
-//        conectRobo.RSI_XML(xRSI, yRSI, zRSI,aRSI,bRSI,cRSI);
+        conectRobo.mutexInfoRoboEnvia.lock();
+        conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(xRSI,yRSI,0,aRSI,bRSI,cRSI,controleGAMAG,1,vel);
+        conectRobo.mutexInfoRoboEnvia.unlock();
 
         int fs = 3;
         if (!img.empty()){
             cv::resize(img,img,cv::Size(img.cols/fs,img.rows/fs));
             cv::imshow("img",img);
         }
-        char tecla = cv::waitKey(30);
+        char tecla = cv::waitKey(10);
         if (tecla == 'q' )break;
     }
     //camera.StopGrabbing();
@@ -781,23 +768,23 @@ bool Programa::PosPixel(bool temImg){
         deltaA = fabs(angR-angA);
     }
 
-        float tamM0x = pD0[0].x-pD0[1].x;
-        float tamM2x = pD2[0].x-pD2[1].x;
+    float tamM0x = pD0[0].x-pD0[1].x;
+    float tamM2x = pD2[0].x-pD2[1].x;
 
-        float tamM0y = pD0[0].y-pD0[1].y;
-        float tamM2y = pD2[0].y-pD2[1].y;
+    float tamM0y = pD0[0].y-pD0[1].y;
+    float tamM2y = pD2[0].y-pD2[1].y;
 
-        std::cout<<"pD0[0]= "<<pD0[0].x<<" , "<<pD0[0].y<<std::endl;
-        std::cout<<"pD0[1]= "<<pD0[1].x<<" , "<<pD0[1].y<<std::endl;
-        std::cout<<"tamM0x= "<<tamM0x<<std::endl;
-        std::cout<<"tamM0y= "<<tamM0y<<std::endl;
-        std::cout<<"pD2[0]= "<<pD2[0].x<<" , "<<pD2[0].y<<std::endl;
-        std::cout<<"pD2[1]= "<<pD2[1].x<<" , "<<pD2[1].y<<std::endl;
-        std::cout<<"tamM2x= "<<tamM2x<<std::endl;
-        std::cout<<"tamM2y= "<<tamM2y<<std::endl;
+    std::cout<<"pD0[0]= "<<pD0[0].x<<" , "<<pD0[0].y<<std::endl;
+    std::cout<<"pD0[1]= "<<pD0[1].x<<" , "<<pD0[1].y<<std::endl;
+    std::cout<<"tamM0x= "<<tamM0x<<std::endl;
+    std::cout<<"tamM0y= "<<tamM0y<<std::endl;
+    std::cout<<"pD2[0]= "<<pD2[0].x<<" , "<<pD2[0].y<<std::endl;
+    std::cout<<"pD2[1]= "<<pD2[1].x<<" , "<<pD2[1].y<<std::endl;
+    std::cout<<"tamM2x= "<<tamM2x<<std::endl;
+    std::cout<<"tamM2y= "<<tamM2y<<std::endl;
 
-        std::cout<<"delta C= "<<fabs(tamM0x-tamM2x)<<std::endl;
-        std::cout<<"delta A= "<<fabs(tamM0y-tamM2y)<<std::endl;
+    std::cout<<"delta C= "<<fabs(tamM0x-tamM2x)<<std::endl;
+    std::cout<<"delta A= "<<fabs(tamM0y-tamM2y)<<std::endl;
 
     bool result = false;
     //    if(temImg){
