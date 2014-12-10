@@ -4,7 +4,7 @@
 #include <cstdlib>
 #include <cassert>
 #include <iostream>
-
+#include <chrono>
 #include <thread>
 
 
@@ -17,6 +17,7 @@ Programa::Programa(unsigned int l, unsigned int a, float t, std::vector<std::str
     , controleGAMAG(0)
     , mAproximando(false)
     , mCameras()
+    , camera_index(0)
 {    
     std::cout << "Largura: " << l << std::endl;
     std::cout << "Altura: " << a << std::endl;
@@ -303,64 +304,87 @@ void Programa::Manipular(){
     //imgCamT = capturarMat(0);
 
 
+    cv::Mat img;
+    int setX = 1325;
+    int setY = 1090;
+    double vel = 3.f;
 
+    typedef std::chrono::high_resolution_clock Clock;
+    typedef std::chrono::milliseconds milliseconds;
+    Clock::time_point timeImgStart;
+    Clock::time_point timeImgEnd;
+    milliseconds msImg;
+    Clock::time_point timeProcStart;
+    Clock::time_point timeProcEnd;
+    milliseconds msProc;
+
+    int fs = 3;
+    char tecla;
+
+    IniciarCaptura(0);
 
     while(true){
 
+        if (!filaImagens.empty()) {
+            //while (!imgOk) {
+            //std::cout<<"Aguardando IMG"<<std::endl;
+            //}
+            timeImgStart = Clock::now();
+            //imgCamT = capturarMat(0);
+            mutexImagem.lock();
+            imgCamT = filaImagens.back();
+            filaImagens.pop();
+            mutexImagem.unlock();
+            timeImgEnd = Clock::now();
+            msImg = std::chrono::duration_cast<milliseconds>(timeImgEnd - timeImgStart);
 
-        //while (!imgOk) {
-        //std::cout<<"Aguardando IMG"<<std::endl;
-        //}
+            imgCamT.copyTo(img);
+            imgOk = false;
+            timeProcStart = Clock::now();
+            mMensurium.PosGarra(img,4);
+            timeProcEnd = Clock::now();
+            msProc = std::chrono::duration_cast<milliseconds>(timeProcEnd - timeProcStart);
 
-        imgCamT = capturarMat(0);
+            xRSI = 3.f;
+            yRSI = 3.f;
 
-        cv::Mat img;
-        imgCamT.copyTo(img);
-        imgOk = false;
-        mMensurium.PosGarra(img,4);
+            mMensurium.placa[0].CalcentroPlaca();
+            cv::circle(img,mMensurium.placa[0].getPosCentroImg(),10,cv::Scalar(255,0,255),-1);
+            cv::putText(img, cv::format("Ponto: %i,%i", mMensurium.placa[0].getPosCentroImg().x,mMensurium.placa[0].getPosCentroImg().y), mMensurium.placa[0].getPosCentroImg(), 1, 3, cv::Scalar(255,0,255),3);
 
-        int setX = 1325;
-        int setY = 1090;
+            cv::circle(img,cv::Point(setX,setY),10,cv::Scalar(0,255,0),-1);
 
+            cv::line(img,cv::Point(setX,setY),mMensurium.placa[0].getPosCentroImg(),cv::Scalar(255,255,255),2);
 
-        double vel = 3.f;
-        xRSI = 3.f;
-        yRSI = 3.f;
-
-        mMensurium.placa[0].CalcentroPlaca();
-        cv::circle(img,mMensurium.placa[0].getPosCentroImg(),10,cv::Scalar(255,0,255),-1);
-        cv::putText(img, cv::format("Ponto: %i,%i", mMensurium.placa[0].getPosCentroImg().x,mMensurium.placa[0].getPosCentroImg().y), mMensurium.placa[0].getPosCentroImg(), 1, 3, cv::Scalar(255,0,255),3);
-
-        cv::circle(img,cv::Point(setX,setY),10,cv::Scalar(0,255,0),-1);
-
-        cv::line(img,cv::Point(setX,setY),mMensurium.placa[0].getPosCentroImg(),cv::Scalar(255,255,255),2);
-
-        if(fabs(mMensurium.placa[0].getPosCentroImg().x-setX) > 1){
-            if((mMensurium.placa[0].getPosCentroImg().x-setX)>0){
-                yRSI = -yRSI;
+            if(fabs(mMensurium.placa[0].getPosCentroImg().x-setX) > 1){
+                if((mMensurium.placa[0].getPosCentroImg().x-setX)>0){
+                    yRSI = -yRSI;
+                }
+            }else{
+                yRSI = 0.f;
             }
-        }else{
-            yRSI = 0.f;
-        }
 
-        if(fabs(mMensurium.placa[0].getPosCentroImg().y-setY) > 1){
-            if((mMensurium.placa[0].getPosCentroImg().y-setY)>0){
-                xRSI = -xRSI;
+            if(fabs(mMensurium.placa[0].getPosCentroImg().y-setY) > 1){
+                if((mMensurium.placa[0].getPosCentroImg().y-setY)>0){
+                    xRSI = -xRSI;
+                }
+            }else{
+                xRSI  = 0.f;
             }
-        }else{
-            xRSI  = 0.f;
-        }
 
-        conectRobo.mutexInfoRoboEnvia.lock();
-        conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(xRSI,yRSI,0,aRSI,bRSI,cRSI,controleGAMAG,1,vel);
-        conectRobo.mutexInfoRoboEnvia.unlock();
+            conectRobo.mutexInfoRoboEnvia.lock();
+            conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(xRSI,yRSI,0,aRSI,bRSI,cRSI,controleGAMAG,1,vel);
+            conectRobo.mutexInfoRoboEnvia.unlock();
 
-        int fs = 3;
-        if (!img.empty()){
-            cv::resize(img,img,cv::Size(img.cols/fs,img.rows/fs));
-            cv::imshow("img",img);
+            if (!img.empty()){
+                cv::resize(img,img,cv::Size(img.cols/fs,img.rows/fs));
+                cv::imshow("img",img);
+            }
+
+            std::cout << "Tempo Captura Imagem: " << msImg.count() << "ms" << std::endl;
+            std::cout << "Tempo Processamento: " << msProc.count() << "ms" << std::endl;
         }
-        char tecla = cv::waitKey(10);
+        tecla = cv::waitKey(10);
         if (tecla == 'q' )break;
     }
     //camera.StopGrabbing();
@@ -613,8 +637,6 @@ void Programa::IniciarCaptura(int camera)
     result = pthread_create(&tid, 0, Programa::chamarCapturarImagem, this);
     if (result == 0)
         pthread_detach(tid);
-
-    cv::waitKey(100);
 }
 
 cv::Mat Programa::getImgCamMono(int index){
@@ -637,27 +659,15 @@ void *Programa::CapturarImagem(void)
 {
     auto cap = getCamera();
     if (!cap->isGrabbing())
-        cap->exec();
+        cap->execMat();
     while (cap->isGrabbing())
     {
-        cv::Mat imagem = cap->getPhoto()->mat;
+        cv::Mat imagem = cap->matCapture();
         if (!imagem.empty())
         {
-            //Marcador marco;
-            //mMensurium.AcharCentro1Tab(imagem, marco, largura, altura, tamanho);
             mutexImagem.lock();
             filaImagens.push(imagem);
             mutexImagem.unlock();
-
-            //            if (marco.isValido())
-            //            {
-            //                mutexMarcador.lock();
-            //                if (filaMarcadores.size() > 10)
-            //                    while (!filaMarcadores.empty())
-            //                        filaMarcadores.pop();
-            //                filaMarcadores.push(marco);
-            //                mutexMarcador.unlock();
-            //            }
         }
     }
 }
