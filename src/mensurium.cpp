@@ -307,7 +307,11 @@ bool Marcador::VerificaCor(cv::Mat img, cv::Scalar cor, cv::Scalar deltaCor,int 
 
 int Marcador::VerificaCor(cv::Mat img, cv::Scalar cor[][2], cv::Scalar deltaCor[][2],int nCores){
 
+    std::cout<<"*************************************"<<std::endl;
+
     cv::Mat roi(img,cv::Rect(cv::Point(cantosDigonal[1].x,cantosDigonal[3].y),cv::Point(cantosDigonal[0].x,cantosDigonal[2].y)));
+    //cv::imshow("Cor",roi);
+    //cv::imwrite("CorHSV.png",roi);
 
     cv::Mat matHSV(roi.rows,roi.cols,roi.type());
     cv::cvtColor(roi,matHSV,CV_BGR2HSV);
@@ -319,15 +323,21 @@ int Marcador::VerificaCor(cv::Mat img, cv::Scalar cor[][2], cv::Scalar deltaCor[
         cv::Mat matTh(roi.rows,roi.cols,CV_8UC1);
         cv::inRange(matHSV,cor[i][0],deltaCor[i][1],matTh);
 
+        //cv::imshow("CorHSV"+std::to_string(i),matTh);
+
+
         int total = cv::countNonZero(matTh);
 
         if(total>contMax){
             index = i;
             contMax = total;
         }
+        std::cout<<"Total["<<i<<"]:"<<total<<std::endl;
     }
 
     this->cor = index;
+
+    //cv::waitKey();
 
     return index;
 
@@ -409,15 +419,17 @@ void Marcador::IdentQRCode(cv::Mat src, int deltaVan){
             cv::Point2f pts[4];
             r.points(pts);
             for(int i=0;i<4;i++){
-                cv::line(roi,pts[i],pts[(i+1)%4],cv::Scalar(255,0,0),1);
+                cv::line(roi,pts[i],pts[(i+1)%4],cv::Scalar(255,0,0),3);
             }
             std::cout<<"Angle: "<<r.angle<<std::endl;
+            cv::putText( roi,symbol->get_data(), cv::Point(symbol->get_location_x(2),symbol->get_location_y(2))+cv::Point(-400,-10), 1,1,cv::Scalar(0,255,255),2);
         }
     }else{
         std::cout<<"QR NÃO ENCONTRADO!"<<std::endl;
     }
-    //cv::imshow("QRimgPos",qr);
-    //cv::waitKey();
+    cv::imshow("QRimgPos",qr);
+    cv::imwrite("SaidaQR_Azul.png",qr);
+    cv::waitKey();
 }
 
 
@@ -465,7 +477,7 @@ void Marcador::AcharCantoProx(cv::Mat src, int deltaVan,cv::Mat imgDes){
 
         cv::inRange(matHSV,cv::Scalar(0,0,30),cv::Scalar(250,250,60),matHSVTH);
 
-            cv::imshow("matHSVTH",matHSVTH);
+        cv::imshow("matHSVTH",matHSVTH);
 
         cv::blur(matHSVTH,matHSVTH,cv::Size(5,5));
 
@@ -475,7 +487,7 @@ void Marcador::AcharCantoProx(cv::Mat src, int deltaVan,cv::Mat imgDes){
 
         cv::erode(matHSVTH,matHSVTH,cv::Mat(),cv::Point(0,0),1);
 
-            cv::imshow("matHSVTHD",matHSVTH);
+        cv::imshow("matHSVTHD",matHSVTH);
 
         cv::Canny(matHSVTH,imgCanny,30,30);
 
@@ -489,7 +501,7 @@ void Marcador::AcharCantoProx(cv::Mat src, int deltaVan,cv::Mat imgDes){
     }
 
 
-        //cv::imshow("imgCanny",imgCanny);
+    //cv::imshow("imgCanny",imgCanny);
 
     std::vector<cv::Vec4i> lines;
     cv::HoughLinesP(imgCanny, lines, 1.3, CV_PI/180, 150, roi.cols/2, 50 );
@@ -498,7 +510,7 @@ void Marcador::AcharCantoProx(cv::Mat src, int deltaVan,cv::Mat imgDes){
         for( size_t i = j; i < lines.size(); i++ )
         {
             cv::Vec4i l = lines[i];
-                        //cv::line( roiDes, cv::Point(l[0], l[1]), cv::Point(l[2], l[3]), cv::Scalar(0,255,255), 1, CV_AA);
+            //cv::line( roiDes, cv::Point(l[0], l[1]), cv::Point(l[2], l[3]), cv::Scalar(0,255,255), 1, CV_AA);
             ptTmp[0] = cv::Point(lines[j][0], lines[j][1]);
             ptTmp[1] = cv::Point(lines[j][2], lines[j][3]);
             ptTmp[2] = cv::Point(lines[i][0], lines[i][1]);
@@ -531,7 +543,7 @@ void Marcador::AcharCantoProx(cv::Mat src, int deltaVan,cv::Mat imgDes){
 
             if(x>20 && x < votosCantos.cols-20 && y > 20 && y <votosCantos.rows-20){
                 cv::Point ip(x,y);
-                                //cv::circle(roiDes,ip,1,cv::Scalar(255,255,0),2);
+                //cv::circle(roiDes,ip,1,cv::Scalar(255,255,0),2);
                 votosCantos.at<double>(y,  x  ) += 2.f;
                 votosCantos.at<double>(y+1,x+1) += 1.f;
                 votosCantos.at<double>(y+1,x-1) += 1.f;
@@ -557,11 +569,11 @@ void Marcador::AcharCantoProx(cv::Mat src, int deltaVan,cv::Mat imgDes){
     cantoProximo = cv::Point(maxLoc.x+centroImg.x-deltaVan,maxLoc.y+centroImg.y-deltaVan);
 
 
-//                cv::imshow("cpyVotos",cpyVotos);
-//                cv::imshow("votosCantos",votosCantos);
+    //                cv::imshow("cpyVotos",cpyVotos);
+    //                cv::imshow("votosCantos",votosCantos);
 
-//                cv::imshow("roiDes",roiDes);
-//                cv::waitKey();
+    //                cv::imshow("roiDes",roiDes);
+    //                cv::waitKey();
 
 
 }
@@ -714,7 +726,9 @@ int  mensuriumAGE::AcharTabs(cv::Mat img, int n, int npl, cv::Mat imgDes){
     //    cv::waitKey(0);
     cv::equalizeHist( cinza, cinza );
 
-    cv::adaptiveThreshold(cinza,pb,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,81,17);
+    cv::adaptiveThreshold(cinza,pb,255,CV_ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY,81,-17);//81,-17 ; 201,-20
+    //cv::imshow("pb",pb);
+    //cv::waitKey();
     int nAchado = 0;
 
 
@@ -762,21 +776,21 @@ int  mensuriumAGE::AcharTabs(cv::Mat img, int n, int npl, cv::Mat imgDes){
             float dist = sqrt(tvec.at<double>(0,0)*tvec.at<double>(0,0)+tvec.at<double>(1,0)*tvec.at<double>(1,0)+tvec.at<double>(2,0)*tvec.at<double>(2,0));
             //std::cout<<"Desenhando na imagem de saida!"<<std::endl;
             if(!imgDes.empty()){
-                cv::putText( imgDes,cv::format("Dist: %f",dist), cv::Point(placa[npl].marco[i].getCentroImg().x,placa[npl].marco[i].getCentroImg().y)+cv::Point(-100,-50), 1, 3,cv::Scalar(255,0,255),3);
-//                cv::putText( imgDes,cv::format("Rot: %f,%f,%f",rvec.at<double>(0,0)*180.f/CV_PI,rvec.at<double>(1,0)*180.f/CV_PI,rvec.at<double>(2,0)*180.f/CV_PI),
-//                             cv::Point(placa[npl].marco[i].getCentroImg().x,placa[npl].marco[i].getCentroImg().y)+cv::Point(-100,-100), 1, 3,cv::Scalar(255,0,255),3);
-
-                cv::putText( imgDes,cv::format("Pos: %f,%f,%f",tvec.at<double>(0,0),tvec.at<double>(1,0),tvec.at<double>(2,0)),
+                //cv::putText( imgDes,cv::format("Dist: %f",dist), cv::Point(placa[npl].marco[i].getCentroImg().x,placa[npl].marco[i].getCentroImg().y)+cv::Point(-100,-50), 1, 3,cv::Scalar(255,0,255),3);
+                cv::putText( imgDes,cv::format("Rot: %f,%f,%f",rvec.at<double>(0,0)*180.f/CV_PI,rvec.at<double>(1,0)*180.f/CV_PI,rvec.at<double>(2,0)*180.f/CV_PI),
                              cv::Point(placa[npl].marco[i].getCentroImg().x,placa[npl].marco[i].getCentroImg().y)+cv::Point(-100,-100), 1, 3,cv::Scalar(255,0,255),3);
+
+                // cv::putText( imgDes,cv::format("Pos: %f,%f,%f",tvec.at<double>(0,0),tvec.at<double>(1,0),tvec.at<double>(2,0)),
+                //cv::Point(placa[npl].marco[i].getCentroImg().x,placa[npl].marco[i].getCentroImg().y)+cv::Point(-100,-100), 1, 3,cv::Scalar(255,0,255),3);
             }
 
-           // std::cout<<"Rastreando cor!"<<std::endl;
+            // std::cout<<"Rastreando cor!"<<std::endl;
 
             placa[npl].marco[i].VerificaCor(img,padCor,padCor,4);
 
-            placa[npl].marco[i].AcharCantoProx(img,200,imgDes);
+            //placa[npl].marco[i].AcharCantoProx(img,200,imgDes);
 
-            placa[npl].marco[i].IdentQRCode(img,500);
+            //placa[npl].marco[i].IdentQRCode(img,500);
 
 
             if(placa[npl].marco[i].getCor() == 0) cv::putText( imgDes,cv::format("Cor: %i : Amarelo",placa[npl].marco[i].getCor()), placa[npl].marco[i].getCentroImg(), 1, 3,cv::Scalar(0,255,255),3);
@@ -797,7 +811,7 @@ int  mensuriumAGE::AcharTabs(cv::Mat img, int n, int npl, cv::Mat imgDes){
 
 
         }else{
-            std::cout<<"Alvo"<<n<<"não encontrado!"<<std::endl;
+            std::cout<<"Alvo "<<i<<":não encontrado!"<<std::endl;
         }
 
         //cv::imshow("AcharTab",pb);
@@ -1109,17 +1123,17 @@ void mensuriumAGE::Rodar(char* nomeJan, cv::Mat imgE, cv::Mat imgD){
     if (placa[0].getnMarcoAch()==4){
         std::cout<<"Calculando centro do conjunto de alvos!"<<std::endl;
         placa[0].CalcentroPlaca();
-        cv::circle(imgSaida,placa[0].getPosCentroImg(),5,cv::Scalar(255,0,255),2,1,0);
+        cv::circle(imgSaida,placa[0].getPosCentroImg(),10,cv::Scalar(255,0,255),2,1,0);
 
         //        for(int i= 0;i<4;i++ ){
         //                        placa[0].marco[i].AcharCantoProx(imgE,150,imgSaida);
         //        }
 
 
-                        cv::line(imgSaida,placa[0].marco[0].getCantoProx(),placa[0].marco[1].getCantoProx(),cv::Scalar(0,0,255),3);
-                        cv::line(imgSaida,placa[0].marco[1].getCantoProx(),placa[0].marco[3].getCantoProx(),cv::Scalar(0,0,255),3);
-                        cv::line(imgSaida,placa[0].marco[3].getCantoProx(),placa[0].marco[2].getCantoProx(),cv::Scalar(0,0,255),3);
-                        cv::line(imgSaida,placa[0].marco[2].getCantoProx(),placa[0].marco[0].getCantoProx(),cv::Scalar(0,0,255),3);
+        cv::line(imgSaida,placa[0].marco[0].getCantoProx(),placa[0].marco[1].getCantoProx(),cv::Scalar(0,0,255),3);
+        cv::line(imgSaida,placa[0].marco[1].getCantoProx(),placa[0].marco[3].getCantoProx(),cv::Scalar(0,0,255),3);
+        cv::line(imgSaida,placa[0].marco[3].getCantoProx(),placa[0].marco[2].getCantoProx(),cv::Scalar(0,0,255),3);
+        cv::line(imgSaida,placa[0].marco[2].getCantoProx(),placa[0].marco[0].getCantoProx(),cv::Scalar(0,0,255),3);
 
 
     }
@@ -1248,59 +1262,46 @@ void mensuriumAGE::Orientar(cv::Mat imgDes){
     cv::line(imgDes,placa[0].marco[0].getCentroImg(),placa[0].marco[2].getCentroImg(),cv::Scalar(0,0,255),3);
     cv::line(imgDes,placa[0].marco[1].getCentroImg(),placa[0].marco[3].getCentroImg(),cv::Scalar(0,0,255),3);
 
-    cv::Mat tveci = placa[0].marco[0].getPosicaoMONO();
-    //std::cout<<"tveci"<<tveci<<std::endl;
+    cv::Mat rveci = placa[0].marco[0].getOrientacao();
+    std::cout<<"rveci"<<(180/CV_PI)*rveci<<std::endl;
 
-    cv::Mat tvecf = placa[0].marco[2].getPosicaoMONO();
-    //std::cout<<"tvecf"<<tvecf<<std::endl;
+    cv::Mat rvecf = placa[0].marco[1].getOrientacao();
+    std::cout<<"rvecf"<<(180/CV_PI)*rvecf<<std::endl;
 
-    cv::Point2f ptCG(tvecf.at<double>(0,0),tvecf.at<double>(1,0));
-    cv::Point2f ptCe(tveci.at<double>(0,0),tveci.at<double>(1,0));
+    cv::Mat roti;
+    cv::Rodrigues(rveci,roti);
 
-    deltaABC[2] = calcAng(ptCG,ptCe);
-
-    ptCG = cv::Point2f(tvecf.at<double>(0,0),tvecf.at<double>(2,0));
-    ptCe = cv::Point2f(tveci.at<double>(0,0),tveci.at<double>(2,0));
-
-    deltaABC[1] = calcAng(ptCG,ptCe);
-
-    ptCG = cv::Point2f(tvecf.at<double>(1,0),tvecf.at<double>(2,0));
-    ptCe = cv::Point2f(tveci.at<double>(1,0),tveci.at<double>(2,0));
-
-    deltaABC[0] = calcAng(ptCG,ptCe);
-
-    //std::cout<<"ANGs[0-2]: ("<<deltaABC[0]<<","<<deltaABC[1]<<","<<deltaABC[2]<<")"<<std::endl;
-
-    tveci = placa[0].marco[1].getPosicaoMONO();
-    //std::cout<<"tveci"<<tveci<<std::endl;
-
-    tvecf = placa[0].marco[3].getPosicaoMONO();
-    //std::cout<<"tvecf"<<tvecf<<std::endl;
-
-    float ang2[3];
-
-    ptCG = cv::Point2f(tvecf.at<double>(0,0),tvecf.at<double>(1,0));
-    ptCe = cv::Point2f(tveci.at<double>(0,0),tveci.at<double>(1,0));
-
-    ang2[2] = calcAng(ptCG,ptCe);
-    deltaABC[2] = ang2[2] - deltaABC[2];
+    double a31 = roti.at<double>(0,2);
+    double a32 = roti.at<double>(1,2);
+    double a33 = roti.at<double>(2,2);
+    double a13 = roti.at<double>(2,0);
+    double a23 = roti.at<double>(2,1);
 
 
-    ptCG = cv::Point2f(tvecf.at<double>(0,0),tvecf.at<double>(2,0));
-    ptCe = cv::Point2f(tveci.at<double>(0,0),tveci.at<double>(2,0));
+    double phi[3];
+    phi[0]= atan2(a31,a32);
+    double theta[3];
+    theta[0] = acos(a33);
+    double psi[3];
+    psi[0]= -atan2(a13,a23);
 
-    ang2[1] = calcAng(ptCG,ptCe);
-    deltaABC[1] = ang2[1] - deltaABC[1];
+    cv::Mat rotf;
+    cv::Rodrigues(rvecf,rotf);
 
-    ptCG = cv::Point2f(tvecf.at<double>(1,0),tvecf.at<double>(2,0));
-    ptCe = cv::Point2f(tveci.at<double>(1,0),tveci.at<double>(2,0));
+    a31 = rotf.at<double>(0,2);
+    a32 = rotf.at<double>(1,2);
+    a33 = rotf.at<double>(2,2);
+    a13 = rotf.at<double>(2,0);
+    a23 = rotf.at<double>(2,1);
 
-    ang2[0] = calcAng(ptCG,ptCe);
-    deltaABC[0] = ang2[0] - deltaABC[0];
+    phi[1]= atan2(a31,a32);
+    theta[1] = acos(a33);
+    psi[1]= -atan2(a13,a23);
 
-    //std::cout<<"ANGs [1-3]: ("<<ang2[0]<<","<<ang2[1]<<","<<ang2[2]<<")"<<std::endl;
+    std::cout<<"ANGs [0]: ("<<(180/CV_PI)*phi[0]<<","<<(180/CV_PI)*theta[0]<<","<<(180/CV_PI)*psi[0]<<")"<<std::endl;
+    std::cout<<"ANGs [1]: ("<<(180/CV_PI)*phi[1]<<","<<(180/CV_PI)*theta[1]<<","<<(180/CV_PI)*psi[1]<<")"<<std::endl;
+    std::cout<<"ANGs delta: ("<<(180/CV_PI)*(phi[1]-phi[0])<<","<<(180/CV_PI)*(theta[1]-theta[0])<<","<<(180/CV_PI)*(psi[1]-psi[0])<<")"<<std::endl;
 
-    std::cout<<"ANGs delta: ("<<deltaABC[0]<<","<<deltaABC[1]<<","<<deltaABC[2]<<")"<<std::endl;
 
 }
 
@@ -1316,4 +1317,16 @@ void mensuriumAGE::getDeltaABC(float *&dABC){
     dABC[1] = deltaABC[1];
     dABC[2] = deltaABC[2];
 
+}
+
+void mensuriumAGE::PosGarra(cv::Mat img, int n){
+
+    cv::Mat imgDes;
+    img.copyTo(imgDes);
+    AcharTabs(img,n,0,imgDes);
+
+
+
+    //cv::resize(imgDes,imgDes,cv::Size(imgDes.cols/3,imgDes.rows/3));
+    //cv::imshow("Teste Garra",imgDes);
 }

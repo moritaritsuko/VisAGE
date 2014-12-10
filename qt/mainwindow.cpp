@@ -46,11 +46,17 @@ float t = 25.4f;
 //cv::Scalar corI[4] =    {cv::Scalar(20,20,90),   cv::Scalar(0,20,90),   cv::Scalar(30,20,90),  cv::Scalar(45,10,20)};
 //cv::Scalar corF[4] =    {cv::Scalar(30,250,250), cv::Scalar(20,250,250), cv::Scalar(45,250,250), cv::Scalar(80,250,250)};
 
-//cv::Scalar corI[4] =    {cv::Scalar(20,20,90),   cv::Scalar(0,20,90),   cv::Scalar(35,20,90),  cv::Scalar(45,10,20)};
+//cv::Scalar corI[4] =    {cv::Scalar(20,20,30),   cv::Scalar(0,20,30),   cv::Scalar(30,20,30),  cv::Scalar(0,0,0)};
+//cv::Scalar corF[4] =    {cv::Scalar(25,250,250), cv::Scalar(20,250,250), cv::Scalar(45,250,250), cv::Scalar(80,100,100)};
+
+//cv::Scalar corI[4] =    {cv::Scalar(20,20,20),   cv::Scalar(0,20,20),   cv::Scalar(35,20,20),  cv::Scalar(50,20,20)};
 //cv::Scalar corF[4] =    {cv::Scalar(35,250,250), cv::Scalar(20,250,250), cv::Scalar(45,250,250), cv::Scalar(80,250,250)};
 
-cv::Scalar corI[4] =    {cv::Scalar(12,20,90),   cv::Scalar(0,20,90),   cv::Scalar(25,20,90),  cv::Scalar(33,10,30)};
-cv::Scalar corF[4] =    {cv::Scalar(28,250,250), cv::Scalar(20,250,250), cv::Scalar(45,250,250), cv::Scalar(80,250,250)};
+//cv::Scalar corI[4] =    {cv::Scalar(20,100,100),   cv::Scalar(0,100,20),   cv::Scalar(30,100,20),  cv::Scalar(0,20,50)};
+//cv::Scalar corF[4] =    {cv::Scalar(30,250,250), cv::Scalar(20,250,250), cv::Scalar(40,250,250), cv::Scalar(255,100,100)};
+
+cv::Scalar corI[4] =    {cv::Scalar(20,80,80),   cv::Scalar(0,80,80),   cv::Scalar(30,80,80),  cv::Scalar(0,20,50)};
+cv::Scalar corF[4] =    {cv::Scalar(30,250,250), cv::Scalar(20,250,250), cv::Scalar(40,250,250), cv::Scalar(255,100,100)};
 
 double vMatRC[4][4] = {{1 ,0 ,0, 2600 },
                        {0 ,0 ,1,-3050 },
@@ -169,7 +175,7 @@ MainWindow::~MainWindow()
 void MainWindow::on_btnRodar_clicked()
 {
 
-    //cv::Mat_<cv::Vec3b> img= imageIVison(ui->spinBoxGain->value(),ui->spinBoxGainAn->value(),ui->spinBoxExp->value(),ui->spinBoxOffS->value());
+  /*  //cv::Mat_<cv::Vec3b> img= imageIVison(ui->spinBoxGain->value(),ui->spinBoxGainAn->value(),ui->spinBoxExp->value(),ui->spinBoxOffS->value());
 
     cv::Mat pc = cv::Mat(4,1,CV_64F);
     pc.at<double>(0,0) = pt.at<double>(0,0);
@@ -192,12 +198,15 @@ void MainWindow::on_btnRodar_clicked()
     cv::Mat matRotRC = cv::Mat(3,3,CV_64F,vMarRotRC);
     cv::Mat rotR = matRotRC*rotCam;
 
-    std::cout<<"Roração Robô: "<<(180/CV_PI)*rotR<<std::endl;
+    std::cout<<"Roração Robô: "<<(180/CV_PI)*rotR<<std::endl;*/
 
-    //bool resp = true;
+    bool resp = true;
     //while(resp){
-    //    resp = prog.PosPixel(true);
-    //    std::cout<<"Resp= "<<resp<<std::endl;
+
+
+        //resp = prog.PosPixel(true);
+        prog.PosIV400();
+        std::cout<<"Resp= "<<resp<<std::endl;
     //    prog.mMensurium.Rodar("PosPix",img);
     //}
 
@@ -209,12 +218,12 @@ void MainWindow::on_btnRodar_clicked()
 
 void MainWindow::on_btnManual_clicked()
 {
-    prog.IniciarCaptura();
-    for(;;){
-        prog.Manipular();
-        if((cv::waitKey(3) & 255) == 27)
-            break;
-    }
+//    prog.IniciarCaptura();
+//    for(;;){
+       prog.Manipular();
+//        if((cv::waitKey(3) & 255) == 27)
+//            break;
+//    }
 }
 
 void MainWindow::on_btnMover_clicked()
@@ -418,7 +427,10 @@ void MainWindow::on_btnCaptura_clicked()
 
 void MainWindow::on_btnCapturaMono_clicked()
 {
-    prog.IniciarCaptura();  
+    prog.IniciarCaptura();
+
+    //prog.getImgCamMono();
+
 }
 
 
@@ -654,8 +666,17 @@ void MainWindow::on_btnTesteCor_clicked()
 
     QTime t;
     t.start();
-    cv::Mat img;
-    if(ui->checkBoxVivo->isChecked()){ img =imageIVison(ui->spinBoxGain->value(),ui->spinBoxGainAn->value(),ui->spinBoxExp->value(),ui->spinBoxOffS->value());img20MP = img;}else{img = img20MP;} // If "Vivo" is checked, work with freshly captured image, otherwise work from previous capture
+    cv::Mat img = cv::imread("/home/lam/Pictures/4marco.png");
+    if(ui->checkBoxVivo->isChecked()){
+        img =imageIVison(ui->spinBoxGain->value(),ui->spinBoxGainAn->value(),ui->spinBoxExp->value(),ui->spinBoxOffS->value());
+        img20MP = img;
+        //auto photoPair = stereoCameras.getStereoPhotoPair();
+        //auto photo1 = photoPair->matPair.first;
+        //auto photo2 = photoPair->matPair.second;
+        //img = photo1;
+    }
+    //else{img = cv::imread("CorHSV_Azul.png");} // If "Vivo" is checked, work with freshly captured image, otherwise work from previous capture
+    cv::imshow("img",img);
     std::cout<<"Tempo de aquisição: "<<t.restart()<<std::endl;
 
     if(!img.empty()){
@@ -683,27 +704,27 @@ void MainWindow::on_btnTesteCor_clicked()
         //                   cv::cvtColor(lab_image, image_clahe, CV_Lab2BGR);
 
 
-        std::vector<cv::Mat> channels;
-        cv::Mat img_hist_equalized;
+        //std::vector<cv::Mat> channels;
+        //cv::Mat img_hist_equalized;
 
-        cv::cvtColor(img, img_hist_equalized, CV_BGR2YCrCb); //change the color image from BGR to YCrCb format
+        //cv::cvtColor(img, img_hist_equalized, CV_BGR2YCrCb); //change the color image from BGR to YCrCb format
 
-        cv::split(img_hist_equalized,channels); //split the image into channels
+        //cv::split(img_hist_equalized,channels); //split the image into channels
 
-        cv::equalizeHist(channels[0], channels[0]); //equalize histogram on the 1st channel (Y)
+        //cv::equalizeHist(channels[0], channels[0]); //equalize histogram on the 1st channel (Y)
 
-        cv::merge(channels,img_hist_equalized); //merge 3 channels including the modified 1st channel into one image
+        //cv::merge(channels,img_hist_equalized); //merge 3 channels including the modified 1st channel into one image
 
-        cv::cvtColor(img_hist_equalized, img_hist_equalized, CV_YCrCb2BGR); //change the color image from YCrCb to BGR format (to display image properly)
+        //cv::cvtColor(img_hist_equalized, img_hist_equalized, CV_YCrCb2BGR); //change the color image from YCrCb to BGR format (to display image properly)
 
         //create windows
-        cv::namedWindow("Original Image", CV_WINDOW_AUTOSIZE);
-        cv::namedWindow("Histogram Equalized", CV_WINDOW_AUTOSIZE);
+        //cv::namedWindow("Original Image", CV_WINDOW_AUTOSIZE);
+        //cv::namedWindow("Histogram Equalized", CV_WINDOW_AUTOSIZE);
 
-        cv::resize(img_hist_equalized,img_hist_equalized,cv::Size(img_hist_equalized.cols/4,img_hist_equalized.rows/4));
-        cv::imshow("Histogram Equalized", img_hist_equalized);
+        //cv::resize(img_hist_equalized,img_hist_equalized,cv::Size(img_hist_equalized.cols/4,img_hist_equalized.rows/4));
+        //cv::imshow("Histogram Equalized", img_hist_equalized);
 
-        cv::waitKey(0); //wait for key press
+        //cv::waitKey(0); //wait for key press
 
 
 

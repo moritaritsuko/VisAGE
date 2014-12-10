@@ -5,6 +5,8 @@
 #include <cassert>
 #include <iostream>
 
+#include <thread>
+
 
 Programa::Programa(unsigned int l, unsigned int a, float t, std::vector<std::string> c, unsigned int p)
     : mMensurium()
@@ -21,7 +23,7 @@ Programa::Programa(unsigned int l, unsigned int a, float t, std::vector<std::str
     std::cout << "Tamanho (mm): " << t << std::endl;
     for (int i = 0; i < cameras.size(); ++i)
     {
-        std::cout << "Camera: " << cameras[i] << std::endl;        
+        std::cout << "Camera: " << cameras[i] << std::endl;
         mCameras.push_back(std::unique_ptr<CameraBasler> (new CameraBasler(cameras[i])));
     }
     std::cout << "Porta RSI: " << p << std::endl;
@@ -178,13 +180,67 @@ void Programa::executar(cv::Mat &imgR)
     //    }
 }
 
+
+
+
+std::mutex mutexImg;
+cv::Mat imgCamT;
+bool imgOk = false;
+
+void ImgCapMonoT(){
+
+    static const uint32_t c_countOfImagesToGrab = 2;
+    Pylon::PylonAutoInitTerm autoInitTerm;
+
+
+    Pylon::CInstantCamera camera(Pylon::CTlFactory::GetInstance().CreateFirstDevice());
+
+    camera.MaxNumBuffer = 5;
+    std::cout << "Using device " << camera.GetDeviceInfo().GetModelName() << std::endl;
+
+    camera.StartGrabbing( c_countOfImagesToGrab);
+
+    Pylon::CGrabResultPtr ptrGrabResult;
+while(true){
+
+   //std::cout<<"Adquirindo IMG..."<<std::endl;
+    while ( camera.IsGrabbing())
+    {
+        camera.RetrieveResult( 5000, ptrGrabResult, Pylon::TimeoutHandling_ThrowException);
+    }
+    //std::cout<<"IMG Adiquirida!"<<std::endl;
+
+    imgOk = false;
+    mutexImg.lock();
+    //std::cout<<"Convertendo IMG...!"<<std::endl;
+    auto img = cv::Mat(ptrGrabResult->GetHeight(),ptrGrabResult->GetWidth(), CV_8UC1, ptrGrabResult->GetBuffer());
+    cv::cvtColor(img, img, CV_BayerGB2RGB);
+        cv::Mat roi = img(cv::Rect(100, 100, 300, 300));
+        cv::Mat color(roi.size(), CV_8UC3, cv::Scalar(0, 0, 255));
+        double alpha = 0.3;
+        cv::addWeighted(color, alpha, roi, 1.0 - alpha , 0.0, roi);
+    img.copyTo(imgCamT);
+    mutexImg.unlock();
+
+
+
+    //std::cout<<"Liberando leitura!"<<std::endl;
+    imgOk = true;
+}
+
+camera.StopGrabbing();
+
+}
+
+
+
 void Programa::Manipular(){
     double xRSI, yRSI, zRSI;
     double aRSI, bRSI, cRSI;
     xRSI = yRSI = zRSI = 0.f;
     aRSI = bRSI = cRSI = 0.f;
 
-    cv::Mat img;
+    /*    cv::Mat img;
     if (!filaImagens.empty())
     {
         mutexImagem.lock();
@@ -235,16 +291,82 @@ void Programa::Manipular(){
     case 'h':
         cRSI = -0.1f;
         break;
+    }*/
+
+
+   std::thread thImg(ImgCapMonoT);
+
+
+    while(true){
+
+
+        while (!imgOk) {
+            //std::cout<<"Aguardando IMG"<<std::endl;
+        }
+        std::cout<<"Exibindo..."<<std::endl;
+        cv::imshow("imgCamT",imgCamT);
+        cv::waitKey(20);
+
+        cv::Mat img;
+        imgCamT.copyTo(img);
+        imgOk = false;
+        mMensurium.PosGarra(img,4);
+
+        int setX = 1325;
+        int setY = 1090;
+
+
+        double vel = 75.f;
+        xRSI = 3.f;
+        yRSI = 3.f;
+
+        mMensurium.placa[0].CalcentroPlaca();
+        cv::circle(img,mMensurium.placa[0].getPosCentroImg(),10,cv::Scalar(255,0,255),-1);
+        cv::putText(img, cv::format("Ponto: %i,%i", mMensurium.placa[0].getPosCentroImg().x,mMensurium.placa[0].getPosCentroImg().y), mMensurium.placa[0].getPosCentroImg(), 1, 3, cv::Scalar(255,0,255),3);
+
+        cv::circle(img,cv::Point(setX,setY),10,cv::Scalar(0,255,0),-1);
+
+        cv::line(img,cv::Point(setX,setY),mMensurium.placa[0].getPosCentroImg(),cv::Scalar(255,255,255),2);
+
+        if(fabs(mMensurium.placa[0].getPosCentroImg().x-setX) > 1){
+            if((mMensurium.placa[0].getPosCentroImg().x-setX)>0){
+                conectRobo.mutexInfoRoboEnvia.lock();
+                conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(0, -yRSI,zRSI,aRSI,bRSI,cRSI,controleGAMAG,1,vel);
+                conectRobo.mutexInfoRoboEnvia.unlock();
+            }else{
+                conectRobo.mutexInfoRoboEnvia.lock();
+                conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(0, yRSI,zRSI,aRSI,bRSI,cRSI,controleGAMAG,1,vel);
+                conectRobo.mutexInfoRoboEnvia.unlock();
+            }
+        }else{
+            yRSI = 0.f;
+        }
+
+        if(fabs(mMensurium.placa[0].getPosCentroImg().y-setY) > 1){
+            if((mMensurium.placa[0].getPosCentroImg().y-setY)>0){
+                conectRobo.mutexInfoRoboEnvia.lock();
+                conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(-xRSI, 0,zRSI,aRSI,bRSI,cRSI,controleGAMAG,1,vel);
+                conectRobo.mutexInfoRoboEnvia.unlock();
+            }else{
+                conectRobo.mutexInfoRoboEnvia.lock();
+                conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(xRSI, 0,zRSI,aRSI,bRSI,cRSI,controleGAMAG,1,vel);
+                conectRobo.mutexInfoRoboEnvia.unlock();
+            }
+        }else{
+            xRSI  = -0.f;
+        }
+
+        conectRobo.RSI_XML(xRSI, yRSI, zRSI,aRSI,bRSI,cRSI);
+
+        int fs = 3;
+        if (!img.empty()){
+            cv::resize(img,img,cv::Size(img.cols/fs,img.rows/fs));
+            cv::imshow("img",img);
+        }
+        char tecla = cv::waitKey(30);
+        if (tecla == 'q' )break;
     }
-
-    conectRobo.mutexInfoRoboEnvia.lock();
-    conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(xRSI, yRSI, zRSI,aRSI,bRSI,cRSI,controleGAMAG);
-    conectRobo.mutexInfoRoboEnvia.unlock();
-    //conectRobo.RSI_XML(xRSI, yRSI, zRSI,aRSI,bRSI,cRSI);
-
-    if (!img.empty())
-        cv::imshow("img",img);
-    pthread_yield();
+    //camera.StopGrabbing();
 }
 
 void Programa::MoverPara(double deltax, double deltay, double deltaz, double vel){
@@ -356,48 +478,36 @@ void Programa::Rotacionar(double deltaA, double deltaB, double deltaC, double ve
 
         double pontoFinalA = infoRobo.a+deltaA;
 
-        if((infoRobo.a<0 && deltaA>0)||(infoRobo.a<0 && deltaA<0)){
-            pontoFinalA = infoRobo.a - deltaA;
-        }
-
         if(pontoFinalA < -180){
-            pontoFinalA = -(pontoFinalA + 180);
+            pontoFinalA = -180;
         }
 
         if(pontoFinalA > 180){
-            pontoFinalA = -(180 -(pontoFinalA - 180));
+            pontoFinalA = 180;
         }
 
         std::cout<<"pontoFinalA= "<<pontoFinalA<<std::endl;
 
         double pontoFinalB = infoRobo.b+deltaB;
 
-        if((infoRobo.b<0 && deltaB>0)||(infoRobo.b<0 && deltaB<0)){
-            pontoFinalB = infoRobo.b - deltaB;
-        }
-
         if(pontoFinalB < -180){
-            pontoFinalB = -(pontoFinalB + 180);
+            pontoFinalB = -180;
         }
 
         if(pontoFinalB > 180){
-            pontoFinalB = -(180 -(pontoFinalB - 180));
+            pontoFinalB = 180;
         }
 
         std::cout<<"pontoFinalB= "<<pontoFinalB<<std::endl;
 
         double pontoFinalC = infoRobo.c+deltaC;
 
-        if((infoRobo.c<0 && deltaC>0)||(infoRobo.c<0 && deltaC<0)){
-            pontoFinalC = infoRobo.c - deltaC;
-        }
-
         if(pontoFinalC < -180){
-            pontoFinalC = -(pontoFinalC + 180);
+            pontoFinalC = -180;
         }
 
         if(pontoFinalC > 180){
-            pontoFinalC = -(180 -(pontoFinalC - 180));
+            pontoFinalC = 180;
         }
         std::cout<<"pontoFinalC= "<<pontoFinalC<<std::endl;
 
@@ -406,8 +516,10 @@ void Programa::Rotacionar(double deltaA, double deltaB, double deltaC, double ve
 
             while(fabs(pontoFinalA-infoRobo.a)> 1.1f*vel){
                 infoRobo = conectRobo.infoRoboRecebe;
-                std::cout << "detalA= " <<fabs(pontoFinalA-infoRobo.a)<<std::endl;
-                std::cout << "A= " <<infoRobo.a<<std::endl;
+
+                std::cout << "Ang A = " <<infoRobo.a;
+                std::cout << " | detalA = " <<fabs(pontoFinalA-infoRobo.a);
+                std::cout << " | incremento = " <<aRSI<<std::endl;
 
                 aRSI = vel;
                 if ((pontoFinalA - infoRobo.a) < 0)aRSI = -vel;
@@ -432,12 +544,18 @@ void Programa::Rotacionar(double deltaA, double deltaB, double deltaC, double ve
                 //if((infoRobo.b>-vel)&&(infoRobo.b<vel)) vel = -vel; else
 
 
+                bRSI = -vel;
+                if ((pontoFinalB - infoRobo.b) < 0)bRSI = vel;
+
+
+
                 std::cout << "Ang B = " <<infoRobo.b;
                 std::cout << " | detalB = " <<fabs(pontoFinalB-infoRobo.b);
                 std::cout << " | incremento = " <<bRSI<<std::endl;
 
-                bRSI = vel;
-                if ((pontoFinalB - infoRobo.b) < 0)bRSI = -vel;
+
+
+
 
                 conectRobo.mutexInfoRoboEnvia.lock();
                 conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(0.f,0.f,0.f,0.f, bRSI, 0.f, controleGAMAG);
@@ -449,13 +567,14 @@ void Programa::Rotacionar(double deltaA, double deltaB, double deltaC, double ve
 
         if (deltaC != 0)
         {
-            cRSI = -vel;
-            if (deltaC > 0)cRSI = vel;
+            cRSI = vel;
+            if (deltaC > 0)cRSI = -vel;
 
             while(fabs(pontoFinalC-infoRobo.c)> 1.1f*vel){
                 infoRobo = conectRobo.infoRoboRecebe;
-                std::cout << "detalC= " <<fabs(pontoFinalC-infoRobo.c)<<std::endl;
-                std::cout << "C= " <<infoRobo.c<<std::endl;
+                std::cout << "Ang C = " <<infoRobo.c;
+                std::cout << " | detalC = " <<fabs(pontoFinalC-infoRobo.c);
+                std::cout << " | incremento = " <<cRSI<<std::endl;
 
                 conectRobo.mutexInfoRoboEnvia.lock();
                 conectRobo.infoRoboEnvia = ConectRobo::InfoRobo(0.f,0.f,0.f,0.f, 0.f, cRSI, controleGAMAG);
@@ -497,7 +616,24 @@ void Programa::IniciarCaptura(int camera)
     result = pthread_create(&tid, 0, Programa::chamarCapturarImagem, this);
     if (result == 0)
         pthread_detach(tid);
+
     cv::waitKey(100);
+}
+
+cv::Mat Programa::getImgCamMono(int index){
+    camera_index = index;
+
+    auto cap = getCamera();
+    if (!cap->isGrabbing())
+        cap->exec();
+
+    cv::Mat imagem = cap->getPhoto()->mat;
+
+    if(imagem.empty()){
+        std::cout<<"Imagem vazia!"<<std::endl;
+    }
+    //cap->stop();
+    return imagem;
 }
 
 void *Programa::CapturarImagem(void)
@@ -510,21 +646,21 @@ void *Programa::CapturarImagem(void)
         cv::Mat imagem = cap->getPhoto()->mat;
         if (!imagem.empty())
         {
-            Marcador marco;
-            mMensurium.AcharCentro1Tab(imagem, marco, largura, altura, tamanho);
+            //Marcador marco;
+            //mMensurium.AcharCentro1Tab(imagem, marco, largura, altura, tamanho);
             mutexImagem.lock();
             filaImagens.push(imagem);
             mutexImagem.unlock();
 
-            if (marco.isValido())
-            {
-                mutexMarcador.lock();
-                if (filaMarcadores.size() > 10)
-                    while (!filaMarcadores.empty())
-                        filaMarcadores.pop();
-                filaMarcadores.push(marco);
-                mutexMarcador.unlock();
-            }
+            //            if (marco.isValido())
+            //            {
+            //                mutexMarcador.lock();
+            //                if (filaMarcadores.size() > 10)
+            //                    while (!filaMarcadores.empty())
+            //                        filaMarcadores.pop();
+            //                filaMarcadores.push(marco);
+            //                mutexMarcador.unlock();
+            //            }
         }
     }
 }
@@ -539,8 +675,11 @@ void Programa::CapturaCameraMono()
         filaImagens.pop();
         mutexImagem.unlock();
         cv::waitKey(30);
-        if (!img.empty())
+        if (!img.empty()){
             cv::imshow(cap->getName(), img);
+        }else{
+            std::cout<<"Imagem vazia!"<<std::cout;
+        }
     }
 }
 
@@ -554,13 +693,27 @@ void Programa::PosIV400(){
 
     std::cout<<"Delta Pos: "<<deltaPos[0]<<" , "<<deltaPos[1]<<" , "<<deltaPos[2]<<std::endl;
     std::cout<<"Delta Ang: "<<deltaAng[0]<<" , "<<deltaAng[1]<<" , "<<deltaAng[2]<<std::endl;
-    std::cout<<"****************************************************DELTA ANG ENVIADO : "<<deltaAng[2]<<"********************************************************************"<<std::endl;
-    Rotacionar(0.f,deltaAng[2],0.f);
-    std::cout<<"****************************************************Processo Concluido Ang!!!!!!!!!!!!"<<"********************************************************************"<<std::endl;
 
-    std::cout<<"****************************************************DELTA POS ENVIADO : "<<deltaPos[2]<<"********************************************************************"<<std::endl;
-    MoverPara(0.f,deltaPos[2],deltaPos[0]);
-    std::cout<<"****************************************************Processo Concluido Pos!!!!!!!!!!!!"<<"********************************************************************"<<std::endl;
+
+    //Rotacionar(0.f,-deltaAng[2],0.f,0.01f);
+    //Rotacionar(deltaAng[1],0.f,0.f,0.01f);
+    //Rotacionar(0.f,0.f,deltaAng[0],0.01f);
+
+
+    MoverPara(0.f,deltaPos[2],0.f);
+
+    MoverPara(0.f,0.f,-deltaPos[1]);
+
+    //if(deltaPos[0]>120) MoverPara(deltaPos[0]-100.f,0.f,0.f);
+
+
+    //    std::cout<<"****************************************************DELTA ANG ENVIADO : "<<deltaAng[2]<<"********************************************************************"<<std::endl;
+    //    Rotacionar(0.f,deltaAng[2],0.f);
+    //    std::cout<<"****************************************************Processo Concluido Ang!!!!!!!!!!!!"<<"********************************************************************"<<std::endl;
+
+    //    std::cout<<"****************************************************DELTA POS ENVIADO : "<<deltaPos[2]<<"********************************************************************"<<std::endl;
+    //    MoverPara(0.f,deltaPos[2],deltaPos[0]);
+    //    std::cout<<"****************************************************Processo Concluido Pos!!!!!!!!!!!!"<<"********************************************************************"<<std::endl;
 
 
 
@@ -597,68 +750,76 @@ bool Programa::PosPixel(bool temImg){
     std::cout<<"Anulo In= "<<angA<<std::endl;
     std::cout<<"Anulo Fi= "<<angR<<std::endl;
 
-    //float delta = (angR-angA);
-
-    while(fabs(angR-angA)>0.1){
+    float deltaA = fabs(angR-angA);
+    while(deltaA>0.05){
         if((angR-angA)<0){
-            Rotacionar(0.f,0.02,0.f,0.01);
-            angA -= 0.02;
+            Rotacionar(0.f,-0.05,0.f,0.01);
+            angA -= 0.05;
+            std::cout<<"Anulo A= "<<angA;
+            std::cout<<" | Delta A= "<<deltaA;
+            std::cout<<" | AngF = "<<angR;
+            std::cout<<" | Inc = -0.1"<<std::endl;
         }else{
-            Rotacionar(0.f,-0.02,0.f,0.01);
-            angA += 0.02;
+            Rotacionar(0.f,0.05,0.f,0.01);
+            angA += 0.05;
+            std::cout<<"Anulo A= "<<angA;
+            std::cout<<" | Delta A= "<<deltaA;
+            std::cout<<" | AngF = "<<angR;
+            std::cout<<" | Inc = 0.1"<<std::endl;
         }
-        std::cout<<"Anulo A= "<<angA<<std::endl;
+
+        deltaA = fabs(angR-angA);
     }
 
-    float tamM0x = pD0[0].x-pD0[1].x;
-    float tamM2x = pD2[0].x-pD2[1].x;
+        float tamM0x = pD0[0].x-pD0[1].x;
+        float tamM2x = pD2[0].x-pD2[1].x;
 
-    float tamM0y = pD0[0].y-pD0[1].y;
-    float tamM2y = pD2[0].y-pD2[1].y;
+        float tamM0y = pD0[0].y-pD0[1].y;
+        float tamM2y = pD2[0].y-pD2[1].y;
 
-    std::cout<<"pD0[0]= "<<pD0[0].x<<" , "<<pD0[0].y<<std::endl;
-    std::cout<<"pD0[1]= "<<pD0[1].x<<" , "<<pD0[1].y<<std::endl;
-    std::cout<<"tamM0x= "<<tamM0x<<std::endl;
-    std::cout<<"tamM0y= "<<tamM0y<<std::endl;
-    std::cout<<"pD2[0]= "<<pD2[0].x<<" , "<<pD2[0].y<<std::endl;
-    std::cout<<"pD2[1]= "<<pD2[1].x<<" , "<<pD2[1].y<<std::endl;
-    std::cout<<"tamM2x= "<<tamM2x<<std::endl;
-    std::cout<<"tamM2y= "<<tamM2y<<std::endl;
+        std::cout<<"pD0[0]= "<<pD0[0].x<<" , "<<pD0[0].y<<std::endl;
+        std::cout<<"pD0[1]= "<<pD0[1].x<<" , "<<pD0[1].y<<std::endl;
+        std::cout<<"tamM0x= "<<tamM0x<<std::endl;
+        std::cout<<"tamM0y= "<<tamM0y<<std::endl;
+        std::cout<<"pD2[0]= "<<pD2[0].x<<" , "<<pD2[0].y<<std::endl;
+        std::cout<<"pD2[1]= "<<pD2[1].x<<" , "<<pD2[1].y<<std::endl;
+        std::cout<<"tamM2x= "<<tamM2x<<std::endl;
+        std::cout<<"tamM2y= "<<tamM2y<<std::endl;
 
-    std::cout<<"delta C= "<<fabs(tamM0x-tamM2x)<<std::endl;
-    std::cout<<"delta A= "<<fabs(tamM0y-tamM2y)<<std::endl;
+        std::cout<<"delta C= "<<fabs(tamM0x-tamM2x)<<std::endl;
+        std::cout<<"delta A= "<<fabs(tamM0y-tamM2y)<<std::endl;
 
     bool result = false;
-    if(temImg){
-        if(fabs(tamM0x-tamM2x)>1.f){
-            if((tamM0x-tamM2x) > 0){
-                std::cout<<"Enviando Correção C pixel + "<<std::endl;
-                Rotacionar(0.f,0.f,-0.6f,0.1);
-            }else{
-                std::cout<<"Enviando Correção C pixel - "<<std::endl;
-                Rotacionar(0.f,0.f,-0.6f,0.1);
-            }
-            result = true;
-        }else{
-            result = false;
-        }
+    //    if(temImg){
+    //        if(fabs(tamM0x-tamM2x)>1.f){
+    //            if((tamM0x-tamM2x) > 0){
+    //                std::cout<<"Enviando Correção C pixel + "<<std::endl;
+    //                Rotacionar(0.f,0.f,-0.6f,0.1);
+    //            }else{
+    //                std::cout<<"Enviando Correção C pixel - "<<std::endl;
+    //                Rotacionar(0.f,0.f,-0.6f,0.1);
+    //            }
+    //            result = true;
+    //        }else{
+    //            result = false;
+    //        }
 
-        if(fabs(tamM0y-tamM2y)>1.f){
-            if((tamM0y-tamM2y) > 0){
-                std::cout<<"Enviando Correção A pixel + "<<std::endl;
-                Rotacionar(-0.6,0.f,0.f,0.1);
-            }else{
-                std::cout<<"Enviando Correção A pixel - "<<std::endl;
-                Rotacionar(0.6,0.f,0.f,0.1);
-            }
-            result = true;
-        }else{
-            if(!result)result = false;
-        }
-    }
+    //        if(fabs(tamM0y-tamM2y)>1.f){
+    //            if((tamM0y-tamM2y) > 0){
+    //                std::cout<<"Enviando Correção A pixel + "<<std::endl;
+    //                Rotacionar(-0.6,0.f,0.f,0.1);
+    //            }else{
+    //                std::cout<<"Enviando Correção A pixel - "<<std::endl;
+    //                Rotacionar(0.6,0.f,0.f,0.1);
+    //            }
+    //            result = true;
+    //        }else{
+    //            if(!result)result = false;
+    //        }
+    //    }
 
 
-return result;
+    return result;
 
 }
 

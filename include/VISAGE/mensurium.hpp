@@ -95,6 +95,7 @@ public:
     void setarCores(cv::Scalar corI,cv::Scalar corF,int id);
     void getDeltaXYZ(float *&dXYZ);
     void getDeltaABC(float *&dABC);
+    void PosGarra(cv::Mat img,int n);
 private:
     cv::Mat distCoeffs;
     cv::Mat cameraMatrix;

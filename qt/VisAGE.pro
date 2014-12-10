@@ -101,9 +101,7 @@ DEPENDPATH += $$PWD/../../../../../../opt/pylon4/include
 unix:!macx: LIBS += -L$$PWD/../../../../../../opt/pylon4/genicam/bin/Linux64_x64/GenApi/Generic/ -lXerces-C_gcc40_v2_7_1
 INCLUDEPATH += $$PWD/../../../../../../opt/pylon4/genicam/bin/Linux64_x64/GenApi/Generic
 DEPENDPATH += $$PWD/../../../../../../opt/pylon4/genicam/bin/Linux64_x64/GenApi/Generic
-unix:!macx: LIBS += -L$$PWD/../../../../../../opt/pylon4/genicam/bin/Linux64_x64/GenApi/Generic/ -lXMLLoader_gcc40_v2_3
-INCLUDEPATH += $$PWD/../../../../../../opt/pylon4/include
-DEPENDPATH += $$PWD/../../../../../../opt/pylon4/include
+
 
 QMAKE_CXXFLAGS += -std=c++11
 
@@ -291,3 +289,8 @@ unix:!macx: LIBS += -L$$PWD/../../../../../../usr/lib/ -lzbar
 
 INCLUDEPATH += $$PWD/../../../../../../usr/include
 DEPENDPATH += $$PWD/../../../../../../usr/include
+
+unix:!macx: LIBS += -L$$PWD/../../../../../../opt/pylon4/genicam/bin/Linux64_x64/GenApi/Generic/ -lXMLLoader_gcc40_v2_3
+
+INCLUDEPATH += $$PWD/../../../../../../opt/pylon4/genicam/bin/Linux64_x64/GenApi/Generic
+DEPENDPATH += $$PWD/../../../../../../opt/pylon4/genicam/bin/Linux64_x64/GenApi/Generic

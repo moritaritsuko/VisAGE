@@ -28,6 +28,7 @@ class Programa
         void PosIV400();
         bool PosPixel(bool temImg = false);
         CameraBasler *getCamera();
+        cv::Mat getImgCamMono(int index = 0);
 
 
     private:        

@@ -225,7 +225,7 @@
        </property>
        <widget class="QPushButton" name="btnManual">
         <property name="text">
-         <string>Manual</string>
+         <string>Pos Garra</string>
         </property>
        </widget>
        <widget class="QPushButton" name="btnRodar">
@@ -893,7 +893,7 @@
      <x>0</x>
      <y>0</y>
      <width>1841</width>
-     <height>27</height>
+     <height>20</height>
     </rect>
    </property>
   </widget>
